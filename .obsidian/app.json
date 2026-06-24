@@ -1,0 +1,12 @@
+{
+  "attachmentFolderPath": "assets",
+  "userIgnoreFilters": [
+    "raw/",
+    "okf-export/",
+    "output/",
+    "CLAUDE.md",
+    "Manual.md",
+    "template-export/",
+    "examples/"
+  ]
+}
