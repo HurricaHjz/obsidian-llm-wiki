@@ -1,0 +1,34 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  This repo tracks the FRAMEWORK, not your knowledge.
+#  Your captured/compiled content stays LOCAL and is never committed.
+#  (See CLAUDE.md §11 — "Git: track the framework, never the knowledge".)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# --- your knowledge & generated output: LOCAL ONLY (root-anchored) ---
+/wiki/**
+/raw/**
+/assets/**
+/output/**
+/okf-export/
+/template-export/
+
+# --- ...but keep the empty folder skeleton (the .gitkeep placeholders) ---
+!/wiki/**/
+!/raw/**/
+!/assets/**/
+!/output/**/
+!**/.gitkeep
+# (examples/ is intentionally NOT ignored — it is the shipped demo)
+
+# --- Obsidian per-machine state (graph/app/core-plugins/appearance ARE tracked) ---
+.obsidian/workspace*.json
+.obsidian/cache/
+.obsidian/plugins/
+.obsidian/community-plugins.json
+
+# --- OS / editor / tooling junk ---
+.DS_Store
+Thumbs.db
+.claudian/
+__pycache__/
+*.pyc
