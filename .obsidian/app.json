@@ -7,6 +7,10 @@
     "CLAUDE.md",
     "Manual.md",
     "template-export/",
+    "README.md",
+    "docs/",
+    "LICENSE",
+    "CONTRIBUTING.md",
     "examples/"
   ]
 }
