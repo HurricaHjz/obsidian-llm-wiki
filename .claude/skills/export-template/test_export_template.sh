@@ -28,7 +28,8 @@ build_fake_vault(){
   printf 'LOCAL-USER-MEDIA\n' > "$V/assets/my_photo.png"          # user media — must NOT ship
   printf 'MIT License (test)\n' > "$V/LICENSE.md"
   printf '# Contributing (test)\n' > "$V/CONTRIBUTING.md"
-  for f in graph app core-plugins appearance; do printf '{\n  "x": 1\n}\n' > "$V/.obsidian/$f.json"; done
+  for f in app core-plugins appearance; do printf '{\n  "x": 1\n}\n' > "$V/.obsidian/$f.json"; done
+  printf '{ "colorGroups": [ {"query":"path:wiki/models/","color":1} ], "showOrphans": true, "scale": 0.5, "close": true, "search": "q", "collapse-filter": true }\n' > "$V/.obsidian/graph.json"
   for s in ingest query lint export-okf output gather newskill; do  # 'newskill' tests dynamic discovery
     mkdir -p "$V/.claude/skills/$s"; printf '# %s skill\n' "$s" > "$V/.claude/skills/$s/SKILL.md"
   done
@@ -74,6 +75,8 @@ chk "build: raw ships empty"                '[ -z "$(find "$BUILT/raw" -type f !
 chk "build: NO knowledge files shipped"     '[ ! -e "$BUILT/wiki/sources/secret.md" ] && [ ! -e "$BUILT/raw/source1.md" ]'
 chk "build: no __pycache__ shipped"         '[ -z "$(find "$BUILT" -name __pycache__)" ]'
 chk "build: no .DS_Store shipped"           '[ -z "$(find "$BUILT" -name .DS_Store)" ]'
+chk "build: graph.json keeps colorGroups"   'grep -q colorGroups "$BUILT/.obsidian/graph.json"'
+chk "build: graph.json strips view-state"   '! grep -qE "scale|close|search|collapse-" "$BUILT/.obsidian/graph.json"'
 ( cd "$BUILT" && $GIT init -q && $GIT add -A ) >/dev/null 2>&1
 chk "git: wiki content ignored"             '( cd "$BUILT" && git check-ignore -q wiki/sources/x.md )'
 chk "git: raw content ignored"              '( cd "$BUILT" && git check-ignore -q raw/x.md )'
