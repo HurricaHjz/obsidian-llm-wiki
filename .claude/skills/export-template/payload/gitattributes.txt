@@ -1,0 +1,8 @@
+# Normalise line endings across platforms (contributors on Windows/macOS/Linux)
+* text=auto eol=lf
+*.sh  text eol=lf
+*.py  text eol=lf
+*.md  text eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary

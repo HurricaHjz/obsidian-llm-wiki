@@ -8,9 +8,9 @@
     "Manual.md",
     "template-export/",
     "README.md",
-    "docs/",
-    "LICENSE",
+    "LICENSE.md",
     "CONTRIBUTING.md",
+    "assets/",
     "examples/"
   ]
 }
