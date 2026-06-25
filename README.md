@@ -1,12 +1,17 @@
 # obsidian-llm-wiki
 
-A self-maintaining knowledge base for Obsidian, driven by an AI coding agent.
+**Your second brain for Obsidian, built and maintained by an AI agent.**
 
-You add sources — articles, papers, notes, links — and ask questions. The agent reads each source once, writes it up as linked Markdown, files it in the right place, and keeps the cross-references and a catalogue current. Over time this builds a connected knowledge graph rather than a folder of clippings you never reopen. The approach follows Andrej Karpathy's [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): compile knowledge once and reuse it, instead of re-reading everything on every query.
+Simply drop in your sources (PDFs, slides, links, blogs, and almost any other file format). The agent processes each one into linked Markdown, files it correctly, and keeps your cross-references and catalogue completely up to date. Instead of building a folder of unread clippings, you create a structured, compounding knowledge base that an AI can read natively.
 
-It is tuned for AI and machine-learning research — models and benchmarks are first-class note types — but nothing about it is specific to that field.
+Once populated, the wiki can:
+* **Answers and generation:** The agent answers questions and creates almost any deliverable, from briefs and reports to presentations, tables, and cross-source syntheses.
+* **Smart referencing:** It acts as a living, cited knowledge base that any agent can draw from. This grounds every answer in your own sources while maintaining highly efficient token usage.
+* **Self-maintenance and growth:** The system actively cross-links files, merges duplicates, and flags conflicting information or knowledge gaps. It automatically maintains your catalogue and graph as your information compounds.
 
-![The knowledge graph the agent builds, coloured by note type](docs/framework_demo.png)
+We purposely designed the architecture to be universal and highly adaptable. Although it is pre-tuned for AI and machine learning research (treating models and benchmarks as primary note types), you can easily customise the repository to perfectly fit your own field or workflow.
+
+![The knowledge graph the agent builds, coloured by note type](assets/framework_demo.png)
 
 ## Setup
 
@@ -48,16 +53,17 @@ Running an LLM agent consumes API credits.
 
 ## How it works
 
-Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with a generated `index.md` and `log.md`. Six skills drive the workflow:
+Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with a generated `index.md` and `log.md`. The skills:
 
 | Skill | Purpose |
 |-------|---------|
 | `ingest` | Compile sources from `raw/` into linked notes. |
-| `gather` | Capture a topic — a page and the sources it cites — into `raw/`. |
+| `gather` | Capture a topic (a page and the sources it cites) into `raw/`. |
 | `query` | Answer a question from the wiki, with citations. |
 | `output` | Produce a grounded, cited document in `output/`. |
 | `lint` | Check the wiki for broken links, orphans, and gaps. |
 | `export-okf` | Export the wiki as a portable Open Knowledge Format bundle. |
+| `export-template` | Publish framework changes to GitHub. Contributors only; see the [Manual](Manual.md) and [CONTRIBUTING](CONTRIBUTING.md). |
 
 ## What the repository tracks
 
@@ -67,4 +73,4 @@ To back those notes up, use the optional Obsidian Git step above — a separate,
 
 ## Credits and licence
 
-Based on Karpathy's LLM Wiki pattern and kepano's obsidian-skills. Released under the MIT License ([`LICENSE`](LICENSE)). Contributions are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Based on Andrej Karpathy's [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) pattern and kepano's [obsidian-skills](https://github.com/kepano/obsidian-skills). Released under the MIT License ([`LICENSE`](LICENSE.md)); contributions are welcome (see [`CONTRIBUTING.md`](CONTRIBUTING.md)).

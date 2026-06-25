@@ -42,9 +42,9 @@ obsNotes/                      ← vault root (this is your working directory)
 │                                 the system's architecture/workflow changes — NEVER per ingest/query.
 │
 ├── assets/                   ← 🖼️ MEDIA LAYER
-│                                 Images, PDFs, attachments, diagrams live here.
-│                                 Obsidian's attachment path points here.
-│                                 Reference with Obsidian embeds: ![[file.png]]
+│                                 Images, diagrams & reference attachments — incl. *special* PDFs you
+│                                 only want to link to, NOT source PDFs to ingest (those go in raw/).
+│                                 Obsidian's attachment path points here. Embed with ![[file.png]].
 │
 ├── raw/                       ← 📥 SOURCE LAYER — facts, content-immutable
 │   │   (root = INBOX: unprocessed files waiting to be ingested)
@@ -75,7 +75,7 @@ obsNotes/                      ← vault root (this is your working directory)
 │
 ├── output/                    ← 📤 DELIVERABLES — agent-generated reports/drafts/decks (the `output` skill); cited, graph-excluded, NOT knowledge
 │
-└── .claude/skills/            ← custom workflow skills: ingest, query, lint, export-okf, output
+└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, export-okf, output, export-template
 ```
 
 ### Permission rules (non-negotiable)
@@ -238,7 +238,7 @@ Each skill's own description surfaces automatically — below is just *when to r
 
 ## 8. Media Handling
 
-- **Media & attachments** (images, diagrams, PDFs you embed in a note) live in **`assets/`**. Embed with `![[name.png]]`.
+- **Media & reference attachments** (images, diagrams, screenshots, and *special* PDFs you want to link to but **not** ingest) live in **`assets/`**. Embed with `![[name.png]]`. (Normal source PDFs belong in `raw/` — see below.)
 - **Source files you want to ingest** (PDFs, papers, slides, docs, …) are *sources*, not attachments
   → keep them in `raw/`. `/ingest` **converts them to Markdown with MarkItDown first** (§3.1), then
   compiles the result; the original and the converted `.md` both sort to their category folder
@@ -302,6 +302,10 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
 - **Token efficiency is a first-class constraint.** Choose the change that adds the least *recurring*
   cost — shell over LLM reads, compact output, scoped checks, opt-in over always-on for anything
   expensive. Never make a default behavior burn tokens when a cheaper design works.
+- **Prose quality for human-facing docs.** When writing or editing `README.md`, `Manual.md`, `CLAUDE.md`,
+  or anything a person reads, make it **clear, concise, fluent and genuinely human** — British English,
+  active voice, short sentences, scannable structure; cut filler and redundancy. It must never read like
+  AI-generated boilerplate.
 - **Always log it** — append a `## [date] sync | …` entry to `wiki/log.md`.
 - **Update `Manual.md` only when warranted** — i.e. the change edits existing Manual content, adds
   user-facing usage/info, or the user explicitly asks. Internal-only changes do **not** touch the Manual.

@@ -1,22 +1,20 @@
-# Manual — using your LLM second brain
+# Manual: using your LLM second brain
 
-> **What this is.** A self-maintaining knowledge base. **You** capture sources — articles, papers, notes,
-> links — and ask questions; **an AI agent** reads each source once, compiles it into linked, structured
-> notes, and keeps everything cross-referenced. Rather than re-reading everything on every query, it
-> **compiles knowledge once and reuses it**, so your notes *compound* instead of piling up.
-> (Pattern: Andrej Karpathy's LLM Wiki.) You rarely edit the wiki by hand — you work through the agent.
+> **What is this.** Your AI-built **second brain**: drop in your sources and the agent compiles them into a structured, self-maintaining knowledge base that answers questions, creates deliverables, and acts as a cited reference. 
+>
+> **What this manual covers.** How to use it day to day: the capture → compile → ask → maintain loop, the everyday commands (`/ingest`, `/query`, `/output`), and the advanced options. You rarely edit the wiki by hand; you work through the agent.
 
 ## What's in here
 
 | Folder | What it holds |
 |--------|---------------|
-| `raw/` | **Your sources.** Drop files, clips, or links into the root — that is the inbox. Once a source is processed, the agent files it into a numbered subfolder (`1-articles` … `9-originals`, `archives`, `duplicates`). |
+| `raw/` | **Your sources** (the inbox). Drop files, clips, or links here in almost any format: PDF, Word, PowerPoint, Excel, Markdown and plain text, CSV, HTML and web pages (articles, blogs, GitHub repos and gists), images (PNG/JPG), audio (MP3/WAV), EPUB, and YouTube links. Once processed, the agent files each into a numbered subfolder (`1-articles` … `9-originals`, `archives`, `duplicates`). |
 | `wiki/` | **The compiled brain:** `concepts/ entities/ tools/ models/ benchmarks/ sources/ syntheses/ maps/ user/`, plus `index.md` (the catalogue) and `log.md` (history). |
 | `wiki/user/` | **About you** — profile, research, works. The agent reads this for context; you curate it. |
 | `output/` | **Deliverables** the agent writes on request — reports, briefs, decks. Kept separate from the brain. |
-| `assets/` | Images, PDFs, and other attachments. |
+| `assets/` | Images and reference attachments — diagrams, screenshots, and *special* PDFs you want to link to. Source PDFs to **ingest** go in `raw/`, not here. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
-| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `export-okf`. |
+| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `export-okf` (plus `export-template` for contributors). |
 
 ## The loop
 
@@ -71,6 +69,10 @@ Type these to the agent, in the Claudian panel or Claude Code.
 **Back up your vault — Obsidian Git (optional)**
 - The **Obsidian Git** plugin saves your *entire* vault — notes and all — to a **private** Git remote, giving you version history and sync across machines. Set it up once (a private repo + the plugin's backup command).
 - This is **separate from sharing the framework**: Obsidian Git backs up *everything to a private repo*; the framework is published *stripped of your notes to a public repo*. Keep the two remotes distinct.
+
+**`/export-template` — publish framework changes (contributors only)**
+> ⚠️ **For developers/contributors only.** If you are not planning to contribute changes to the framework itself, **ignore this skill** — you never need it to capture sources or use your wiki.
+- It packages the framework with **none** of your notes and syncs it with the public GitHub repo: `--push` publishes your framework changes, `--pull` updates your framework from upstream. It always previews and asks before writing anything, one direction at a time.
 
 **Modes and pacing**
 - **Modes** (depth): `standard` (default) · `concise` (thin sources, automatic) · `research` (papers — say "research mode", or the agent asks first). All stay token-efficient.

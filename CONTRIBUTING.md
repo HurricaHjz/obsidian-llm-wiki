@@ -12,6 +12,10 @@ Thanks for your interest! This repo is the **framework** for a self-maintaining 
 ## How to contribute
 - **Issues / ideas:** open an issue describing the workflow problem or the improvement.
 - **Pull requests:** keep changes to the framework (skills, rules, docs). A good PR is small and focused.
+- **Publishing your changes:** if you work in a vault full of your own notes, the `export-template` skill
+  packages **just** the framework (none of your notes) and syncs it with GitHub: `--push` to publish your
+  changes, `--pull` to update from upstream. It previews and asks before writing anything. For a clean
+  fork you can use plain `git` instead. Details in the [Manual](Manual.md)'s Advanced section.
 - **Skills** are a `SKILL.md` (the contract) plus optional helper scripts *with tests* — see
   `.claude/skills/gather/` (`gather_links.py` + `test_gather_links.py`). If you touch a helper, run its
   `test_*.py` and keep it green.
