@@ -93,6 +93,17 @@ for x in ["examples/", "template-export/", "okf-export/"]:
 d["userIgnoreFilters"] = flt
 json.dump(d, open(p, "w"), indent=2)
 PY
+  python3 - "$D/.obsidian/graph.json" <<'PY' || true
+import json, sys
+p = sys.argv[1]
+try: g = json.load(open(p))
+except Exception: sys.exit(0)
+# drop volatile per-session view-state so the shipped graph.json stays deterministic (no push noise
+# from zooming/searching/collapsing panels); keep colorGroups + the display/force config that matters.
+for k in ("scale", "close", "search", "collapse-filter", "collapse-color-groups", "collapse-display", "collapse-forces"):
+    g.pop(k, None)
+json.dump(g, open(p, "w"), indent=2)
+PY
 }
 
 # ── pull publish files from the repo: README/LICENSE/CONTRIBUTING → vault root, screenshot → assets/, rest → payload ──
