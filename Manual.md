@@ -73,6 +73,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 **`/export-template` — publish framework changes (contributors only)**
 > ⚠️ **For developers/contributors only.** If you are not planning to contribute changes to the framework itself, **ignore this skill** — you never need it to capture sources or use your wiki.
 - It packages the framework with **none** of your notes and syncs it with the public GitHub repo: `--push` publishes your framework changes, `--pull` updates your framework from upstream. It always previews and asks before writing anything, one direction at a time.
+- A plain `git push` only syncs a single repository with its own remote. This skill instead carries framework changes between two separate repositories, your private vault and the public framework repo, and assembles the shareable demo. Your knowledge therefore stays in its own private, independently backed-up vault, while your framework improvements still reach the public repo.
 
 **Modes and pacing**
 - **Modes** (depth): `standard` (default) · `concise` (thin sources, automatic) · `research` (papers — say "research mode", or the agent asks first). All stay token-efficient.
@@ -91,18 +92,18 @@ Type these to the agent, in the Claudian panel or Claude Code.
 The graph is **colour-coded by node type**, so the shape of your knowledge reads at a glance. Reopen the
 graph view after any setup change to load new colours.
 
-| Colour | Node type | What it is |
-|--------|-----------|------------|
-| ⚪ White | `index` · `log` | the registry hubs that anchor the graph |
-| 🟡 Gold | Maps | navigational hubs (Maps of Content) |
-| 🔵 Blue | Concepts | abstractions — methods, theories, principles |
-| 🟢 Green | Entities | people & organisations |
-| 🟠 Orange | Tools | software, apps, plugins, skills, services |
-| 🟦 Oxford blue | User | **about you** — profile, research, works |
-| 🔴 Red | Models | LLMs (Qwen, GPT, …) |
-| 🟣 Purple | Benchmarks | evaluation datasets (AIME, GSM8K, …) |
-| ⚫ Grey | Sources | one summary per raw source (the bulk of nodes) |
-| 🩷 Pink | Syntheses | answers filed back from your queries |
+| Colour         | Node type       | What it is                                     |
+| -------------- | --------------- | ---------------------------------------------- |
+| ⚪ White        | `index` · `log` | the registry hubs that anchor the graph        |
+| 🟡 Gold        | Maps            | navigational hubs (Maps of Content)            |
+| 🔵 Blue        | Concepts        | abstractions — methods, theories, principles   |
+| 🟢 Green       | Entities        | people & organisations                         |
+| 🟠 Orange      | Tools           | software, apps, plugins, skills, services      |
+| 🟦 Oxford blue | User            | **about you** — profile, research, works       |
+| 🔴 Red         | Models          | LLMs (Qwen, GPT, …)                            |
+| 🟣 Purple      | Benchmarks      | evaluation datasets (AIME, GSM8K, …)           |
+| ⚫ Grey         | Sources         | one summary per raw source (the bulk of nodes) |
+| 🩷 Pink        | Syntheses       | answers filed back from your queries           |
 
 New nodes colour themselves: each colour keys off the **type folder** (`wiki/models/`, …), so anything the agent files there is coloured automatically — no manual tagging.
 

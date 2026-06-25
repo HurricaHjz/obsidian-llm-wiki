@@ -305,7 +305,8 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
 - **Prose quality for human-facing docs.** When writing or editing `README.md`, `Manual.md`, `CLAUDE.md`,
   or anything a person reads, make it **clear, concise, fluent and genuinely human** — British English,
   active voice, short sentences, scannable structure; cut filler and redundancy. It must never read like
-  AI-generated boilerplate.
+  AI-generated boilerplate. Write as **formal documentation**: no Q&A / FAQ-style phrasing ("Why not X?"),
+  no rhetorical questions, and no defensive asides or parentheticals. State each point as a plain claim.
 - **Always log it** — append a `## [date] sync | …` entry to `wiki/log.md`.
 - **Update `Manual.md` only when warranted** — i.e. the change edits existing Manual content, adds
   user-facing usage/info, or the user explicitly asks. Internal-only changes do **not** touch the Manual.
