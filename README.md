@@ -6,7 +6,7 @@ Simply drop in your sources (PDFs, slides, links, blogs, and almost any other fi
 
 Once populated, the wiki can:
 * **Answers and generation:** The agent answers questions and creates almost any deliverable, from briefs and reports to presentations, tables, and cross-source syntheses.
-* **Smart referencing:** It acts as a living, cited knowledge base that any agent can draw from. This grounds every answer in your own sources while maintaining highly efficient token usage.
+* **Smart referencing:** It acts as a living, cited knowledge base that any agent can draw from. Every note carries a confidence level, so answers are grounded in your own sources and weighted by how trustworthy each one is, all while maintaining highly efficient token usage.
 * **Persistent insight:** It proactively synthesises across your sources and offers to save valuable answers as permanent, linked notes, so a brilliant idea from a conversation can be preserved instead of lost when the chat ends.
 * **Self-maintenance and growth:** The system actively cross-links files, merges duplicates, and flags conflicting information or knowledge gaps. It automatically maintains your catalogue and graph as your information compounds.
 
@@ -62,7 +62,8 @@ Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with 
 | `gather` | Capture a topic (a page and the sources it cites) into `raw/`. |
 | `query` | Answer a question from the wiki, with citations. |
 | `output` | Produce a grounded, cited document in `output/`. |
-| `lint` | Check the wiki for broken links, orphans, and gaps. |
+| `lint` | Check the wiki for broken links, orphans, and gaps (cheap, frequent). |
+| `deep-lint` | Heavier ~monthly pass: audit confidence levels, flag stale claims, and refresh sources against their live online versions. |
 | `export-okf` | Export the wiki as a portable Open Knowledge Format bundle. |
 | `export-template` | Publish framework changes to GitHub. Contributors only; see the [Manual](Manual.md) and [CONTRIBUTING](CONTRIBUTING.md). |
 

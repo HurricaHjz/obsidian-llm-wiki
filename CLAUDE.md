@@ -75,7 +75,7 @@ obsNotes/                      ← vault root (this is your working directory)
 │
 ├── output/                    ← 📤 DELIVERABLES — agent-generated reports/drafts/decks (the `output` skill); cited, graph-excluded, NOT knowledge
 │
-└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, export-okf, output, export-template
+└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, export-okf, output, export-template
 ```
 
 ### Permission rules (non-negotiable)
@@ -130,6 +130,7 @@ the opt-in **`--verbatim`** byte-exact capture (`curl`/`gh`), and the scanned-PD
 ---
 title: "Page Title"
 type: concept | entity | tool | model | benchmark | source | synthesis | map | user
+confidence: authoritative | high | medium | low | very-low   # how far to trust this page — every type except `map` (see §4.6)
 tags: [topic, subtopic]
 sources: [raw/1-articles/example.md]   # provenance; required for source/synthesis pages
 aliases: []                            # optional, useful for entities (acronyms, alt names)
@@ -158,6 +159,8 @@ the raw file) let `ingest` detect a re-added document — see the `ingest` skill
 - **map** — a curated Map of Content: brief orientation + grouped `[[links]]` to a cluster's key pages (a navigational hub; exempt from the no-orphan rule)
 - **user** — the owner's profile / research / publications / works; flexible sections + `## Related` (agents read it for personal context; the human curates it)
 
+Every type except `map` also carries a `confidence` ordinal in its frontmatter (see §4.6).
+
 ### 4.4 Two iron rules
 
 1. **No orphans.** Every page must contain a `## Related` section with at least one `[[wikilink]]`.
@@ -176,6 +179,23 @@ their own page types and live in `wiki/models/` and `wiki/benchmarks/`. Whenever
 - **every new publication is matched against existing model/benchmark pages** (ingest Step 4), so the
   two spaces stay connected to the whole corpus as it grows.
 
+### 4.6 Confidence (every page except `map`)
+Every wiki page carries a `confidence:` ordinal — how far the agent should trust it:
+- `authoritative` — peer-reviewed/published papers, expert peer reviews, verified sources (selective).
+- `high` — faithful summaries, credible preprints, official docs/specs/READMEs, and the owner's own work *by default*.
+- `medium` (default) — reputable secondary, or compiled pages corroborated across several sources.
+- `low` — a single promotional/social/listing source, or an auto-generated (ASR) transcript.
+- `very-low` — agent-extrapolated beyond the evidence, or uncertain/contradicted.
+
+Assign by **source authority × verification × derivation**; on a tie pick the lower (don't manufacture
+confidence). Compiled pages (concept/entity/tool/model/benchmark) **cap at `high`** — only primary
+peer-reviewed/expert sources are `authoritative`. Keep inline `unverified` for specific shaky claims
+(`type` already carries the summary-vs-generated axis, so `confidence` stays a pure trust signal).
+**Use:** `ingest` assigns it free (the source is already read) and reports each new page's level for review; `query` triages/weights/hedges by it and,
+when coverage is only `low`, still answers *with a warning*; the monthly `/deep-lint` (not routine
+`/lint`) audits coverage, staleness and freshness. Full rubric + decision procedure:
+`wiki/syntheses/wiki-confidence-levels.md`. **Defaults — an explicit user instruction overrides a page's tier** (e.g. the owner's own work is `high` by default, but the user may set a given work higher, like a published paper → `authoritative`, or lower).
+
 ---
 
 ## 5. The Two Registry Files
@@ -192,7 +212,7 @@ On a query, **read this first** to locate relevant pages, then drill in. This re
 - **Changed**: created [[Page A]], [[summary-slug]]; updated [[index.md]]
 - **Conflicts**: none   (or: conflict with [[Page B]], flagged)
 ```
-Actions: `ingest` · `query` · `lint` · `sync` · `setup` · `maps`.
+Actions: `ingest` · `query` · `lint` · `deep-lint` · `sync` · `setup` · `maps`.
 
 **Log only operations that change the brain:** `ingest`, a `query` *that files a synthesis*, `lint`
 *that applies fixes*, `sync` (framework changes), and `setup`. A query answered **inline** (no file
@@ -207,14 +227,17 @@ written) and a **read-only** lint scan are **not** logged — unless the user ex
 | `/ingest` or "add this to my wiki" | **ingest** | Compile inbox files → wiki pages, update index+log, then sort the raw file into its category subfolder. |
 | `/gather <url…>` or "deep-capture these links" | **gather** | *(opt-in)* Deep Raw-layer capture — fetch a seed + the relevant links it cites (preview-and-approve; capped) into `raw/`, then hand to `ingest`. |
 | `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → synthesize a cited answer; offer to file high-value answers into `syntheses/`. |
-| `/lint` or "health-check the wiki" | **lint** | Scan for dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. |
+| `/lint` or "health-check the wiki" | **lint** | Cheap, frequent scan: dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. (No confidence/online checks — those are `deep-lint`'s.) |
+| `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy ~monthly pass: confidence coverage & correctness, staleness, freshness vs online sources, deep structural checks, qmd refresh (if enabled); updates the vault, confirming large changes. |
 | `/export-okf` or "export to OKF" | **export-okf** | Export `wiki/` as a portable **OKF** (Open Knowledge Format) bundle to `okf-export/` — deterministic, read-only on the vault, opt-in (see [[Open Knowledge Format]] / the OKF synthesis). |
 | `/output <instruction>` or "write me a …" | **output** | Generate a deliverable (report/brief/deck/table/…) into `output/`, grounded in the wiki + cited; strictly follows the instruction, labels general knowledge, never fabricates. |
 
 > **Ingest and query leave the graph integrity-clean by construction** (index synced, no dead
 > links/orphans — ingest self-checks at Step 7). So you do **not** need to `/lint` after a normal
 > ingest. `/lint` is for *drift* (manual edits/renames, external or OneDrive/git sync changes) and
-> periodic *discovery* (emerging gap pages, cross-corpus contradictions, stale claims).
+> periodic *discovery* (emerging gap pages, cross-corpus contradictions, stale claims). The monthly
+> **`/deep-lint`** is the heavy superset that additionally audits confidence, staleness and online
+> freshness; routine `/lint` never does that work.
 
 **Never answer purely in chat for substantial work — answer in files**, then link them. Queries should compound back into the wiki.
 
@@ -231,7 +254,7 @@ the material justifies it.
 Each skill's own description surfaces automatically — below is just *when to reach for which*:
 - **Capture / convert**: `defuddle` (or WebFetch) for a web page → Markdown; **`markitdown`** to convert any non-`.md` source (PDF/PPTX/DOCX/XLSX/image/audio/HTML/CSV/EPUB/URL) before ingest (§3.1).
 - **Vault I/O**: prefer **`obsidian-cli`** (cheaper/safer than raw file ops); `obsidian-markdown` for Obsidian-flavoured syntax; `obsidian-bases` (`.base` views) · `json-canvas` (`.canvas` maps).
-- **Custom (this vault)**: `ingest` · `gather` (opt-in deep capture) · `query` · `lint` · `export-okf` · `output` · `export-template` (publish/update the public framework repo) — see §6.
+- **Custom (this vault)**: `ingest` · `gather` (opt-in deep capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `export-okf` · `output` · `export-template` (publish/update the public framework repo) — see §6.
 - **Version control / backup**: the **Obsidian Git** plugin backs up the *whole vault* (knowledge included) to a *private* remote (history + multi-device sync); `export-template` publishes the *framework only* to the *public* repo. Two repos, never crossed (§11).
 
 ---

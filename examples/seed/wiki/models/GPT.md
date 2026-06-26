@@ -1,6 +1,7 @@
 ---
 title: "GPT"
 type: model
+confidence: high
 tags: [example, llm]
 aliases: [GPT-4]
 created: 2025-01-01

@@ -22,6 +22,10 @@ have *drifted* from outside that path (manual edits/renames/deletes in Obsidian,
 OneDrive/git sync changes, many ingests over time), or periodically for *discovery* a per-source
 ingest can't do: emerging gap pages, cross-corpus contradictions, and stale claims.
 
+**Scope boundary:** confidence coverage, staleness scoring, and online-source freshness are **not**
+lint's job — they live in the heavier, ~monthly **`deep-lint`**. Routine `/lint` stays cheap and never
+reads pages for confidence or fetches anything.
+
 ## Triggers
 `/lint` · `/health` · `/scan` · "check my wiki" · "find broken links / orphans / gaps".
 

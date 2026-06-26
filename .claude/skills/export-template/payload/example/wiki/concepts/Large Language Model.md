@@ -1,6 +1,7 @@
 ---
 title: "Large Language Model"
 type: concept
+confidence: high
 tags: [example, llm, nlp]
 aliases: [LLM]
 created: 2025-01-01
