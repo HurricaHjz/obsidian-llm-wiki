@@ -1,6 +1,7 @@
 ---
 title: "MMLU"
 type: benchmark
+confidence: high
 tags: [example, benchmark, knowledge]
 aliases: [Massive Multitask Language Understanding]
 created: 2025-01-01

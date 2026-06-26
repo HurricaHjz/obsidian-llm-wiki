@@ -38,11 +38,12 @@ defaults **and state them**. Never silently widen, narrow, or reinterpret the as
 Read `wiki/index.md`, then deep-read the relevant pages (follow `## Related` one hop). Collect the
 facts you will use **together with the page each comes from** (for citation). The deliverable is built
 from compiled knowledge — *not guessed*. Consult `wiki/user/` for personal context when the deliverable
-is about, or for, the owner.
+is about, or for, the owner. **Triage by `confidence` as `query` does**: lean on `authoritative`/`high`
+pages for load-bearing claims; the field is already in frontmatter, so this is free.
 
 ### Step 3 — Separate grounded · general · unknown (anti-hallucination core)
 Classify every claim before you write it:
-- **Grounded in the wiki** → cite the page(s) inline as `[[Page]]` (or the requested citation style).
+- **Grounded in the wiki** → cite the page(s) inline as `[[Page]]` (or the requested citation style); weight by the page's `confidence` — state `authoritative`/`high` plainly, but attribute and hedge any claim resting only on `low`/`very-low` pages.
 - **General knowledge** the instruction needs but the wiki lacks → include **only if clearly labelled**
   (e.g. *"(general knowledge — not from the wiki)"*). Never present it as wiki-sourced.
 - **Unknown / unverifiable** → **do not invent it.** Omit and note the gap, or mark a factual claim
@@ -72,6 +73,7 @@ anything) is labelled general-knowledge, and any gaps flagged or questions still
   when unstated, and state them when used.
 - **No hallucination.** Grounded → cite; general → label; unknown → omit / flag / abstain. **Never
   invent facts, figures, quotes, or citations.**
+- **Weight by `confidence`.** Prefer higher-confidence wiki pages for key claims; attribute and hedge anything resting only on `low`/`very-low` pages.
 - **Write only to `output/`.** Never edit `wiki/` or `raw/`. Outputs are deliverables, not knowledge.
 - **British/UK English** and all other CLAUDE.md rules apply.
 - **Not logged by default** — a deliverable is not a brain-update (CLAUDE.md §5). Log only if the user

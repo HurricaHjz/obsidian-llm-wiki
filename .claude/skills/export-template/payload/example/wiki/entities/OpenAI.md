@@ -1,6 +1,7 @@
 ---
 title: "OpenAI"
 type: entity
+confidence: high
 tags: [example, organisation, ai-lab]
 aliases: []
 created: 2025-01-01

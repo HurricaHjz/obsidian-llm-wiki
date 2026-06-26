@@ -68,6 +68,7 @@ Overrides: `--research` / `--concise` / `--standard` force a mode; otherwise aut
 title: "Paper: <Title>"
 type: source
 mode: research
+confidence: high   # authoritative if peer-reviewed/published; see CLAUDE.md §4.6
 tags: [paper, <field>]
 authors: [<First Author>, <…>]
 year: <YYYY>
@@ -196,6 +197,7 @@ Pull out: **core thesis** (1–2 sentences), **entities** (people/companies), **
 ---
 title: "Source: <Human Title>"
 type: source
+confidence: medium   # per CLAUDE.md §4.6 — reflects the source: peer-reviewed/expert→authoritative · preprint/official-doc/owner-work(default)→high · secondary→medium · promo/social/transcript→low (a user instruction can override the tier)
 tags: [topic]
 sources: [raw/2-papers/report.md, raw/2-papers/report.pdf]   # converted .md AND original; one entry if native .md or URL
 source_url: "<original web URL if a clip — else omit>"        # de-dup
@@ -224,7 +226,8 @@ For each entity → `wiki/entities/`, **tool** (software/app/plugin/skill/librar
 GPT, Llama) → `wiki/models/`, **benchmark** (any eval dataset named — e.g. AIME, GSM8K, GPQA) →
 `wiki/benchmarks/` (Title Case filenames; a tool keeps its canonical lowercase where applicable):
 1. **Page missing** → create it per the `CLAUDE.md` frontmatter + required sections (`## Definition /
-   ## Key Points / ## Related`; model & benchmark pages also carry `## Appears in`).
+   ## Key Points / ## Related`; model & benchmark pages also carry `## Appears in`); set its
+   `confidence` per §4.6 (compiled pages **cap at `high`** — judge by corroboration across their sources).
 2. **Page exists** → read it, then **incrementally merge** new info (don't clobber).
 3. **Conflict found** → **pause**, report the conflict to the user, ask how to handle it
    (keep both under `## Conflicts / Open Questions`, overwrite, or skip), then continue.
@@ -247,6 +250,7 @@ gets a `## Related` section.
   ## [YYYY-MM-DD] ingest | <short title>
   - **Changed**: created [[..]], [[..]]; updated [[index.md]]
   - **Converted**: <original> → <stem>.md via markitdown   (omit if source was native .md)
+  - **Confidence**: <level(s) assigned, e.g. high>   (note any override of the §4.6 default)
   - **Conflicts**: none (or: conflict [[Page]], flagged/paused)
   ```
 
@@ -279,12 +283,28 @@ Before reporting done, verify your own output so a later `/lint` would find noth
 2. Every `[[wikilink]]` you wrote resolves to a real page — or you created that page.
 3. Every page you created has a `## Related` section and ≥1 inbound link from another page (no orphans).
 4. Each `sources:` path points to the file's **post-sort** location.
+5. Every page you created carries a valid `confidence` (except `map`), assigned per §4.6.
 
 Fix any gap immediately. Scope this to the pages you touched — don't re-scan the whole wiki (efficiency).
 
 > **A correct ingest is self-linting** — no follow-up `/lint` is needed. `/lint` exists for *drift*
 > (manual edits, external/sync changes) and periodic *discovery* (gap pages, cross-corpus
 > contradictions, stale claims) — things a single per-source ingest cannot guarantee.
+
+### Step 8 — Report the new pages + confidence (for the user to check)
+After the self-check, surface a short summary so the human can review the agent's trust assignments: list
+each page **created or updated** with its assigned `confidence` (add a word of basis for any non-obvious
+one — an `authoritative`, or a `low`/`very-low`). Invite the user to flag any to re-grade; confidence is a
+one-line change. Example:
+
+```
+Ingested 1 source → 6 pages (review confidence):
+- [[some-source-slug]] — high  (peer-reviewed paper)
+- [[Some Concept]] — medium
+- [[Some Entity]] — low  (single promo source)
+Flag any you'd like re-graded.
+```
+This keeps the human in the loop on confidence — the one field the agent assigns by judgement.
 
 ## Hard constraints
 - **Pace via the Pacing section** (default = `auto`). Keep the human in the loop for conflicts and
@@ -293,6 +313,8 @@ Fix any gap immediately. Scope this to the pages you touched — don't re-scan t
   are *relocating* a file (Step 6) and *adding* a MarkItDown-converted `.md` beside its original (Step 0).
 - Convert every non-`.md` source with `markitdown` before reading it; never guess a binary file's contents.
 - Every wiki page must have a `## Related` section (no orphans).
+- Every wiki page (except `map`) carries a `confidence` — assign it per CLAUDE.md §4.6 (free, since you've already read the source).
+- After ingesting, **report the created/updated pages with their `confidence`** so the user can review and re-grade (Step 8).
 - Entities/Concepts = Title Case filenames; Sources/Syntheses = kebab-case.
 - Write everything in **British/UK English** (US spelling only inside verbatim quotes, proper nouns, or code).
 - Don't fabricate. Mark uncertain claims `unverified` and cite the source.

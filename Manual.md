@@ -14,7 +14,17 @@
 | `output/` | **Deliverables** the agent writes on request — reports, briefs, decks. Kept separate from the brain. |
 | `assets/` | Images and reference attachments — diagrams, screenshots, and *special* PDFs you want to link to. Source PDFs to **ingest** go in `raw/`, not here. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
-| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `export-okf` (plus `export-template` for contributors). |
+| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `deep-lint`, `export-okf` (plus `export-template` for contributors). |
+
+Every note in `wiki/` also carries a **confidence level**, so you can see at a glance how far to trust it:
+
+| Level           | What it means                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| `authoritative` | Peer-reviewed or published work, expert reviews, and verified sources — the highest trust. |
+| `high`          | Faithful summaries, preprints, and official documentation, or your own work by default.    |
+| `medium`        | Reputable secondary sources, or notes corroborated across several sources — the default.   |
+| `low`           | A single promotional, social, or auto-transcribed source; treat with care.                 |
+| `very-low`      | Speculative or unverified material, flagged for caution.                                   |
 
 ## The loop
 
@@ -30,6 +40,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - `/ingest <file or https://…>` — a single file or web link; PDFs, documents, web pages, and YouTube are all handled.
 - `ingest this in research mode` — a thorough, academic note for an important paper, with exact figures, verbatim quotes, methods, and limitations.
 - Plain language works too: *"add this to my wiki."*
+- After each ingest, the agent lists the new notes with their **confidence level**, so you can check the trust ratings and ask to re-grade any.
 
 **`/query` — ask your knowledge base**
 - `/query <question>` — for example, *"/query what do my notes say about calibration?"*
@@ -62,6 +73,9 @@ Type these to the agent, in the Claudian panel or Claude Code.
 
 **`/lint` — health-check the wiki**
 - Finds broken links, orphans, unindexed pages, and conflicts. A normal `/ingest` self-cleans, so run this after hand-editing, after syncing between machines, or for a periodic review.
+
+**`/deep-lint` — monthly deep maintenance**
+- A heavier, roughly monthly pass that does everything `/lint` does and also audits every page's **confidence level**, flags stale claims, and re-checks your sources against their **live online versions**, updating the wiki where they have changed. Token-intensive by design, so run it about once a month rather than routinely.
 
 **`/export-okf` — export a portable copy**
 - Turns the wiki into a portable **OKF** bundle in `okf-export/`, to share with other tools. Read-only on your vault.
