@@ -69,6 +69,8 @@ On yes, create `wiki/syntheses/<slug>.md` (kebab-case) with synthesis frontmatte
 `## Sources Used` section listing every cited `[[page]]`, and register it under **Syntheses** in `index.md`.
 Give it a **conservative inherited `confidence`** (a synthesis caps at `medium` as agent-derived; drop to
 `low` if it rests mainly on `low` sources); never crystallise a `low`/`unverified` claim as asserted fact.
+**Report the filed page and its `confidence`** to the user — every newly added wiki file states its level
+(as `ingest` Step 8 does), so you can review and re-grade it.
 
 ### Step 6 — Log it (only if you filed a synthesis)
 **A pure inline answer is NOT logged** — logging is for brain-updating ops only (see CLAUDE.md §5).

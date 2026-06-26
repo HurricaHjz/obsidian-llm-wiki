@@ -191,7 +191,7 @@ Assign by **source authority × verification × derivation**; on a tie pick the 
 confidence). Compiled pages (concept/entity/tool/model/benchmark) **cap at `high`** — only primary
 peer-reviewed/expert sources are `authoritative`. Keep inline `unverified` for specific shaky claims
 (`type` already carries the summary-vs-generated axis, so `confidence` stays a pure trust signal).
-**Use:** `ingest` assigns it free (the source is already read) and reports each new page's level for review; `query` triages/weights/hedges by it and,
+**Use:** `ingest` assigns it free (the source is already read) and reports each new page's level for review; `query` triages/weights/hedges by it (and reports the confidence of any synthesis it files) and,
 when coverage is only `low`, still answers *with a warning*; the monthly `/deep-lint` (not routine
 `/lint`) audits coverage, staleness and freshness. Full rubric + decision procedure:
 `wiki/syntheses/wiki-confidence-levels.md`. **Defaults — an explicit user instruction overrides a page's tier** (e.g. the owner's own work is `high` by default, but the user may set a given work higher, like a published paper → `authoritative`, or lower).
