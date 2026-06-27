@@ -4,8 +4,9 @@ description: >
   Health-check the Obsidian wiki — the "static analysis" pass for a knowledge base. Use when the
   user runs /lint, /health, /scan, or asks to "check the wiki", "find broken links", "clean up the
   wiki", or "find gaps/orphans/conflicts". Read-only scan that reports dead links, orphan pages,
-  pages missing from index.md, and unresolved knowledge conflicts. Proposes fixes but only applies
-  them after the user confirms.
+  pages missing from index.md, and unresolved knowledge conflicts. Also restores the graph colour
+  palette on request (on-demand only, never on a routine scan). Proposes fixes but only applies them
+  after the user confirms.
 user-invocable: true
 ---
 
@@ -49,6 +50,31 @@ as cognitive tech-debt to resolve.
 Note entities/concepts mentioned often but lacking their own page, and stale claims newer sources
 supersede. Suggest sources or web searches to fill gaps.
 
+## Graph colour restore (on-demand — NOT part of a routine lint)
+The graph's per-type colours live in `.obsidian/graph.json` → `colorGroups`. That file is **volatile**:
+Obsidian rewrites it from memory whenever a graph setting changes (or a sync clobbers it), and can wipe
+the palette so the graph turns all-grey. Unlike dead links or orphans, a wiped palette is **immediately
+visible**, so there is no need to scan for it on every lint — handle it **only on a real signal**.
+
+**Trigger — do this only when:**
+1. the user reports a grey/colourless graph or asks to check/fix/restore graph colours, **or**
+2. it is a **fresh vault** at first-run — `ingest`'s bootstrap calls this once (see that skill).
+
+Otherwise do nothing: a routine `/lint` never reads `graph.json` or the palette.
+
+**Procedure (one shared script — the single source of truth for the palette):**
+- **Detect:** `python3 .claude/skills/lint/apply-palette.py --check` → exit 0 = palette complete (stop);
+  exit 1 = it prints the missing framework groups.
+- **Confirm, then restore:** on the user's OK, `python3 .claude/skills/lint/apply-palette.py --apply` —
+  it **merges** the canonical palette (`.claude/skills/lint/palette.json`) into `colorGroups`, adding
+  only the missing framework groups and **preserving any custom groups**. Idempotent.
+- **Reload:** tell the user to **close the graph view and reload Obsidian** (`Cmd/Ctrl+R`), so Obsidian
+  does not overwrite the edit with stale in-memory state.
+
+The palette data (`palette.json`) and logic (`apply-palette.py`) ship with this skill, so `setup.sh`,
+`ingest`'s first-run, and this restore all use the **same** definition — read **only** on this path,
+never on a routine lint.
+
 ## Report format
 ```markdown
 ## 🩺 Wiki Health Report — YYYY-MM-DD
@@ -72,6 +98,7 @@ supersede. Suggest sources or web searches to fill gaps.
 ## Hard constraints
 - **Read-only scan.** Do not modify, rename, or delete anything before the report.
 - **Wait for confirmation** before applying any fix.
+- **Graph colour restore is on-demand only** (see its section) — never scanned or read on a routine lint.
 - After approved fixes, append to `wiki/log.md`:
   `## [YYYY-MM-DD] lint | fixed N issues (M dead links, K unindexed)`.
 - Report in **British/UK English**.

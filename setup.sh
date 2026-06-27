@@ -45,6 +45,13 @@ mk_log() {
 LOG
 }
 
+apply_palette() {
+  # ensure the graph's per-type colour palette is present (idempotent; merges, preserves custom groups)
+  if [ -f .claude/skills/lint/apply-palette.py ]; then
+    python3 .claude/skills/lint/apply-palette.py --apply >/dev/null 2>&1 || true
+  fi
+}
+
 DEMO_RAW="raw/2-papers/example-gpt4-and-mmlu.md"
 DEMO_WIKI=("wiki/sources/example-gpt4-and-mmlu.md" "wiki/concepts/Large Language Model.md" \
            "wiki/entities/OpenAI.md" "wiki/models/GPT.md" "wiki/benchmarks/MMLU.md" "wiki/maps/home.md")
@@ -61,6 +68,7 @@ case "${1:-}" in
     else
       echo "! examples/seed not found — created empty registries only."
     fi
+    apply_palette
     ;;
   --reset)
     rm -f "$DEMO_RAW" "${DEMO_WIKI[@]}" 2>/dev/null || true
@@ -70,6 +78,7 @@ case "${1:-}" in
   ""|--init)
     [ -f wiki/index.md ] || mk_index
     [ -f wiki/log.md ]   || mk_log
+    apply_palette
     echo "✓ ready. Drop a source into raw/ and run /ingest"
     echo "  (or try the demo first:  bash setup.sh --with-example)"
     ;;

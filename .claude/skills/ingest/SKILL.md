@@ -243,7 +243,12 @@ gets a `## Related` section.
 ### Step 5 — Update the registries
 - **First-run bootstrap**: if `wiki/index.md` or `wiki/log.md` is missing (a fresh clone), create it first
   — an empty `index.md` with the standard `## Sources / Entities / Tools / Models / Benchmarks / Concepts
-  / Syntheses / Developments / Maps / User` headers, and a `log.md` seeded with one `setup` entry — then proceed.
+  / Syntheses / Developments / Maps / User` headers, and a `log.md` seeded with one `setup` entry. On this
+  same fresh-vault branch, **once**, ensure the graph colour palette: run
+  `python3 .claude/skills/lint/apply-palette.py --apply` (idempotent — a no-op if the shipped palette is
+  intact; restores it if a fresh clone had `colorGroups` wiped by Obsidian). If it prints `APPLIED…`, tell
+  the user to reload Obsidian with the graph view closed. This runs **only** here (registries missing),
+  never on a normal ingest. Then proceed.
 - **`wiki/index.md`** → add each new page under Sources / Entities / Concepts with a one-line desc.
 - **`wiki/log.md`** → append **via shell** (`cat >> wiki/log.md …`; never Read the whole file — it grows unbounded):
   ```markdown

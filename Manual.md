@@ -109,7 +109,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 ## Graph view (colours)
 
 The graph is **colour-coded by node type**, so the shape of your knowledge reads at a glance. Reopen the
-graph view after any setup change to load new colours.
+graph view after any setup change to load new colours. **A fresh vault's graph is empty** until you `/ingest` your first source (or load the demo with `bash setup.sh --with-example`) — the colours appear as soon as there are notes to colour, and `setup.sh` / your first ingest apply the palette automatically. If the colours ever disappear later (Obsidian can rewrite its graph config), just ask the agent to restore your graph colours.
 
 | Colour         | Node type       | What it is                                     |
 | -------------- | --------------- | ---------------------------------------------- |

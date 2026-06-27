@@ -1,0 +1,13 @@
+[
+  { "query": "file:index.md OR file:log.md", "color": { "a": 1, "rgb": 16777215 } },
+  { "query": "path:wiki/maps/",         "color": { "a": 1, "rgb": 15911244 } },
+  { "query": "path:wiki/concepts/",     "color": { "a": 1, "rgb": 5688562 } },
+  { "query": "path:wiki/entities/",     "color": { "a": 1, "rgb": 7327639 } },
+  { "query": "path:wiki/tools/",        "color": { "a": 1, "rgb": 15105570 } },
+  { "query": "path:wiki/user/",         "color": { "a": 1, "rgb": 2048647 } },
+  { "query": "path:wiki/models/",       "color": { "a": 1, "rgb": 15423319 } },
+  { "query": "path:wiki/benchmarks/",   "color": { "a": 1, "rgb": 12282841 } },
+  { "query": "path:wiki/sources/",      "color": { "a": 1, "rgb": 8553090 } },
+  { "query": "path:wiki/syntheses/",    "color": { "a": 1, "rgb": 15429552 } },
+  { "query": "path:wiki/developments/", "color": { "a": 1, "rgb": 10506797 } }
+]
