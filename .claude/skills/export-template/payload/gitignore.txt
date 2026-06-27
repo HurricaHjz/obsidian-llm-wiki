@@ -34,3 +34,8 @@ Thumbs.db
 .claudian/
 __pycache__/
 *.pyc
+
+# --- optional qmd local index (project-local mode); normally state lives in ~/.cache/qmd ---
+.qmd/
+*.sqlite
+.qmd-off

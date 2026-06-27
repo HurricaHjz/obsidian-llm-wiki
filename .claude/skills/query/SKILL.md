@@ -40,7 +40,10 @@ Open the most relevant pages in full with the read tool (or `obsidian-cli`). Fol
 links one hop out when it helps. **When candidates are many, first check their `confidence` cheaply
 (one `grep "^confidence:" <candidate files>`, frontmatter only) and deep-read `authoritative`/`high`
 first; pull in `medium` as needed; consult `low`/`very-low` only to fill gaps.** This is net
-token-saving — it skips full reads of low-value pages.
+token-saving — it skips full reads of low-value pages. **If the catalogue under-covers the question and
+qmd is active** (the `qmd-search` skill — dormant unless qmd is installed + enabled), use it as the
+semantic fallback (`qmd query "<q>" --json --files`), confidence-rank the hits, then deep-read; otherwise
+`grep` as usual.
 
 ### Step 3 — Synthesize with citations (weighted by confidence)
 - Cite every page you draw from inline as `[[Page Name]]`.
@@ -70,7 +73,9 @@ On yes, create `wiki/syntheses/<slug>.md` (kebab-case) with synthesis frontmatte
 Give it a **conservative inherited `confidence`** (a synthesis caps at `medium` as agent-derived; drop to
 `low` if it rests mainly on `low` sources); never crystallise a `low`/`unverified` claim as asserted fact.
 **Report the filed page and its `confidence`** to the user — every newly added wiki file states its level
-(as `ingest` Step 8 does), so you can review and re-grade it.
+(as `ingest` Step 8 does), so you can review and re-grade it. **Refresh on write:** if qmd is active, refresh
+the new page's qmd embedding (`qmd update && qmd embed`, incremental — the `qmd-search` hook); a no-op when
+qmd is dormant.
 
 ### Step 6 — Log it (only if you filed a synthesis)
 **A pure inline answer is NOT logged** — logging is for brain-updating ops only (see CLAUDE.md §5).

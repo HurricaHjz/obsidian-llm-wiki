@@ -39,7 +39,9 @@ Read `wiki/index.md`, then deep-read the relevant pages (follow `## Related` one
 facts you will use **together with the page each comes from** (for citation). The deliverable is built
 from compiled knowledge — *not guessed*. Consult `wiki/user/` for personal context when the deliverable
 is about, or for, the owner. **Triage by `confidence` as `query` does**: lean on `authoritative`/`high`
-pages for load-bearing claims; the field is already in frontmatter, so this is free.
+pages for load-bearing claims; the field is already in frontmatter, so this is free. If the catalogue
+under-covers and qmd is active (the `qmd-search` skill, dormant unless installed), use it as the semantic
+fallback to locate relevant pages, then deep-read; otherwise `grep`.
 
 ### Step 3 — Separate grounded · general · unknown (anti-hallucination core)
 Classify every claim before you write it:

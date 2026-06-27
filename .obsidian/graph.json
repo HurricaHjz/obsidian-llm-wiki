@@ -73,6 +73,13 @@
         "a": 1,
         "rgb": 15429552
       }
+    },
+    {
+      "query": "path:wiki/developments/",
+      "color": {
+        "a": 1,
+        "rgb": 10506797
+      }
     }
   ],
   "showArrow": false,
