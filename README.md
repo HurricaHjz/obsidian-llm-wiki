@@ -42,6 +42,8 @@ This is a framework rather than a plugin: it runs on an AI coding agent that rea
 
    Open the folder in Obsidian, open the graph view, and ask the agent `/query what is GPT?`. The answer is drawn from the bundled demo, with links to the notes behind it. Run `bash setup.sh --reset` when you are ready to start your own knowledge base.
 
+   > **A fresh vault's graph is empty** until you load the demo or `/ingest` your first source — that is expected, not a fault. `setup.sh` and your first ingest apply the colour palette automatically, and Obsidian then colour-codes nodes by type. If the colours ever vanish later (Obsidian can rewrite its own graph config), just ask the agent to restore your graph colours.
+
    Once you have explored the demo, the `examples/` folder is safe to delete — it is only the sample wiki and is never needed again.
 
 6. **Back up your vault (optional).** Install the [Obsidian Git](https://github.com/Vinzent03/obsidian-git) plugin to sync your *whole* vault — notes included — to a **private** repository, for version history and multi-device backup. Keep that private remote separate from this public framework repo; your notes are never part of it.
