@@ -322,8 +322,14 @@ Each skill's own description surfaces automatically — below is just *when to r
 ## 12. Framework / self-modification policy
 When you change *how the system works* (this `CLAUDE.md`, a skill, the folder layout, conventions):
 
-- **Token efficiency is a first-class constraint.** Choose the change that adds the least *recurring*
-  cost — shell over LLM reads, compact output, scoped checks, opt-in over always-on for anything
+- **Design for maximum future performance; ignore the one-time upgrade cost.** The first priority of every
+  framework change is the best possible *recurring* behaviour — **accuracy first, then token efficiency**;
+  token efficiency must **never** be bought at the price of essential accuracy or quality. The **one-time
+  cost of performing the upgrade itself** (the tokens/effort to migrate, backfill, re-embed, re-tag, …) is
+  **not a design factor** — never weaken the future design to make the upgrade cheaper. A large one-time cost
+  may be surfaced to *warn* the developer, but it never shapes the design.
+- **Token efficiency is a first-class constraint** (of *recurring* cost). Choose the change that adds the least
+  *recurring* cost — shell over LLM reads, compact output, scoped checks, opt-in over always-on for anything
   expensive. Never make a default behavior burn tokens when a cheaper design works.
 - **Prose quality for human-facing docs.** When writing or editing `README.md`, `Manual.md`, `CLAUDE.md`,
   or anything a person reads, make it **clear, concise, fluent and genuinely human** — British English,
