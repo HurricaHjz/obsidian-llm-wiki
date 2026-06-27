@@ -74,7 +74,7 @@ make_skeleton() {
   local D="$1"
   for d in 1-articles 2-papers 3-notes 4-webinfo 5-blogs 6-social 7-reviews 8-transcripts 9-originals archives duplicates; do
     mkdir -p "$D/raw/$d"; touch "$D/raw/$d/.gitkeep"; done
-  for d in concepts entities tools models benchmarks sources syntheses maps user; do
+  for d in concepts entities tools models benchmarks sources syntheses developments maps user; do
     mkdir -p "$D/wiki/$d"; touch "$D/wiki/$d/.gitkeep"; done
   mkdir -p "$D/assets" "$D/output"; touch "$D/assets/.gitkeep" "$D/output/.gitkeep"
 }

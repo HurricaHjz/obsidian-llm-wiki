@@ -70,12 +70,13 @@ obsNotes/                      ← vault root (this is your working directory)
 │   ├── benchmarks/            ← evaluation datasets (AIME, GSM8K, GPQA, …)
 │   ├── sources/               ← one-to-one summaries of each raw source
 │   ├── syntheses/             ← cross-source reports / answers filed back from queries
+│   ├── developments/          ← 🛠️ this vault's OWN self-upgrade docs: framework design · plans · rollouts
 │   ├── maps/                  ← Maps of Content: curated topic-overview hubs (navigation)
 │   └── user/                  ← 👤 the vault owner: profile, research, publications, works (agents consult for personal context)
 │
 ├── output/                    ← 📤 DELIVERABLES — agent-generated reports/drafts/decks (the `output` skill); cited, graph-excluded, NOT knowledge
 │
-└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, export-okf, output, export-template
+└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, qmd-search, export-okf, output, export-template
 ```
 
 ### Permission rules (non-negotiable)
@@ -129,7 +130,7 @@ the opt-in **`--verbatim`** byte-exact capture (`curl`/`gh`), and the scanned-PD
 ```yaml
 ---
 title: "Page Title"
-type: concept | entity | tool | model | benchmark | source | synthesis | map | user
+type: concept | entity | tool | model | benchmark | source | synthesis | development | map | user
 confidence: authoritative | high | medium | low | very-low   # how far to trust this page — every type except `map` (see §4.6)
 tags: [topic, subtopic]
 sources: [raw/1-articles/example.md]   # provenance; required for source/synthesis pages
@@ -156,6 +157,7 @@ the raw file) let `ingest` detect a re-added document — see the `ingest` skill
 - **model / benchmark** — `## Definition` · `## Key Points` (optional) · `## Appears in` (papers that use it) · `## Related`
 - **source** — `## Summary` (3–5 sentences) · `## Key Takeaways` · `## Related`
 - **synthesis** — the analysis/answer · `## Sources Used` (wikilinks to every page cited)
+- **development** — a *framework self-upgrade* doc (design · plan · rollout for changes to **this vault itself**); flexible sections + `## Sources Used`
 - **map** — a curated Map of Content: brief orientation + grouped `[[links]]` to a cluster's key pages (a navigational hub; exempt from the no-orphan rule)
 - **user** — the owner's profile / research / publications / works; flexible sections + `## Related` (agents read it for personal context; the human curates it)
 
@@ -189,19 +191,20 @@ Every wiki page carries a `confidence:` ordinal — how far the agent should tru
 
 Assign by **source authority × verification × derivation**; on a tie pick the lower (don't manufacture
 confidence). Compiled pages (concept/entity/tool/model/benchmark) **cap at `high`** — only primary
-peer-reviewed/expert sources are `authoritative`. Keep inline `unverified` for specific shaky claims
+peer-reviewed/expert sources are `authoritative`; agent-derived pages (`synthesis`, `development`) likewise
+cap at `high` and default to `medium`. Keep inline `unverified` for specific shaky claims
 (`type` already carries the summary-vs-generated axis, so `confidence` stays a pure trust signal).
 **Use:** `ingest` assigns it free (the source is already read) and reports each new page's level for review; `query` triages/weights/hedges by it (and reports the confidence of any synthesis it files) and,
 when coverage is only `low`, still answers *with a warning*; the monthly `/deep-lint` (not routine
 `/lint`) audits coverage, staleness and freshness. Full rubric + decision procedure:
-`wiki/syntheses/wiki-confidence-levels.md`. **Defaults — an explicit user instruction overrides a page's tier** (e.g. the owner's own work is `high` by default, but the user may set a given work higher, like a published paper → `authoritative`, or lower).
+`wiki/developments/wiki-confidence-levels.md`. **Defaults — an explicit user instruction overrides a page's tier** (e.g. the owner's own work is `high` by default, but the user may set a given work higher, like a published paper → `authoritative`, or lower).
 
 ---
 
 ## 5. The Two Registry Files
 
 ### `wiki/index.md` — content catalog (update on every ingest)
-Format: `- [[Page Name]] — one-line description.` grouped under `## Sources / Entities / Tools / Models / Benchmarks / Concepts / Syntheses / Maps / User`.
+Format: `- [[Page Name]] — one-line description.` grouped under `## Sources / Entities / Tools / Models / Benchmarks / Concepts / Syntheses / Developments / Maps / User`.
 On a query, **read this first** to locate relevant pages, then drill in. This replaces embedding-based RAG at this scale.
 
 ### `wiki/log.md` — append-only timeline (log brain-updating ops only)
@@ -229,6 +232,7 @@ written) and a **read-only** lint scan are **not** logged — unless the user ex
 | `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → synthesize a cited answer; offer to file high-value answers into `syntheses/`. |
 | `/lint` or "health-check the wiki" | **lint** | Cheap, frequent scan: dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. (No confidence/online checks — those are `deep-lint`'s.) |
 | `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy ~monthly pass: confidence coverage & correctness, staleness, freshness vs online sources, deep structural checks, qmd refresh (if enabled); updates the vault, confirming large changes. |
+| `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search over the wiki via qmd — **dormant** unless qmd is installed + enabled; the `query`/`output` fallback and the refresh-on-write hook. |
 | `/export-okf` or "export to OKF" | **export-okf** | Export `wiki/` as a portable **OKF** (Open Knowledge Format) bundle to `okf-export/` — deterministic, read-only on the vault, opt-in (see [[Open Knowledge Format]] / the OKF synthesis). |
 | `/output <instruction>` or "write me a …" | **output** | Generate a deliverable (report/brief/deck/table/…) into `output/`, grounded in the wiki + cited; strictly follows the instruction, labels general knowledge, never fabricates. |
 
@@ -254,7 +258,7 @@ the material justifies it.
 Each skill's own description surfaces automatically — below is just *when to reach for which*:
 - **Capture / convert**: `defuddle` (or WebFetch) for a web page → Markdown; **`markitdown`** to convert any non-`.md` source (PDF/PPTX/DOCX/XLSX/image/audio/HTML/CSV/EPUB/URL) before ingest (§3.1).
 - **Vault I/O**: prefer **`obsidian-cli`** (cheaper/safer than raw file ops); `obsidian-markdown` for Obsidian-flavoured syntax; `obsidian-bases` (`.base` views) · `json-canvas` (`.canvas` maps).
-- **Custom (this vault)**: `ingest` · `gather` (opt-in deep capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `export-okf` · `output` · `export-template` (publish/update the public framework repo) — see §6.
+- **Custom (this vault)**: `ingest` · `gather` (opt-in deep capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `export-okf` · `output` · `export-template` (publish/update the public framework repo) — see §6.
 - **Version control / backup**: the **Obsidian Git** plugin backs up the *whole vault* (knowledge included) to a *private* remote (history + multi-device sync); `export-template` publishes the *framework only* to the *public* repo. Two repos, never crossed (§11).
 
 ---
@@ -288,9 +292,17 @@ Each skill's own description surfaces automatically — below is just *when to r
 
 ## 10. Search & Scale
 
-- At this scale (~100–200 sources, hundreds of pages) **`index.md` is the search layer** — no vector DB needed.
-- If the wiki outgrows that, adopt **[qmd](https://github.com/tobi/qmd)** — a local hybrid BM25+vector
-  Markdown search engine with a CLI and MCP server. Shell out to it for large queries.
+- At this scale (~100–200 sources, hundreds of pages) **`index.md` is the search layer** — no vector DB needed; the agent reads it first, then `grep`s.
+- **Optional semantic layer — [qmd](https://github.com/tobi/qmd) via the `qmd-search` skill.** A local hybrid
+  BM25 + vector + rerank engine, **dormant by default**: the agent uses it only when qmd is installed, an index
+  exists, and the `qmd:` mode isn't `off` (default `auto`); otherwise it silently falls back to `index.md` →
+  `grep`. **CLI shell-out by default** (MCP daemon optional). **Retrieval only** — `index.md` stays the
+  read-first catalogue and the compiled layer keeps governing; qmd ranks by relevance, then the agent re-orders
+  by `confidence` (§4.6).
+- **Refresh on write:** whenever a page is created or updated, its `confidence` and (if qmd is active) its qmd
+  embedding are refreshed **together**, so both signals stay current. Adopt qmd when the wiki outgrows
+  `index.md`, **or earlier if it's expected to grow very large** (so embedding stays incremental rather than
+  one bulk pass) — see `wiki/developments/implementing-qmd-opt-in-plan.md`.
 
 ---
 
@@ -331,6 +343,11 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
 - **Token efficiency is a first-class constraint** (of *recurring* cost). Choose the change that adds the least
   *recurring* cost — shell over LLM reads, compact output, scoped checks, opt-in over always-on for anything
   expensive. Never make a default behavior burn tokens when a cheaper design works.
+- **Consult and record in `wiki/developments/`.** This vault keeps its **own self-upgrade history** there
+  (type `development`: design · plan · rollout docs). **Before** a framework change, read the relevant
+  `developments/` docs so you build on prior decisions rather than re-derive or contradict them; **after**,
+  file the new design/plan/rollout there (`type: development`, and report its `confidence`). It is the
+  framework's memory of how and why it evolved — treat it as the first place to look when self-upgrading.
 - **Prose quality for human-facing docs.** When writing or editing `README.md`, `Manual.md`, `CLAUDE.md`,
   or anything a person reads, make it **clear, concise, fluent and genuinely human** — British English,
   active voice, short sentences, scannable structure; cut filler and redundancy. It must never read like

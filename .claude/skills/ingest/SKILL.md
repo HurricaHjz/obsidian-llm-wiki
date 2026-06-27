@@ -243,7 +243,7 @@ gets a `## Related` section.
 ### Step 5 — Update the registries
 - **First-run bootstrap**: if `wiki/index.md` or `wiki/log.md` is missing (a fresh clone), create it first
   — an empty `index.md` with the standard `## Sources / Entities / Tools / Models / Benchmarks / Concepts
-  / Syntheses / Maps / User` headers, and a `log.md` seeded with one `setup` entry — then proceed.
+  / Syntheses / Developments / Maps / User` headers, and a `log.md` seeded with one `setup` entry — then proceed.
 - **`wiki/index.md`** → add each new page under Sources / Entities / Concepts with a one-line desc.
 - **`wiki/log.md`** → append **via shell** (`cat >> wiki/log.md …`; never Read the whole file — it grows unbounded):
   ```markdown
@@ -315,6 +315,7 @@ This keeps the human in the loop on confidence — the one field the agent assig
 - Every wiki page must have a `## Related` section (no orphans).
 - Every wiki page (except `map`) carries a `confidence` — assign it per CLAUDE.md §4.6 (free, since you've already read the source).
 - After ingesting, **report the created/updated pages with their `confidence`** so the user can review and re-grade (Step 8).
+- **Refresh on write:** if qmd is active, refresh its index for the pages you created/updated (`qmd update && qmd embed`, incremental — the `qmd-search` hook); a no-op when qmd is dormant.
 - Entities/Concepts = Title Case filenames; Sources/Syntheses = kebab-case.
 - Write everything in **British/UK English** (US spelling only inside verbatim quotes, proper nouns, or code).
 - Don't fabricate. Mark uncertain claims `unverified` and cite the source.

@@ -27,6 +27,7 @@ type: index
 ## Benchmarks
 ## Concepts
 ## Syntheses
+## Developments
 ## Maps
 ## User
 IDX

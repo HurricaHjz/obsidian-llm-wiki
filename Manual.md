@@ -9,7 +9,7 @@
 | Folder | What it holds |
 |--------|---------------|
 | `raw/` | **Your sources** (the inbox). Drop files, clips, or links here in almost any format: PDF, Word, PowerPoint, Excel, Markdown and plain text, CSV, HTML and web pages (articles, blogs, GitHub repos and gists), images (PNG/JPG), audio (MP3/WAV), EPUB, and YouTube links. Once processed, the agent files each into a numbered subfolder (`1-articles` … `9-originals`, `archives`, `duplicates`). |
-| `wiki/` | **The compiled brain:** `concepts/ entities/ tools/ models/ benchmarks/ sources/ syntheses/ maps/ user/`, plus `index.md` (the catalogue) and `log.md` (history). |
+| `wiki/` | **The compiled brain:** `concepts/ entities/ tools/ models/ benchmarks/ sources/ syntheses/ developments/ maps/ user/`, plus `index.md` (the catalogue) and `log.md` (history). |
 | `wiki/user/` | **About you** — profile, research, works. The agent reads this for context; you curate it. |
 | `output/` | **Deliverables** the agent writes on request — reports, briefs, decks. Kept separate from the brain. |
 | `assets/` | Images and reference attachments — diagrams, screenshots, and *special* PDFs you want to link to. Source PDFs to **ingest** go in `raw/`, not here. |
@@ -77,6 +77,11 @@ Type these to the agent, in the Claudian panel or Claude Code.
 **`/deep-lint` — monthly deep maintenance**
 - A heavier, roughly monthly pass that does everything `/lint` does and also audits every page's **confidence level**, flags stale claims, and re-checks your sources against their **live online versions**, updating the wiki where they have changed. Token-intensive by design, so run it about once a month rather than routinely.
 
+**qmd — optional local semantic search (for large or fast-growing vaults)**
+> Worth adding when your wiki is **already large enough that `index.md` is hard to scan**, *or* when you **expect it to grow very large** — in that case adopt it **early**: the index then builds up incrementally (one quick re-embed per note as you go) instead of as one slow bulk embed later, and you get search-by-meaning the whole way up.
+- Once enabled, the agent **searches by meaning** (not just exact keywords) — but **only when it's actually needed**: when the normal `index.md` + keyword search comes up short for a question. It is **not** run on every search, and you don't have to ask for it — the agent decides when it genuinely helps (you *can* force it with `/qmd-search <query>`). Whenever qmd is off or absent, search silently falls back to the normal path.
+- It stays **dormant and cost-free** until you install and enable it, runs **only as quick one-shot calls** (nothing is ever left running in the background), and the agent keeps its index fresh automatically as you add or change notes. Ask the agent to set it up when you're ready.
+
 **`/export-okf` — export a portable copy**
 - Turns the wiki into a portable **OKF** bundle in `okf-export/`, to share with other tools. Read-only on your vault.
 
@@ -118,6 +123,7 @@ graph view after any setup change to load new colours.
 | 🟣 Purple      | Benchmarks      | evaluation datasets (AIME, GSM8K, …)           |
 | ⚫ Grey         | Sources         | one summary per raw source (the bulk of nodes) |
 | 🩷 Pink        | Syntheses       | answers filed back from your queries           |
+| 🟤 Brown       | Developments    | this vault's own self-upgrade docs (design · plans · rollouts) |
 
 New nodes colour themselves: each colour keys off the **type folder** (`wiki/models/`, …), so anything the agent files there is coloured automatically — no manual tagging.
 

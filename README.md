@@ -64,6 +64,7 @@ Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with 
 | `output` | Produce a grounded, cited document in `output/`. |
 | `lint` | Check the wiki for broken links, orphans, and gaps (cheap, frequent). |
 | `deep-lint` | Heavier ~monthly pass: audit confidence levels, flag stale claims, and refresh sources against their live online versions. |
+| `qmd-search` | *(optional)* Local semantic search over the wiki via qmd; dormant unless installed. |
 | `export-okf` | Export the wiki as a portable Open Knowledge Format bundle. |
 | `export-template` | Publish framework changes to GitHub. Contributors only; see the [Manual](Manual.md) and [CONTRIBUTING](CONTRIBUTING.md). |
 
