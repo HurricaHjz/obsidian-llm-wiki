@@ -97,6 +97,9 @@ never on a routine lint.
 
 ## Hard constraints
 - **Read-only scan.** Do not modify, rename, or delete anything before the report.
+- **No unverified "clean".** A check that returns zero findings must be validated with a positive
+  control (the same probe matching something known to exist) before the report may say "clean"
+  (CLAUDE.md §11).
 - **Wait for confirmation** before applying any fix.
 - **Graph colour restore is on-demand only** (see its section) — never scanned or read on a routine lint.
 - After approved fixes, append to `wiki/log.md`:

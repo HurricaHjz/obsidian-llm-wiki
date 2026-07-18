@@ -348,6 +348,10 @@ Each skill's own description surfaces automatically — below is just *when to r
 - ⚠️ **Hallucination is the cardinal risk.** A fabricated fact compiled into the wiki becomes a
   permanent "fact" that poisons future reasoning. When unsure, mark it `unverified` and cite the
   source. Prefer quoting the raw source over paraphrasing claims you can't ground.
+- ⚠️ **A zero-findings scan is a claim — verify it.** Before reporting any scan/audit/check as clean,
+  prove the probe actually ran: show it matches a known positive, or that its file/hit count is
+  non-zero on a control pattern. Silent tool failures (unsplit variables, empty globs, `2>/dev/null`)
+  otherwise report "clean" on a scan that searched nothing.
 - ⚠️ **Human in the loop.** Default ingest pacing is `auto` (the `ingest` skill chooses batch vs.
   one-by-one — see its Pacing section); always surface conflicts and large/uncertain changes for
   review rather than committing silently.
@@ -366,6 +370,10 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
 - **Token efficiency is a first-class constraint** (of *recurring* cost). Choose the change that adds the least
   *recurring* cost — shell over LLM reads, compact output, scoped checks, opt-in over always-on for anything
   expensive. Never make a default behavior burn tokens when a cheaper design works.
+- **System files carry behaviour, not history.** Framework files (this schema, `Manual.md`, `README.md`,
+  the skills, `setup.sh`) state *what to do now*. Keep only the minimal rationale that shapes a judgement
+  call, or that a human-facing doc (README/Manual) deliberately explains. Change history and design
+  rationale belong in `wiki/developments/` and `wiki/log.md` — never in files loaded each session.
 - **Consult and record in `wiki/developments/`.** This vault keeps its **own self-upgrade history** there
   (type `development`: design · plan · rollout docs). **Before** a framework change, read the relevant
   `developments/` docs so you build on prior decisions rather than re-derive or contradict them; **after**,

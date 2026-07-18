@@ -28,7 +28,7 @@ Use qmd **only if all three hold**; otherwise fall through to the default search
 3. there is **no `.qmd-off` marker** in the vault root — create that file to force qmd off without uninstalling; its absence means **active** (installing qmd + building an index *is* the opt-in).
 
 This is one cheap shell check. If any condition fails, **do nothing**: the agent uses `index.md` → `grep`
-exactly as before. A fresh clone or a non-adopter is unaffected, with no prompt to install anything.
+exactly as normal. A fresh clone or a non-adopter is unaffected, with no prompt to install anything.
 
 ## When to invoke (opt-in — never on every search)
 qmd search is **not** a default step. Invoke it only when:
