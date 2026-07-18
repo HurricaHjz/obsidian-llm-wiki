@@ -10,7 +10,7 @@ Once populated, the wiki can:
 * **Persistent insight:** It proactively synthesises across your sources and offers to save valuable answers as permanent, linked notes, so a brilliant idea from a conversation can be preserved instead of lost when the chat ends.
 * **Self-maintenance and growth:** The system actively cross-links files, merges duplicates, and flags conflicting information or knowledge gaps. It automatically maintains your catalogue and graph as your information compounds.
 
-We purposely designed the architecture to be universal and highly adaptable. Although it is pre-tuned for AI and machine learning research (treating models and benchmarks as primary note types), you can easily customise the repository to perfectly fit your own field or workflow.
+We purposely designed the architecture to be universal and highly adaptable. Although it is pre-tuned for AI and machine learning research (treating models and benchmarks as primary note types), you can easily customise the repository to perfectly fit your own field or workflow. You can also personalise the agent itself in `wiki/user/Customisation.md`, created on first setup: its name, tone, and output style come as starter examples, and the file is open-ended — add whatever standing preferences you want every session to follow.
 
 ![The knowledge graph the agent builds, coloured by note type](assets/framework_demo.png)
 
@@ -32,19 +32,19 @@ This is a framework rather than a plugin: it runs on an AI coding agent that rea
 
 4. **Web Clipper (optional).** The [Obsidian Web Clipper](https://obsidian.md/clipper) browser extension saves web pages into `raw/` in one click. You can also drop files in `raw/` or paste a URL to the agent.
 
-5. **Clone and try the demo.**
+5. **Clone and initialise.**
 
    ```bash
    git clone https://github.com/HurricaHjz/obsidian-llm-wiki.git
    cd obsidian-llm-wiki
-   bash setup.sh --with-example
+   bash setup.sh
    ```
 
-   Open the folder in Obsidian, open the graph view, and ask the agent `/query what is GPT?`. The answer is drawn from the bundled demo, with links to the notes behind it. Run `bash setup.sh --reset` when you are ready to start your own knowledge base.
+   **Always run `setup.sh` once before first use** — it creates the wiki registries and applies the graph colour palette. It is safe to re-run at any time and never overwrites existing notes.
+
+   To start with the bundled demo instead, run `bash setup.sh --with-example`. Then open the folder in Obsidian, open the graph view, and ask the agent `/query what is GPT?` — the answer is drawn from the demo wiki, with links to the notes behind it. Run `bash setup.sh --reset` when you are ready to start your own knowledge base; after that, the `examples/` folder is safe to delete.
 
    > **A fresh vault's graph is empty** until you load the demo or `/ingest` your first source — that is expected, not a fault. `setup.sh` and your first ingest apply the colour palette automatically, and Obsidian then colour-codes nodes by type. If the colours ever vanish later (Obsidian can rewrite its own graph config), just ask the agent to restore your graph colours.
-
-   Once you have explored the demo, the `examples/` folder is safe to delete — it is only the sample wiki and is never needed again.
 
 6. **Back up your vault (optional).** Install the [Obsidian Git](https://github.com/Vinzent03/obsidian-git) plugin to sync your *whole* vault — notes included — to a **private** repository, for version history and multi-device backup. Keep that private remote separate from this public framework repo; your notes are never part of it.
 

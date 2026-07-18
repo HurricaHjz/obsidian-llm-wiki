@@ -30,6 +30,9 @@ integrity is `/lint`'s job; `deep-lint` is the periodic deep clean.
 Run the full `lint` pipeline: index consistency, link health (dead links, orphans — `maps/`/`index`/`log`
 exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the cheap, unambiguous issues
 (register unindexed pages, etc.) after the report.
+- **Customisation sanity (deep-lint only):** if `wiki/user/Customisation.md` exists, verify its frontmatter
+  parses, `style:` names a style section defined in the file, and it stays within its ~120-line cap. Flag any
+  drift for the owner; never rewrite their preferences.
 
 ### 2 — Confidence coverage & correctness (per CLAUDE.md §4.6)
 - **Coverage:** every non-`map` page must carry a valid `confidence`. Cheap check:

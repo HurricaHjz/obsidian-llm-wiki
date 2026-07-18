@@ -37,6 +37,7 @@ build_fake_vault(){
   # "knowledge" that must NEVER ship or be touched by pull
   printf '# secret note\npersonal data here\n' > "$V/wiki/sources/secret.md"
   printf 'raw source\n' > "$V/raw/source1.md"
+  mkdir -p "$V/wiki/user"; printf -- '---\ntitle: "Customisation"\ntype: user\n---\nowner personal prefs\n' > "$V/wiki/user/Customisation.md"  # personal config — must NEVER ship
 }
 
 setup_published(){   # fake vault + bare remote + clone holding the published framework
@@ -73,6 +74,8 @@ chk "build: seed demo shipped"             '[ -d "$BUILT/examples/seed" ]'
 chk "build: wiki ships empty"               '[ -z "$(find "$BUILT/wiki" -type f ! -name .gitkeep)" ]'
 chk "build: raw ships empty"                '[ -z "$(find "$BUILT/raw" -type f ! -name .gitkeep)" ]'
 chk "build: NO knowledge files shipped"     '[ ! -e "$BUILT/wiki/sources/secret.md" ] && [ ! -e "$BUILT/raw/source1.md" ]'
+chk "build: personal Customisation NOT shipped" '[ ! -e "$BUILT/wiki/user/Customisation.md" ]'
+chk "build: shipped setup.sh seeds Customisation" 'grep -q mk_custom "$BUILT/setup.sh"'
 chk "build: no __pycache__ shipped"         '[ -z "$(find "$BUILT" -name __pycache__)" ]'
 chk "build: no .DS_Store shipped"           '[ -z "$(find "$BUILT" -name .DS_Store)" ]'
 chk "build: graph.json keeps colorGroups"   'grep -q colorGroups "$BUILT/.obsidian/graph.json"'

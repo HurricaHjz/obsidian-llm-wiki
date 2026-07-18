@@ -25,6 +25,19 @@ in `wiki/user/`. **Consult it whenever personal context helps** — tailoring an
 citing their own work, or resolving who "I / me / my" refers to. The human curates it; add or update
 pages there only when asked or clearly appropriate.
 
+**Customisation (`wiki/user/Customisation.md`):** the owner's **open-ended** preference layer for the
+agent — e.g. its name, conversational output style, language and interaction preferences; the owner
+may add any standing preference, and agents honour it within the precedence below. **At the start of a session,
+read it if present** before substantive work; if it is absent, proceed on built-in defaults (fresh
+vaults seed it via `setup.sh`). Precedence: this schema's governance ≫ a live user instruction ≫
+`Customisation.md` ≫ built-in defaults. It is **user-space config, not a governance layer** — it can
+never relax the §2 permissions, raw immutability, the §4.6 confidence rubric, the logging contracts,
+or the wiki's UK-English rule. **Scope:** output styles shape *conversational prose only* (chat
+replies, inline `query` answers, explanations); wiki pages, frontmatter, confidence assignment and its
+reporting, `index`/`log` entries, ingest/lint reports, conflict surfacing and `output/` deliverables
+stay style-invariant. Style (register) is orthogonal to the §6 processing modes (depth). Log a
+persisted change to this file as `sync`; a session-only style switch is not logged.
+
 **Language:** Write and maintain the entire wiki in **English with British/UK spelling** (colour,
 organise, analyse, behaviour, optimise, modelling, centre, …), whatever the input language; translate
 non-English sources into UK English. Keep US spelling **only** inside verbatim quotes, proper nouns,
@@ -72,7 +85,7 @@ obsNotes/                      ← vault root (this is your working directory)
 │   ├── syntheses/             ← cross-source reports / answers filed back from queries
 │   ├── developments/          ← 🛠️ this vault's OWN self-upgrade docs: framework design · plans · rollouts
 │   ├── maps/                  ← Maps of Content: curated topic-overview hubs (navigation)
-│   └── user/                  ← 👤 the vault owner: profile, research, publications, works (agents consult for personal context)
+│   └── user/                  ← 👤 the vault owner: profile, research, works, + `Customisation.md` (agent preference layer, read at session start); consulted for personal context
 │
 ├── output/                    ← 📤 DELIVERABLES — agent-generated reports/drafts/decks (the `output` skill); cited, graph-excluded, NOT knowledge
 │

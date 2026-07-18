@@ -10,7 +10,7 @@
 |--------|---------------|
 | `raw/` | **Your sources** (the inbox). Drop files, clips, or links here in almost any format: PDF, Word, PowerPoint, Excel, Markdown and plain text, CSV, HTML and web pages (articles, blogs, GitHub repos and gists), images (PNG/JPG), audio (MP3/WAV), EPUB, and YouTube links. Once processed, the agent files each into a numbered subfolder (`1-articles` … `9-originals`, `archives`, `duplicates`). |
 | `wiki/` | **The compiled brain:** `concepts/ entities/ tools/ models/ benchmarks/ sources/ syntheses/ developments/ maps/ user/`, plus `index.md` (the catalogue) and `log.md` (history). |
-| `wiki/user/` | **About you** — profile, research, works. The agent reads this for context; you curate it. |
+| `wiki/user/` | **About you** — profile, research, works, plus `Customisation` (how your agent behaves: name, output style, and any preferences you add). The agent reads this for context; you curate it. |
 | `output/` | **Deliverables** the agent writes on request — reports, briefs, decks. Kept separate from the brain. |
 | `assets/` | Images and reference attachments — diagrams, screenshots, and *special* PDFs you want to link to. Source PDFs to **ingest** go in `raw/`, not here. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
@@ -97,6 +97,12 @@ Type these to the agent, in the Claudian panel or Claude Code.
 **Modes and pacing**
 - **Modes** (depth): `standard` (default) · `concise` (thin sources, automatic) · `research` (papers — say "research mode", or the agent asks first). All stay token-efficient.
 - **Pacing** (how many at once): `auto` (default) · one at a time · in batches.
+
+**Customisation — make the agent yours**
+- Your agent's **name**, default **output style**, and **interaction preferences** live in `wiki/user/Customisation`, seeded on first setup. Edit it — or just ask the agent — to change how it addresses you and how it writes.
+- Those are only starter examples: the file is **open-ended**. Add any standing preference you want every session to honour — citation habits, formatting rules, tutoring style, anything — as new bullets or sections.
+- **Output styles** shape conversation only: `high-level` (the default — concise, top-down, easy to read) · `detailed` (thorough, academic) · `summary` (maximum density). Say *"switch to detailed"* for one session, or *"make summary my default"* to keep it. You can add your own styles too.
+- Choosing a style **never** changes the wiki itself — your notes, their confidence ratings, and the agent's status reports stay exactly the same.
 
 **More `/query` examples**
 - `Compare [[A]] and [[B]] and save a table to syntheses.`
