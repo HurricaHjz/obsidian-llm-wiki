@@ -33,6 +33,10 @@ exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the c
 - **Customisation sanity (deep-lint only):** if `wiki/user/Customisation.md` exists, verify its frontmatter
   parses, `style:` names a style section defined in the file, and it stays within its ~120-line cap. Flag any
   drift for the owner; never rewrite their preferences.
+- **Hard-wrap check:** flag wiki pages with suspected mid-sentence hard wraps (a prose line ending in a
+  lowercase word or comma while the next line begins lowercase) — prose is one line per paragraph
+  (CLAUDE.md §1 line discipline; Obsidian renders single newlines as breaks). Skip non-rendered text:
+  frontmatter, code blocks, tables, and HTML-comment interiors. Fix on confirmation.
 
 ### 2 — Confidence coverage & correctness (per CLAUDE.md §4.6)
 - **Coverage:** every non-`map` page must carry a valid `confidence`. Cheap check:

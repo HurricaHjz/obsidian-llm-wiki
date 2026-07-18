@@ -101,6 +101,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 **Customisation — make the agent yours**
 - Your agent's **name**, default **output style**, and **interaction preferences** live in `wiki/user/Customisation`, seeded on first setup. Edit it — or just ask the agent — to change how it addresses you and how it writes.
 - Those are only starter examples: the file is **open-ended**. Add any standing preference you want every session to honour — citation habits, formatting rules, tutoring style, anything — as new bullets or sections.
+- **Deliverable defaults** (optional): a `## Deliverable defaults` section sets standing formats for `/output` documents — citation style, deck format, and so on. Leave it empty and the agent chooses per deliverable; whatever you write in the instruction always wins.
 - **Output styles** shape conversation only: `high-level` (the default — concise, top-down, easy to read) · `detailed` (thorough, academic) · `summary` (maximum density). Say *"switch to detailed"* for one session, or *"make summary my default"* to keep it. You can add your own styles too.
 - Choosing a style **never** changes the wiki itself — your notes, their confidence ratings, and the agent's status reports stay exactly the same.
 

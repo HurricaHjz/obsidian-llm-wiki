@@ -34,6 +34,16 @@ audience · tone · must-include / must-exclude · citation style · output file
 detail is missing or genuinely ambiguous, ask **1–2 crisp questions**; otherwise proceed with sensible
 defaults **and state them**. Never silently widen, narrow, or reinterpret the ask.
 
+**Customisation gap-fill:** for spec fields the instruction leaves **unstated**, check
+`wiki/user/Customisation.md` → `## Deliverable defaults` (if the file and section exist): apply any
+standing defaults found there (citation style, deck format, length conventions) and note them in the
+grounding note. An explicit instruction always overrides; if the section is absent or empty, choose
+sensible defaults yourself (and state them) as before. Conversational output *styles* never apply to
+deliverables (CLAUDE.md §1) — this gap-fill covers content-format defaults only. **Single source of
+truth:** deliverable defaults live *only* in that Customisation section — re-read it on every run and
+never copy its values into this skill, any config, or the deliverable itself (beyond applying them),
+so an edit there takes effect immediately everywhere.
+
 ### Step 2 — Ground in the wiki (read first, like `query`)
 Read `wiki/index.md`, then deep-read the relevant pages (follow `## Related` one hop). Collect the
 facts you will use **together with the page each comes from** (for citation). The deliverable is built

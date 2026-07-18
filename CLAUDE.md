@@ -35,14 +35,24 @@ never relax the §2 permissions, raw immutability, the §4.6 confidence rubric, 
 or the wiki's UK-English rule. **Scope:** output styles shape *conversational prose only* (chat
 replies, inline `query` answers, explanations); wiki pages, frontmatter, confidence assignment and its
 reporting, `index`/`log` entries, ingest/lint reports, conflict surfacing and `output/` deliverables
-stay style-invariant. Style (register) is orthogonal to the §6 processing modes (depth). Log a
-persisted change to this file as `sync`; a session-only style switch is not logged.
+stay style-invariant. Distinct from styles, an optional `## Deliverable defaults` section holds
+standing *content-format* preferences (citation style, deck format, …) that the `output` skill
+applies **only where the instruction is silent**; an explicit instruction always wins, and an empty
+or absent section means the agent decides. That section is the **single home** of these defaults —
+`output` re-reads it on every run and never copies its values into skills, configs, or other files. Style (register) is orthogonal to the §6 processing modes
+(depth). Log a persisted change to this file as `sync`; a session-only style switch is not logged.
 
 **Language:** Write and maintain the entire wiki in **English with British/UK spelling** (colour,
 organise, analyse, behaviour, optimise, modelling, centre, …), whatever the input language; translate
 non-English sources into UK English. Keep US spelling **only** inside verbatim quotes, proper nouns,
 and code / identifiers (e.g. Obsidian's `colorGroups` / `color` JSON keys). This applies to all future
 writing — existing pages are updated opportunistically when edited, not in a mass rewrite.
+
+**Line discipline:** Obsidian renders every single newline as a hard line break, so **never hard-wrap
+prose at a fixed column** — write each paragraph, list item, or quote as one continuous line and let
+the editor soft-wrap; put a newline only where a rendered break belongs. Frontmatter, code blocks,
+tables and HTML comments are exempt; existing hard-wrapped pages are fixed opportunistically when
+edited (`deep-lint` flags suspects).
 
 ---
 

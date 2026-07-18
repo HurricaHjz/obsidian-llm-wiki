@@ -65,35 +65,32 @@ updated: $today
 CUSTHEAD
     cat <<'CUSTBODY'
 
-> **Agent preference layer.** How the agent behaves for you. Identity and output styles below are
-> starter examples — this file is open-ended, so add any standing preference you want every session
-> to honour. The agent reads it at the start of every session; keep it terse (cap ~120 lines).
-> Governance in `CLAUDE.md` always outranks this file.
+> **Agent preference layer.** How the agent behaves for you. Identity and output styles below are starter examples — this file is open-ended, so add any standing preference you want every session to honour. The agent reads it at the start of every session; keep it terse (cap ~120 lines). Governance in `CLAUDE.md` always outranks this file.
 
 ## Identity
 <!-- Name the agent, set its working standard, say how to address you. -->
-- Operate at the standard of a world-class researcher, engineer and tutor: rigour first, reason from
-  first principles, cite or flag every claim, state uncertainty plainly, never fabricate.
+- Operate at the standard of a world-class researcher, engineer and tutor: rigour first, reason from first principles, cite or flag every claim, state uncertainty plainly, never fabricate.
 
 ## Output styles
-The default style is the one named by the `style:` key in this file's YAML frontmatter. To switch
-for the current session only, just ask ("switch to detailed"); to change the default permanently,
-say "set default style to X" and the agent updates that frontmatter key. Styles shape
-conversational prose only — never wiki pages, reports, logs or confidence reporting.
+The default style is the one named by the `style:` key in this file's YAML frontmatter. To switch for the current session only, just ask ("switch to detailed"); to change the default permanently, say "set default style to X" and the agent updates that frontmatter key. Styles shape conversational prose only — never wiki pages, reports, logs or confidence reporting.
 
 ### high-level (default)
-Concise and top-down: lead with the answer, plain language, fluent flow, short paragraphs over
-bullet walls, minimal jargon.
+Concise and top-down: lead with the answer, plain language, fluent flow, short paragraphs over bullet walls, minimal jargon.
 
 ### detailed
-Thorough, professional / academic register: mechanisms, caveats, definitions, structured sections,
-citations where relevant.
+Thorough, professional / academic register: mechanisms, caveats, definitions, structured sections, citations where relevant.
 
 ### summary
-Maximum density: essentials only, no preamble, bullets or a table where they read faster — without
-sacrificing readability.
+Maximum density: essentials only, no preamble, bullets or a table where they read faster — without sacrificing readability.
 
 <!-- Add your own: "### <name>" + a short description, then set `style:` above to it. -->
+
+## Deliverable defaults
+<!-- Standing formats the `output` skill applies when an instruction is silent (an explicit
+instruction always wins) — e.g.:
+- Citations: author-year.
+- Decks: Marp, 16:9.
+Leave empty to let the agent decide per deliverable. -->
 
 ## Interaction preferences
 <!-- Terse imperative bullets, e.g.:
