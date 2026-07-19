@@ -53,9 +53,12 @@ writing — existing pages are updated opportunistically when edited, not in a m
 
 **Line discipline:** Obsidian renders every single newline as a hard line break, so **never hard-wrap
 prose at a fixed column** — write each paragraph, list item, or quote as one continuous line and let
-the editor soft-wrap; put a newline only where a rendered break belongs. Frontmatter, code blocks,
-tables and HTML comments are exempt; existing hard-wrapped pages are fixed opportunistically when
-edited (`deep-lint` flags suspects). Likewise wrap every angle-bracket placeholder in backticks —
+the editor soft-wrap; put a newline only where a rendered break belongs. This governs prose rendered for humans — `wiki/**` pages, `output/**` deliverables, and the root docs `README.md`, `Manual.md`, `IDEAS.md`. The
+agent's raw-text contract and source files (`CLAUDE.md` and the skills under `.claude/skills/**`) keep
+source-file wrapping: they are read as text, and fixed columns give line-granular diffs. Within a
+governed file, frontmatter, code blocks, tables and HTML comments are still exempt; existing
+hard-wrapped wiki pages are fixed opportunistically when edited (`deep-lint` flags suspects, `wiki/`
+only). Likewise wrap every angle-bracket placeholder in backticks —
 Obsidian parses a raw `<tag>` in prose as HTML: a bare `<style>` hijacks the page's rendering and
 unknown tags are silently stripped from view.
 
@@ -68,6 +71,7 @@ obsNotes/                      ← vault root (this is your working directory)
 ├── CLAUDE.md                  ← THIS schema. The contract you obey.
 ├── Manual.md                  ← human-facing quick-start (usage + prompts). STABLE: update ONLY when
 │                                 the system's architecture/workflow changes — NEVER per ingest/query.
+├── IDEAS.md                   ← 💡 owner's scratchpad (future ideas / issues). Agent IGNORES it in normal runs; reads or maintains it (incl. its Overview table) only on the user's explicit instruction. Not knowledge; never drives work, enters wiki, or ships; seeded by `setup.sh`.
 │
 ├── assets/                   ← 🖼️ MEDIA LAYER
 │                                 Images, diagrams & reference attachments — incl. *special* PDFs you
@@ -348,7 +352,10 @@ Each skill's own description surfaces automatically — below is just *when to r
     This is encouraged and does **not** conflict with the rule above: it is a *different repo* (private,
     everything) from the public framework repo (public, framework-only). **Never point the vault's backup
     remote at the public framework repo**, and never publish knowledge.
-  - Commit or publish **only when the user asks**.
+  - Commit or publish **only when the user asks** — and gate **every** publish (whatever the path,
+    skill or script) on the **version-family recap table**: all releases of the current minor version
+    plus the candidate, each row verified (full spec in the `export-template` skill). The user's
+    approval of that table *is* the publish approval.
 - ⚠️ **Token cost** — pushing many linked pages + this schema into context on every op is expensive. Read selectively (index first), not the whole wiki.
 - ⚠️ **Hallucination is the cardinal risk.** A fabricated fact compiled into the wiki becomes a
   permanent "fact" that poisons future reasoning. When unsure, mark it `unverified` and cite the
@@ -366,17 +373,21 @@ Each skill's own description surfaces automatically — below is just *when to r
 ## 12. Framework / self-modification policy
 When you change *how the system works* (this `CLAUDE.md`, a skill, the folder layout, conventions):
 
-- **Design for maximum future performance; ignore the one-time upgrade cost.** The first priority of every
-  framework change is the best possible *recurring* behaviour — **accuracy first, then token efficiency**;
-  token efficiency must **never** be bought at the price of essential accuracy or quality. The **one-time
-  cost of performing the upgrade itself** (the tokens/effort to migrate, backfill, re-embed, re-tag, …) is
-  **not a design factor** — never weaken the future design to make the upgrade cheaper. A large one-time cost
-  may be surfaced to *warn* the developer, but it never shapes the design.
-- **Token efficiency is a first-class constraint** (of *recurring* cost). Choose the change that adds the least
-  *recurring* cost — shell over LLM reads, compact output, scoped checks, opt-in over always-on for anything
-  expensive. Never make a default behavior burn tokens when a cheaper design works. The converse
-  holds equally: judge recurring cost against recurring benefit, never in absolute terms — a small
-  always-on cost that measurably improves behaviour is a good trade; bloat is cost without gain.
+- **Performance is the first-class constraint; ignore the one-time upgrade cost.** The first priority of
+  every framework change is the best possible *recurring* behaviour — correctness, guarantees, quality.
+  The **one-time cost of performing the upgrade itself** (the tokens/effort to migrate, backfill,
+  re-embed, re-tag, …) is **not a design factor** — never weaken the future design to make the upgrade
+  cheaper. A large one-time cost may be surfaced to *warn* the developer, but it never shapes the design.
+- **Token efficiency serves performance, never rivals it.** It ranks immediately after — and inside —
+  performance: choose the cheapest design *among those that fully deliver the behaviour*, and never
+  sacrifice a correctness property, a guarantee, or an approval gate to save a trivial cost.
+  **Trade rule (three-way):** a real behavioural gain costing only a few lines or a few hundred
+  always-on tokens (negligible against sessions of millions) is taken **automatically**; cost without
+  behavioural gain is rejected **automatically** (that is bloat, and it stays banned). Between those,
+  when a real gain demands a genuinely expensive recurring cost, **never decide unilaterally —
+  present the trade-off (the gain, the recurring cost, the options) and let the user decide.**
+  Discipline still applies wherever it does no harm — shell over LLM reads, compact output, scoped
+  checks, opt-in over always-on for anything expensive.
 - **System files carry behaviour, not history.** Framework files (this schema, `Manual.md`, `README.md`,
   the skills, `setup.sh`) state *what to do now*. Keep only the minimal rationale that shapes a judgement
   call, or that a human-facing doc (README/Manual) deliberately explains. Change history and design
@@ -395,6 +406,11 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   AI-generated boilerplate. Write as **formal documentation**: no Q&A / FAQ-style phrasing ("Why not X?"),
   no rhetorical questions, and no defensive asides or parentheticals. State each point as a plain claim.
 - **Always log it** — append a `## [date] sync | …` entry to `wiki/log.md`.
+- **Always report system-file changes in-reply.** When a response edits a system file (`CLAUDE.md`,
+  `Manual.md`, `README.md`, a skill, `setup.sh`), surface it in that reply as a table: what changed ·
+  what for · why (table detail scales with the active output style). Where the file is Markdown,
+  anchor its table cell as a clickable wikilink to the changed section (`[[file#heading]]`) so the
+  user can jump straight to the modification. A behaviour or governance change must never land silently.
 - **🧹 Deep-lint at version boundaries.** When the user **explicitly declares** the next version tier or a
   new major feature ("let's start v0.7", "next, we build X"), or a genuinely large multi-file upgrade has
   **just completed**, append one short notice to the reply: `🧹 Before moving on: consider /deep-lint — the
@@ -402,8 +418,8 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   speculation about what the next version might be, and never for routine ops or patch-level work.
 - **Update `Manual.md` only when warranted** — i.e. the change edits existing Manual content, adds
   user-facing usage/info, or the user explicitly asks. Internal-only changes do **not** touch the Manual.
-- **The graph is `wiki/` only.** Non-wiki Markdown — everything under `raw/`, plus `CLAUDE.md` and
-  `Manual.md` — is excluded from Obsidian's graph/search via `.obsidian/app.json` → `userIgnoreFilters`.
+- **The graph is `wiki/` only.** Non-wiki Markdown — everything under `raw/`, plus `CLAUDE.md`,
+  `Manual.md` and `IDEAS.md` — is excluded from Obsidian's graph/search via `.obsidian/app.json` → `userIgnoreFilters`.
   In addition, `ingest` Step 0 **sanitizes converted artifacts** (strips control bytes; defangs stray
   `[text](bareword)` and `[[…]]` that MarkItDown emits from math/citations). Together these keep the
   knowledge graph free of spurious nodes.

@@ -11,6 +11,7 @@
 /output/**
 /okf-export/
 /template-export/
+/IDEAS.md
 
 # --- ...but keep the empty folder skeleton (the .gitkeep placeholders) ---
 !/wiki/**/

@@ -13,6 +13,7 @@
 | `wiki/user/` | **About you** — profile, research, works, plus `Customisation` (how your agent behaves: name, output styles, task roles, and any preferences you add). The agent reads this for context; you curate it. |
 | `output/` | **Deliverables** the agent writes on request — reports, briefs, decks. Kept separate from the brain. |
 | `assets/` | Images and reference attachments — diagrams, screenshots, and *special* PDFs you want to link to. Source PDFs to **ingest** go in `raw/`, not here. |
+| `IDEAS.md` | **Your scratchpad** — jot future ideas and potential issues freely. The agent ignores it unless you explicitly point it there, and tidies its Overview table on request. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
 | `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `deep-lint`, `export-okf` (plus `export-template` for contributors). |
 

@@ -109,6 +109,7 @@ The active role is the `role:` frontmatter key (default `generalist`). Say "act 
 - Lead with the design decision and its trade-offs; show runnable, tested code; state chosen defaults explicitly; flag technical debt; user-first judgement on anything user-facing.
 
 ### tutor
+- Explain in plain, accessible language: define jargon on first use, use concrete analogies for hard ideas, keep the simplest phrasing that stays accurate.
 - Worked example first, theory second; check understanding before advancing; scaffold difficulty progressively; Socratic questioning where it teaches better than telling.
 
 ## Deliverable defaults
@@ -128,6 +129,38 @@ Leave empty to let the agent decide per deliverable. -->
 - [[About Me]] — who the owner is (this page is how the agent behaves)
 CUSTBODY
   } > wiki/user/Customisation.md
+}
+
+mk_ideas() {
+  # seed the owner's scratchpad (ignored by the agent in normal runs); never overwrites an existing file
+  cat > IDEAS.md <<'IDEASEOF'
+# IDEAS
+
+> **Owner's scratchpad.** My future ideas, open questions and potential issues, in my own words. **The agent ignores this file in normal runs** — it reads or maintains it only when I explicitly say so. Nothing here is verified or agreed, so it must never drive normal work or enter the wiki without my instruction. I append bullets freely; the agent keeps the Overview table in sync when I ask.
+
+<!-- HOW TO USE (invisible in reading view):
+  - Jot fast: add "- [YYYY-MM-DD] …" bullets at the top of Ideas or Potential issues (date optional).
+  - Ask the agent to "maintain IDEAS.md" and it will number new items, sync the Overview table, and move finished items to the Archive.
+  - Statuses: open · ✅ done · ❌ dropped · ➡️ moved (say where).
+-->
+
+## 📋 Overview
+<!-- one row per item; kept in sync by the agent on request; № links a row to its bullet below -->
+
+| № | Item | Kind | Status |
+|---|------|------|--------|
+
+## 💡 Ideas
+<!-- newest first, one line each -->
+
+
+## ⚠️ Potential issues / watch-list
+<!-- newest first; risks, suspected bugs, things that felt off -->
+
+
+## 🗄️ Archive
+<!-- finished items land here with their № and outcome (✅ done · ❌ dropped · ➡️ moved) plus a word on why -->
+IDEASEOF
 }
 
 apply_palette() {
@@ -154,18 +187,21 @@ case "${1:-}" in
       echo "! examples/seed not found — created empty registries only."
     fi
     [ -f wiki/user/Customisation.md ] || mk_custom
+    [ -f IDEAS.md ] || mk_ideas
     apply_palette
     ;;
   --reset)
     rm -f "$DEMO_RAW" "${DEMO_WIKI[@]}" 2>/dev/null || true
     mk_index; mk_log
     [ -f wiki/user/Customisation.md ] || mk_custom
+    [ -f IDEAS.md ] || mk_ideas
     echo "✓ reset: demo removed, registries blanked. Drop a source into raw/ and run /ingest."
     ;;
   ""|--init)
     [ -f wiki/index.md ] || mk_index
     [ -f wiki/log.md ]   || mk_log
     [ -f wiki/user/Customisation.md ] || mk_custom
+    [ -f IDEAS.md ] || mk_ideas
     apply_palette
     echo "✓ ready. Drop a source into raw/ and run /ingest"
     echo "  (or try the demo first:  bash setup.sh --with-example)"

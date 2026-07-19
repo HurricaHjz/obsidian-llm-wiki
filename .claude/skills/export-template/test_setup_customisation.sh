@@ -65,6 +65,14 @@ echo "== 7) mk_log seeds the full action list incl. deep-lint =="
 fresh; ( cd "$ROOT" && bash setup.sh >/dev/null 2>&1 )
 grep -q 'deep-lint' "$ROOT/wiki/log.md"       && ok "log.md action list includes deep-lint" || no "log.md missing deep-lint"
 
+echo "== 8) IDEAS.md scratchpad seeded =="
+[ -f "$ROOT/IDEAS.md" ]                                    && ok "init seeds IDEAS.md at vault root"      || no "IDEAS.md not seeded"
+grep -q '^## 📋 Overview' "$ROOT/IDEAS.md" 2>/dev/null     && ok "Overview table section present"         || no "Overview section missing"
+grep -q 'ignores this file in normal runs' "$ROOT/IDEAS.md" 2>/dev/null && ok "ignore-by-default rule stated" || no "ignore rule missing"
+printf '\n- my idea\n' >> "$ROOT/IDEAS.md"
+B=$(hash_of "$ROOT/IDEAS.md"); ( cd "$ROOT" && bash setup.sh >/dev/null 2>&1 ); A=$(hash_of "$ROOT/IDEAS.md")
+[ "$A" = "$B" ]                                            && ok "re-run preserves owner's IDEAS edits"   || no "re-run overwrote IDEAS.md"
+
 echo
 echo "================  RESULT: $PASS passed, $FAIL failed  ================"
 rm -rf "$ROOT"
