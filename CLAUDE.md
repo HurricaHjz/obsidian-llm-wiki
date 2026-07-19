@@ -35,7 +35,10 @@ never relax the §2 permissions, raw immutability, the §4.6 confidence rubric, 
 or the wiki's UK-English rule. **Scope:** output styles shape *conversational prose only* (chat
 replies, inline `query` answers, explanations); wiki pages, frontmatter, confidence assignment and its
 reporting, `index`/`log` entries, ingest/lint reports, conflict surfacing and `output/` deliverables
-stay style-invariant. Distinct from styles, an optional `## Deliverable defaults` section holds
+stay style-invariant. Output *styles* change only what the user reads — never internal reasoning,
+planning, tool use, or processing depth. *Roles* do shape how the agent works — task emphasis,
+approach and rigour, sometimes trading a little efficiency for quality — while never touching the
+governance floor or the style-invariant surfaces above. Distinct from styles, an optional `## Deliverable defaults` section holds
 standing *content-format* preferences (citation style, deck format, …) that the `output` skill
 applies **only where the instruction is silent**; an explicit instruction always wins, and an empty
 or absent section means the agent decides. That section is the **single home** of these defaults —
@@ -52,7 +55,9 @@ writing — existing pages are updated opportunistically when edited, not in a m
 prose at a fixed column** — write each paragraph, list item, or quote as one continuous line and let
 the editor soft-wrap; put a newline only where a rendered break belongs. Frontmatter, code blocks,
 tables and HTML comments are exempt; existing hard-wrapped pages are fixed opportunistically when
-edited (`deep-lint` flags suspects).
+edited (`deep-lint` flags suspects). Likewise wrap every angle-bracket placeholder in backticks —
+Obsidian parses a raw `<tag>` in prose as HTML: a bare `<style>` hijacks the page's rendering and
+unknown tags are silently stripped from view.
 
 ---
 
@@ -369,7 +374,9 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   may be surfaced to *warn* the developer, but it never shapes the design.
 - **Token efficiency is a first-class constraint** (of *recurring* cost). Choose the change that adds the least
   *recurring* cost — shell over LLM reads, compact output, scoped checks, opt-in over always-on for anything
-  expensive. Never make a default behavior burn tokens when a cheaper design works.
+  expensive. Never make a default behavior burn tokens when a cheaper design works. The converse
+  holds equally: judge recurring cost against recurring benefit, never in absolute terms — a small
+  always-on cost that measurably improves behaviour is a good trade; bloat is cost without gain.
 - **System files carry behaviour, not history.** Framework files (this schema, `Manual.md`, `README.md`,
   the skills, `setup.sh`) state *what to do now*. Keep only the minimal rationale that shapes a judgement
   call, or that a human-facing doc (README/Manual) deliberately explains. Change history and design
@@ -379,12 +386,20 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   `developments/` docs so you build on prior decisions rather than re-derive or contradict them; **after**,
   file the new design/plan/rollout there (`type: development`, and report its `confidence`). It is the
   framework's memory of how and why it evolved — treat it as the first place to look when self-upgrading.
+  Write each doc **forward-facing**: the current design plus the rationale future work needs; record
+  decision changes as dated status facts, and keep drafting corrections in `log.md` or chat — a
+  contract must never read as a rebuttal of its own earlier wording.
 - **Prose quality for human-facing docs.** When writing or editing `README.md`, `Manual.md`, `CLAUDE.md`,
   or anything a person reads, make it **clear, concise, fluent and genuinely human** — British English,
   active voice, short sentences, scannable structure; cut filler and redundancy. It must never read like
   AI-generated boilerplate. Write as **formal documentation**: no Q&A / FAQ-style phrasing ("Why not X?"),
   no rhetorical questions, and no defensive asides or parentheticals. State each point as a plain claim.
 - **Always log it** — append a `## [date] sync | …` entry to `wiki/log.md`.
+- **🧹 Deep-lint at version boundaries.** When the user **explicitly declares** the next version tier or a
+  new major feature ("let's start v0.7", "next, we build X"), or a genuinely large multi-file upgrade has
+  **just completed**, append one short notice to the reply: `🧹 Before moving on: consider /deep-lint — the
+  vault has changed a lot since the last full audit.` Fire only on those two observable triggers — never on
+  speculation about what the next version might be, and never for routine ops or patch-level work.
 - **Update `Manual.md` only when warranted** — i.e. the change edits existing Manual content, adds
   user-facing usage/info, or the user explicitly asks. Internal-only changes do **not** touch the Manual.
 - **The graph is `wiki/` only.** Non-wiki Markdown — everything under `raw/`, plus `CLAUDE.md` and

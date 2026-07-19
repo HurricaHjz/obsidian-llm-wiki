@@ -10,7 +10,7 @@ Once populated, the wiki can:
 * **Persistent insight:** It proactively synthesises across your sources and offers to save valuable answers as permanent, linked notes, so a brilliant idea from a conversation can be preserved instead of lost when the chat ends.
 * **Self-maintenance and growth:** The system actively cross-links files, merges duplicates, and flags conflicting information or knowledge gaps. It automatically maintains your catalogue and graph as your information compounds.
 
-We purposely designed the architecture to be universal and highly adaptable. Although it is pre-tuned for AI and machine learning research (treating models and benchmarks as primary note types), you can easily customise the repository to perfectly fit your own field or workflow. You can also personalise the agent itself in `wiki/user/Customisation.md`, created on first setup: its name, tone, and output style come as starter examples, and the file is open-ended — add whatever standing preferences you want every session to follow.
+We purposely designed the architecture to be universal and highly adaptable. Although it is pre-tuned for AI and machine learning research (treating models and benchmarks as primary note types), you can easily customise the repository to perfectly fit your own field or workflow. You can also personalise the agent itself in `wiki/user/Customisation.md`, created on first setup: its name, tone, output styles and task roles come as starter examples, and the file is open-ended — add whatever standing preferences you want every session to follow.
 
 ![The knowledge graph the agent builds, coloured by note type](assets/framework_demo.png)
 

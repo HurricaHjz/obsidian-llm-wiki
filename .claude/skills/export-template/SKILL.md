@@ -100,6 +100,10 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
    git -C <repo> --no-pager diff --cached            # full diff (skip only if very large)
    ```
    **Show the user** this and state plainly what will be published.
+   **Version-family recap — mandatory final confirmation:** before committing, present a table covering
+   **every release of the current minor version so far plus this candidate** (e.g. before v1.7.4, rows for
+   v1.7.0 → v1.7.4), columns `Ver | Feature | What it does | What it achieves`, each row verified against
+   the actual files/tests (never from memory). The user's go-ahead on this table is the publish approval.
 3. **Confirm — mandatory gate:** ask the user to approve and to give/confirm a commit message.
    **Never `commit` or `push` without an explicit "yes".**
 4. **Publish:** `git -C <repo> commit -m "<message>" && git -C <repo> push`

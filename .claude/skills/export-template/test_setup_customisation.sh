@@ -26,6 +26,19 @@ grep -q '^### high-level'     "$ROOT/$CUST" 2>/dev/null && ok "default style def
 grep -q '^### detailed'       "$ROOT/$CUST" 2>/dev/null && ok "detailed style present"     || no "detailed style missing"
 grep -q '^### summary'        "$ROOT/$CUST" 2>/dev/null && ok "summary style present"      || no "summary style missing"
 grep -q '\[\[About Me\]\]'    "$ROOT/$CUST" 2>/dev/null && ok "Related links [[About Me]] (no orphan)" || no "missing ## Related backlink"
+grep -q '^role: generalist'   "$ROOT/$CUST" 2>/dev/null && ok "role knob seeded (generalist default)"  || no "role knob missing"
+grep -q '^## Roles'           "$ROOT/$CUST" 2>/dev/null && ok "Roles section present"                  || no "Roles section missing"
+for r in generalist researcher engineer tutor; do
+  grep -q "^### $r" "$ROOT/$CUST" 2>/dev/null && ok "role seeded: $r" || no "role missing: $r"
+done
+grep -q 'status line'         "$ROOT/$CUST" 2>/dev/null && ok "status-line rule shipped"               || no "status-line rule missing"
+grep -q "never the agent's internal reasoning" "$ROOT/$CUST" 2>/dev/null && ok "reasoning-invariance clause shipped" || no "reasoning-invariance clause missing"
+RAW=$(python3 -c "
+import re,sys
+s=open('$ROOT/$CUST').read()
+b=re.sub(r'\A---\n.*?\n---\n','',s,flags=re.S); b=re.sub(r'<!--.*?-->','',b,flags=re.S); b=re.sub(r'\`[^\`]*\`','',b)
+print(len(re.findall(r'<[a-zA-Z][\w-]*>',b)))" 2>/dev/null || echo 99)
+[ "$RAW" = 0 ]                                && ok "no raw HTML-parsed tokens in rendered prose"      || no "$RAW raw <tag> token(s) leak into rendered prose"
 L=$(wc -l < "$ROOT/$CUST" | tr -d ' ')
 [ "$L" -le 120 ]                              && ok "within ~120-line cap ($L)"            || no "exceeds cap ($L lines)"
 
