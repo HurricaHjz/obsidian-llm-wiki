@@ -7,7 +7,8 @@
   { "query": "path:wiki/user/",         "color": { "a": 1, "rgb": 2048647 } },
   { "query": "path:wiki/models/",       "color": { "a": 1, "rgb": 15423319 } },
   { "query": "path:wiki/benchmarks/",   "color": { "a": 1, "rgb": 12282841 } },
-  { "query": "path:wiki/sources/",      "color": { "a": 1, "rgb": 8553090 } },
+  { "query": "path:wiki/sources/",      "color": { "a": 1, "rgb": 3355443 } },
   { "query": "path:wiki/syntheses/",    "color": { "a": 1, "rgb": 15429552 } },
-  { "query": "path:wiki/developments/", "color": { "a": 1, "rgb": 10506797 } }
+  { "query": "path:wiki/developments/", "color": { "a": 1, "rgb": 10506797 } },
+  { "query": "path:attic/",             "color": { "a": 1, "rgb": 8359053 } }
 ]

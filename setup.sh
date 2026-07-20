@@ -6,7 +6,7 @@
 #   bash setup.sh --reset         remove the demo and blank the registries (start your own)
 set -euo pipefail
 cd "$(dirname "$0")"
-mkdir -p wiki raw
+mkdir -p wiki raw attic
 
 mk_index() {
   cat > wiki/index.md <<'IDX'
@@ -38,7 +38,7 @@ mk_log() {
 # Wiki Log
 
 > Append-only timeline. Append a `## [date] action | title` entry on every brain-updating op — via shell
-> (`cat >> wiki/log.md`), never by reading the whole file. Actions: ingest · query · lint · deep-lint · sync · setup · maps.
+> (`cat >> wiki/log.md`), never by reading the whole file. Actions: ingest · query · lint · deep-lint · sync · setup · maps · attic.
 
 ## [setup] Initialised from the obsidian-llm-wiki framework
 - **Changed**: created the directory scaffold + registries.
@@ -163,6 +163,20 @@ mk_ideas() {
 IDEASEOF
 }
 
+mk_attic() {
+  # seed the cold-storage manifest (the agent opens attic/ only on explicit instruction); never overwrites
+  mkdir -p attic
+  cat > attic/MANIFEST.md <<'ATTICEOF'
+# Attic Manifest
+
+> **Cold storage.** Files retired from active use but kept "just in case". The agent never opens the attic — including this manifest — except on the owner's explicit instruction ("archive X", "restore Y", "what's in my attic?"). One line per item, newest first; the `[[links]]` keep archived notes visible (grey) in the graph.
+
+<!-- Entry format (agent-maintained during archive/unarchive ops only):
+- [YYYY-MM-DD] [[file]] — from `origin/path` — one-phrase reason
+-->
+ATTICEOF
+}
+
 apply_palette() {
   # ensure the graph's per-type colour palette is present (idempotent; merges, preserves custom groups)
   if [ -f .claude/skills/lint/apply-palette.py ]; then
@@ -188,6 +202,7 @@ case "${1:-}" in
     fi
     [ -f wiki/user/Customisation.md ] || mk_custom
     [ -f IDEAS.md ] || mk_ideas
+    [ -f attic/MANIFEST.md ] || mk_attic
     apply_palette
     ;;
   --reset)
@@ -195,6 +210,7 @@ case "${1:-}" in
     mk_index; mk_log
     [ -f wiki/user/Customisation.md ] || mk_custom
     [ -f IDEAS.md ] || mk_ideas
+    [ -f attic/MANIFEST.md ] || mk_attic
     echo "✓ reset: demo removed, registries blanked. Drop a source into raw/ and run /ingest."
     ;;
   ""|--init)
@@ -202,6 +218,7 @@ case "${1:-}" in
     [ -f wiki/log.md ]   || mk_log
     [ -f wiki/user/Customisation.md ] || mk_custom
     [ -f IDEAS.md ] || mk_ideas
+    [ -f attic/MANIFEST.md ] || mk_attic
     apply_palette
     echo "✓ ready. Drop a source into raw/ and run /ingest"
     echo "  (or try the demo first:  bash setup.sh --with-example)"

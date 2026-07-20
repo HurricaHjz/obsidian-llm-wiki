@@ -34,6 +34,9 @@ exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the c
   parses, `style:` and `role:` each name a section defined in the file, every `overrides` line names a
   conversational feature (style / formatting), and it stays within its ~120-line cap. Flag any drift for the
   owner; never rewrite their preferences.
+- **Attic guard (existence-only):** `attic/` and `attic/MANIFEST.md` exist, and the `path:attic/` colour
+  group is present (`apply-palette.py --check` covers it). NEVER open attic contents — the attic is
+  explicit-instruction-only (CLAUDE.md §2.1); this check reads nothing inside it.
 - **Hard-wrap check:** flag wiki pages with suspected mid-sentence hard wraps (a prose line ending in a
   lowercase word or comma while the next line begins lowercase) — prose is one line per paragraph
   (CLAUDE.md §1 line discipline; Obsidian renders single newlines as breaks). Skip non-rendered text:
@@ -57,6 +60,9 @@ exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the c
 Flag `authoritative`/`high` pages whose `updated` is old or that a newer page supersedes; down-weight or
 add a `## Conflicts / Open Questions` note, and route high-stakes stale claims to the human. Use `updated`
 + supersession; do not silently rewrite.
+- **Archive candidates (suggest-only):** flag pages that look retired — superseded and not cited by any
+  live work, or long-stale at low confidence — as *suggestions* for the attic (CLAUDE.md §2.1). NEVER
+  move anything yourself: archiving happens only on the user's explicit instruction.
 
 ### 4 — Freshness against online sources (cheap signals first)
 For pages whose `sources:`/`source_url` point at an external URL, check whether the upstream **materially
@@ -86,7 +92,7 @@ refreshed/skipped, qmd status.
 ### Confidence
 - N pages missing a level (assigned) · N re-tiered (e.g. [[X]] high→authoritative)
 ### Staleness
-- N stale high/authoritative claims flagged: [[..]]
+- N stale high/authoritative claims flagged: [[..]] · N attic candidates suggested (user decides)
 ### Freshness
 - N sources changed upstream & re-ingested: [[..]] · N checked, unchanged · N skipped (immutable)
 ### qmd

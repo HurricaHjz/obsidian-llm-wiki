@@ -14,6 +14,7 @@
 | `output/` | **Deliverables** the agent writes on request — reports, briefs, decks. Kept separate from the brain. |
 | `assets/` | Images and reference attachments — diagrams, screenshots, and *special* PDFs you want to link to. Source PDFs to **ingest** go in `raw/`, not here. |
 | `IDEAS.md` | **Your scratchpad** — jot future ideas and potential issues freely. The agent ignores it unless you explicitly point it there, and tidies its Overview table on request. |
+| `attic/` | **Your cold storage** — retired files kept "just in case", each listed in `attic/MANIFEST`. The agent never opens it unless you explicitly ask; archived notes show **grey** in the graph. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
 | `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `deep-lint`, `export-okf` (plus `export-template` for contributors). |
 
@@ -78,6 +79,10 @@ Type these to the agent, in the Claudian panel or Claude Code.
 **`/deep-lint` — monthly deep maintenance**
 - A heavier, roughly monthly pass that does everything `/lint` does and also audits every page's **confidence level**, flags stale claims, and re-checks your sources against their **live online versions**, updating the wiki where they have changed. Token-intensive by design, so run it about once a month rather than routinely.
 
+**The attic — retire files without deleting them**
+- Say *"archive [[X]] to the attic"* and the agent moves it into `attic/`, records what, where from and why in `attic/MANIFEST.md`, unindexes it, and tidies its links; *"restore X from the attic"* reverses it; *"what's in my attic?"* reads the manifest back to you.
+- Archived notes stay in the graph in **grey**, so retired material remains visible without cluttering your live knowledge. The agent never opens the attic on its own — only when you ask. The monthly `/deep-lint` may *suggest* archive candidates (stale or superseded notes) but never moves anything itself.
+
 **qmd — optional local semantic search (for large or fast-growing vaults)**
 > Worth adding when your wiki is **already large enough that `index.md` is hard to scan**, *or* when you **expect it to grow very large** — in that case adopt it **early**: the index then builds up incrementally (one quick re-embed per note as you go) instead of as one slow bulk embed later, and you get search-by-meaning the whole way up.
 - Once enabled, the agent **searches by meaning** (not just exact keywords) — but **only when it's actually needed**: when the normal `index.md` + keyword search comes up short for a question. It is **not** run on every search, and you don't have to ask for it — the agent decides when it genuinely helps (you *can* force it with `/qmd-search <query>`). Whenever qmd is off or absent, search silently falls back to the normal path.
@@ -130,9 +135,10 @@ graph view after any setup change to load new colours. **A fresh vault's graph i
 | 🟦 Oxford blue | User            | **about you** — profile, research, works       |
 | 🔴 Red         | Models          | LLMs (Qwen, GPT, …)                            |
 | 🟣 Purple      | Benchmarks      | evaluation datasets (AIME, GSM8K, …)           |
-| ⚫ Grey         | Sources         | one summary per raw source (the bulk of nodes) |
+| ⚫ Charcoal     | Sources         | one summary per raw source (the bulk of nodes) |
 | 🩷 Pink        | Syntheses       | answers filed back from your queries           |
 | 🟤 Brown       | Developments    | this vault's own self-upgrade docs (design · plans · rollouts) |
+| 🩶 Grey        | Attic           | retired files kept "just in case" (cold storage) |
 
 New nodes colour themselves: each colour keys off the **type folder** (`wiki/models/`, …), so anything the agent files there is coloured automatically — no manual tagging.
 

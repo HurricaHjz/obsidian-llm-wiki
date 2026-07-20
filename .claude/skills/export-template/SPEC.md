@@ -17,6 +17,7 @@ obsidian-llm-wiki/                  (= template-export/)
 ├── .obsidian/                 # graph.json, app.json, core-plugins.json, appearance.json ONLY
 ├── assets/                   # framework_demo.png (.gitkeep)  ← README screenshot (force-tracked); other media gitignored
 ├── output/                    # empty (.gitkeep)
+├── attic/                     # empty (.gitkeep) — owner cold storage; contents gitignored
 ├── raw/                       # 11 empty lanes (.gitkeep) — NO seed (content is gitignored)
 │   └── 1-articles/ … 9-originals/ · archives/ · duplicates/
 ├── wiki/                      # 9 empty type folders (.gitkeep) — NO seed, NO index/log (gitignored)
@@ -31,7 +32,7 @@ obsidian-llm-wiki/                  (= template-export/)
   CLAUDE.md, `.claude/skills/**`, `.obsidian/{graph,app,core-plugins,appearance}.json`, the `.gitkeep`
   skeleton, and `examples/`.
 - **Ignored (local knowledge):** `wiki/**` (incl. `index.md`, `log.md`), `raw/**`, `assets/**` (bar the README screenshot),
-  `output/**`, `okf-export/`, `template-export/`, plus `.obsidian/workspace*.json`/`plugins/`/`cache`.
+  `output/**`, `attic/**`, `okf-export/`, `template-export/`, plus `.obsidian/workspace*.json`/`plugins/`/`cache`.
 - Net: a fresh clone ships **empty** (skeleton + demo only); when anyone uses it their content stays
   local, and `git push` shares only framework changes.
 
@@ -39,8 +40,8 @@ obsidian-llm-wiki/                  (= template-export/)
 - **KEEP →** CLAUDE.md, Manual.md, `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` (from the vault root),
   `.claude/skills/**` — **every** skill, **incl. `export-template`** (the contributor publish tool, with its `payload/`),
   `.obsidian/{graph,app,core-plugins,appearance}.json`.
-- **STRIP →** all `wiki/**`, `raw/**`, `assets/**` (bar the README screenshot), `output/**`, `okf-export/`, `wiki/user/**`, personal
-  data, `.obsidian/workspace.json`/`plugins/`/`community-plugins.json`, `.claudian/`, `.git/`.
+- **STRIP →** all `wiki/**`, `raw/**`, `assets/**` (bar the README screenshot), `output/**`, `attic/**`, `okf-export/`,
+  `wiki/user/**`, personal data, `.obsidian/workspace.json`/`plugins/`/`community-plugins.json`, `.claudian/`, `.git/`.
 
 ## Conventions the scaffold must preserve
 - Every empty content dir keeps a `.gitkeep`.

@@ -9,6 +9,7 @@
 /raw/**
 /assets/**
 /output/**
+/attic/**
 /okf-export/
 /template-export/
 /IDEAS.md
@@ -18,6 +19,7 @@
 !/raw/**/
 !/assets/**/
 !/output/**/
+!/attic/**/
 !**/.gitkeep
 # the README screenshot is the ONE tracked asset; all other assets/ media stay LOCAL
 !/assets/framework_demo.png

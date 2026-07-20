@@ -39,6 +39,7 @@ build_fake_vault(){
   printf 'raw source\n' > "$V/raw/source1.md"
   mkdir -p "$V/wiki/user"; printf -- '---\ntitle: "Customisation"\ntype: user\n---\nowner personal prefs\n' > "$V/wiki/user/Customisation.md"  # personal config — must NEVER ship
   printf '# IDEAS\n- owner private idea\n' > "$V/IDEAS.md"   # personal scratchpad — must NEVER ship
+  mkdir -p "$V/attic"; printf '# Attic Manifest\n- [2026-01-01] [[old-note]] retired\n' > "$V/attic/MANIFEST.md"  # cold storage — must NEVER ship
 }
 
 setup_published(){   # fake vault + bare remote + clone holding the published framework
@@ -79,6 +80,9 @@ chk "build: personal Customisation NOT shipped" '[ ! -e "$BUILT/wiki/user/Custom
 chk "build: shipped setup.sh seeds Customisation" 'grep -q mk_custom "$BUILT/setup.sh"'
 chk "build: personal IDEAS.md NOT shipped"      '[ ! -e "$BUILT/IDEAS.md" ]'
 chk "build: shipped setup.sh seeds IDEAS"       'grep -q mk_ideas "$BUILT/setup.sh"'
+chk "build: attic contents NOT shipped"         '[ ! -e "$BUILT/attic/MANIFEST.md" ]'
+chk "build: attic skeleton ships (.gitkeep)"    '[ -f "$BUILT/attic/.gitkeep" ]'
+chk "build: shipped setup.sh seeds attic"       'grep -q mk_attic "$BUILT/setup.sh"'
 chk "build: no __pycache__ shipped"         '[ -z "$(find "$BUILT" -name __pycache__)" ]'
 chk "build: no .DS_Store shipped"           '[ -z "$(find "$BUILT" -name .DS_Store)" ]'
 chk "build: graph.json keeps colorGroups"   'grep -q colorGroups "$BUILT/.obsidian/graph.json"'
@@ -87,6 +91,7 @@ chk "build: graph.json strips view-state"   '! grep -qE "scale|close|search|coll
 chk "git: wiki content ignored"             '( cd "$BUILT" && git check-ignore -q wiki/sources/x.md )'
 chk "git: raw content ignored"              '( cd "$BUILT" && git check-ignore -q raw/x.md )'
 chk "git: output content ignored"           '( cd "$BUILT" && git check-ignore -q output/y.md )'
+chk "git: attic content ignored"            '( cd "$BUILT" && git check-ignore -q attic/z.md )'
 chk "git: README tracked"                   '( cd "$BUILT" && git ls-files | grep -qx README.md )'
 chk "git: CLAUDE tracked"                   '( cd "$BUILT" && git ls-files | grep -qx CLAUDE.md )'
 chk "git: screenshot force-tracked"         '( cd "$BUILT" && git ls-files | grep -q "assets/framework_demo.png" )'

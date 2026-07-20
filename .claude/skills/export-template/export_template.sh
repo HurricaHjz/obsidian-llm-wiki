@@ -76,7 +76,7 @@ make_skeleton() {
     mkdir -p "$D/raw/$d"; touch "$D/raw/$d/.gitkeep"; done
   for d in concepts entities tools models benchmarks sources syntheses developments maps user; do
     mkdir -p "$D/wiki/$d"; touch "$D/wiki/$d/.gitkeep"; done
-  mkdir -p "$D/assets" "$D/output"; touch "$D/assets/.gitkeep" "$D/output/.gitkeep"
+  mkdir -p "$D/assets" "$D/output" "$D/attic"; touch "$D/assets/.gitkeep" "$D/output/.gitkeep" "$D/attic/.gitkeep"
 }
 
 # ── tune the template's Obsidian config: keep the demo + build dirs out of the graph (idempotent) ──

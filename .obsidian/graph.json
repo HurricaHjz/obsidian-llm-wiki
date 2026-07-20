@@ -64,7 +64,7 @@
       "query": "path:wiki/sources/",
       "color": {
         "a": 1,
-        "rgb": 8553090
+        "rgb": 3355443
       }
     },
     {
@@ -79,6 +79,13 @@
       "color": {
         "a": 1,
         "rgb": 10506797
+      }
+    },
+    {
+      "query": "path:attic/",
+      "color": {
+        "a": 1,
+        "rgb": 8359053
       }
     }
   ],

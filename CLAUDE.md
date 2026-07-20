@@ -11,13 +11,13 @@
 You are the **librarian and compiler** for a personal knowledge base. This is **not RAG**.
 
 - **RAG** re-discovers knowledge from scratch on every query. Nothing accumulates.
-- **This wiki is a persistent, compounding artifact.** When a source arrives you *compile* it once:
+- **This wiki is a persistent, compounding artefact.** When a source arrives you *compile* it once:
   read it, extract entities/concepts, integrate it into existing pages, flag contradictions, and
   keep cross-references current. Knowledge is **compiled, not re-retrieved.**
 
-**The division of labor is fixed:**
+**The division of labour is fixed:**
 > The human curates sources, asks questions, and decides what matters.
-> **You do all the bookkeeping** — summarizing, cross-linking, filing, deduping, conflict-tracking.
+> **You do all the bookkeeping** — summarising, cross-linking, filing, deduping, conflict-tracking.
 > Obsidian is the IDE · you are the programmer · the wiki is the codebase.
 
 **Personal context (`wiki/user/`):** the human's own profile, research, publications, and works live
@@ -26,24 +26,27 @@ citing their own work, or resolving who "I / me / my" refers to. The human curat
 pages there only when asked or clearly appropriate.
 
 **Customisation (`wiki/user/Customisation.md`):** the owner's **open-ended** preference layer for the
-agent — e.g. its name, conversational output style, language and interaction preferences; the owner
-may add any standing preference, and agents honour it within the precedence below. **At the start of a session,
-read it if present** before substantive work; if it is absent, proceed on built-in defaults (fresh
-vaults seed it via `setup.sh`). Precedence: this schema's governance ≫ a live user instruction ≫
-`Customisation.md` ≫ built-in defaults. It is **user-space config, not a governance layer** — it can
-never relax the §2 permissions, raw immutability, the §4.6 confidence rubric, the logging contracts,
-or the wiki's UK-English rule. **Scope:** output styles shape *conversational prose only* (chat
-replies, inline `query` answers, explanations); wiki pages, frontmatter, confidence assignment and its
-reporting, `index`/`log` entries, ingest/lint reports, conflict surfacing and `output/` deliverables
-stay style-invariant. Output *styles* change only what the user reads — never internal reasoning,
-planning, tool use, or processing depth. *Roles* do shape how the agent works — task emphasis,
-approach and rigour, sometimes trading a little efficiency for quality — while never touching the
-governance floor or the style-invariant surfaces above. Distinct from styles, an optional `## Deliverable defaults` section holds
-standing *content-format* preferences (citation style, deck format, …) that the `output` skill
-applies **only where the instruction is silent**; an explicit instruction always wins, and an empty
-or absent section means the agent decides. That section is the **single home** of these defaults —
-`output` re-reads it on every run and never copies its values into skills, configs, or other files. Style (register) is orthogonal to the §6 processing modes
-(depth). Log a persisted change to this file as `sync`; a session-only style switch is not logged.
+agent — its name, conversational output style and role, language, interaction preferences, or any
+other standing preference the owner adds. **At the start of a session, read it if present** before
+substantive work; if it is absent, proceed on built-in defaults (fresh vaults seed it via `setup.sh`).
+- **Precedence:** this schema's governance ≫ a live user instruction ≫ `Customisation.md` ≫ built-in
+  defaults. It is **user-space config, not a governance layer** — it can never relax the §2
+  permissions, raw immutability, the §4.6 confidence rubric, the logging contracts, or the wiki's
+  UK-English rule.
+- **Styles** shape *conversational prose only* (chat replies, inline `query` answers, explanations)
+  and change only what the user reads — never internal reasoning, planning, tool use, or processing
+  depth. Wiki pages, frontmatter, confidence assignment and its reporting, `index`/`log` entries,
+  ingest/lint reports, conflict surfacing and `output/` deliverables stay **style-invariant**. Style
+  (register) is orthogonal to the §6 processing modes (depth).
+- **Roles** do shape how the agent works — task emphasis, approach and rigour, sometimes trading a
+  little efficiency for quality — while never touching the governance floor or the style-invariant
+  surfaces above.
+- **Deliverable defaults** — an optional section holding standing *content-format* preferences
+  (citation style, deck format, …) that the `output` skill applies **only where the instruction is
+  silent**; an explicit instruction always wins, and an empty or absent section means the agent
+  decides. That section is the **single home** of these defaults — `output` re-reads it on every run
+  and never copies its values into skills, configs, or other files.
+- **Logging:** a persisted change to this file is logged as `sync`; a session-only style switch is not.
 
 **Language:** Write and maintain the entire wiki in **English with British/UK spelling** (colour,
 organise, analyse, behaviour, optimise, modelling, centre, …), whatever the input language; translate
@@ -67,13 +70,13 @@ unknown tags are silently stripped from view.
 ## 2. Directory Map & Permission Boundaries
 
 ```
-obsNotes/                      ← vault root (this is your working directory)
+<vault-root>/                  ← vault root (this is your working directory)
 ├── CLAUDE.md                  ← THIS schema. The contract you obey.
 ├── Manual.md                  ← human-facing quick-start (usage + prompts). STABLE: update ONLY when
 │                                 the system's architecture/workflow changes — NEVER per ingest/query.
 ├── IDEAS.md                   ← 💡 owner's scratchpad (future ideas / issues). Agent IGNORES it in normal runs; reads or maintains it (incl. its Overview table) only on the user's explicit instruction. Not knowledge; never drives work, enters wiki, or ships; seeded by `setup.sh`.
 │
-├── assets/                   ← 🖼️ MEDIA LAYER
+├── assets/                    ← 🖼️ MEDIA LAYER
 │                                 Images, diagrams & reference attachments — incl. *special* PDFs you
 │                                 only want to link to, NOT source PDFs to ingest (those go in raw/).
 │                                 Obsidian's attachment path points here. Embed with ![[file.png]].
@@ -89,12 +92,12 @@ obsNotes/                      ← vault root (this is your working directory)
 │   ├── 7-reviews/             ← peer reviews · OpenReview pages · rebuttals · meta-reviews
 │   ├── 8-transcripts/         ← video / podcast / audio / lecture transcripts
 │   ├── 9-originals/           ← 📝 the vault owner's OWN works: research outlines, drafts, papers, theses (raw mirror of wiki/user/)
-│   ├── archives/              ← catch-all: misc / uncategorizable / deprecated sources
+│   ├── archives/              ← catch-all: misc / uncategorisable / deprecated sources
 │   └── duplicates/            ← confirmed duplicates set aside (ignored / not useful)
 │
 ├── wiki/                      ← 🧠 COMPILED LAYER — you own this entirely
-│   ├── index.md               ← global catalog (content-oriented). Update on every ingest.
-│   ├── log.md                 ← append-only timeline (chronological). Append on every op.
+│   ├── index.md               ← global catalogue (content-oriented). Update on every ingest.
+│   ├── log.md                 ← append-only timeline (chronological). Append on every brain-changing op (§5).
 │   ├── concepts/              ← abstractions: frameworks, methods, theories, principles
 │   ├── entities/              ← people & organisations (companies, labs)
 │   ├── tools/                 ← software, apps, plugins, skills, libraries, services
@@ -108,6 +111,10 @@ obsNotes/                      ← vault root (this is your working directory)
 │
 ├── output/                    ← 📤 DELIVERABLES — agent-generated reports/drafts/decks (the `output` skill); cited, graph-excluded, NOT knowledge
 │
+├── okf-export/                ← 📦 generated OKF bundle (`export-okf`, opt-in); disposable, graph-excluded, may be absent
+│
+├── attic/                     ← 🗄️ owner's COLD STORAGE: retired-but-kept files + MANIFEST.md. Explicit user instruction ONLY (§2.1); in the graph (grey); NOT knowledge
+│
 └── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, qmd-search, export-okf, output, export-template
 ```
 
@@ -118,12 +125,30 @@ obsNotes/                      ← vault root (this is your working directory)
 | **`raw/`** | **Read** any file. **Move** a processed file into its category subfolder. **Add** a Markdown file *only* as the MarkItDown conversion of a non-Markdown source (keep the original — see §3.1). | **Edit, rewrite, or delete** the *content* of any existing raw file, or add any other file by hand. |
 | **`assets/`** | **Read** media; **add** new downloaded media; reference via `![[...]]`. | Delete the user's media without asking. |
 | **`wiki/`** | **Full read/write.** Create, update, merge, refactor, link. | Leave orphan pages or break the index/log contracts. |
+| **`attic/`** | **Nothing in normal ops.** On an **explicit user instruction only**: read it, archive into it, or restore from it (§2.1). | Read, cite, or index its contents in any normal operation, or delete anything in it. |
 | **`.claude/`** | Read & update skills when asked. | Change settings without explaining. |
 
 > **Reconciling immutability with sorting:** raw files are **content-immutable** but **relocatable**.
 > Exactly **two** writes to `raw/` are allowed: (1) **moving** a fully-ingested file into its category
 > subfolder, and (2) **adding** a MarkItDown-converted `.md` next to a non-Markdown source (§3.1).
 > Never alter the bytes inside an existing raw file.
+
+### 2.1 The attic — cold storage, explicit instruction ONLY
+
+`attic/` holds files the owner has retired but wants to keep "just in case" — the IDEAS.md contract,
+folder-shaped: in normal operations the agent NEVER reads, writes, moves, or cites anything in it, and
+its contents are never knowledge. Only an explicit user instruction ("archive X to the attic", "check
+the attic", "restore Y") opens it. `attic/MANIFEST.md` catalogues the contents — one line per item —
+and is written ONLY during the two operations below.
+- **Archive (on instruction):** move the file into `attic/`; append a manifest line
+  (`- [YYYY-MM-DD] [[file]] — from origin/path — one-phrase reason`); if it was a wiki page, remove
+  its `index.md` entry and replace inbound links from live pages with plain text ("X, archived");
+  then log an `attic` entry (§5).
+- **Unarchive (on instruction):** reverse it — move the file back, delete its manifest line, re-index
+  a wiki page, restore links where wanted; log an `attic` entry.
+- **Graph:** the attic IS in the graph, coloured grey — the manifest's `[[links]]` give every archived
+  note an edge (orphan nodes are hidden in the graph settings), so retired material stays visible
+  without ever re-entering the knowledge base.
 
 ---
 
@@ -180,8 +205,8 @@ the raw file) let `ingest` detect a re-added document — see the `ingest` skill
 
 ### 4.2 Naming conventions
 
-- **Entities, Concepts, Models, Benchmarks & Tools** → `Title Case With Spaces.md` → e.g. `[[Claude Code]]`, `[[Qwen]]`, `[[AIME]]` (a tool keeps its conventional lowercase name where canonical, e.g. `qmd`, `defuddle`).
-- **Sources & Syntheses** → `kebab-case.md` → e.g. `karpathy-llm-wiki-gist.md`, `claude-vs-codex-comparison.md`.
+- **Entities, Concepts, Models, Benchmarks & Tools** → `Title Case With Spaces.md` → e.g. `[[Claude Code]]`, `[[Qwen]]`, `[[AIME]]` (a tool keeps its conventional lowercase name where canonical, e.g. `qmd`, `defuddle`). User pages follow the same Title Case (`About Me.md`, `Customisation.md`).
+- **Sources, Syntheses, Developments & Maps** → `kebab-case.md` → e.g. `karpathy-llm-wiki-gist.md`, `wiki-confidence-levels.md`.
 
 ### 4.3 Required structure per type
 
@@ -235,7 +260,7 @@ when coverage is only `low`, still answers *with a warning*; the monthly `/deep-
 
 ## 5. The Two Registry Files
 
-### `wiki/index.md` — content catalog (update on every ingest)
+### `wiki/index.md` — content catalogue (update on every ingest)
 Format: `- [[Page Name]] — one-line description.` grouped under `## Sources / Entities / Tools / Models / Benchmarks / Concepts / Syntheses / Developments / Maps / User`.
 On a query, **read this first** to locate relevant pages, then drill in. This replaces embedding-based RAG at this scale.
 
@@ -247,11 +272,12 @@ On a query, **read this first** to locate relevant pages, then drill in. This re
 - **Changed**: created [[Page A]], [[summary-slug]]; updated [[index.md]]
 - **Conflicts**: none   (or: conflict with [[Page B]], flagged)
 ```
-Actions: `ingest` · `query` · `lint` · `deep-lint` · `sync` · `setup` · `maps`.
+Actions: `ingest` · `query` · `lint` · `deep-lint` · `sync` · `setup` · `maps` · `attic`.
 
-**Log only operations that change the brain:** `ingest`, a `query` *that files a synthesis*, `lint`
-*that applies fixes*, `sync` (framework changes), and `setup`. A query answered **inline** (no file
-written) and a **read-only** lint scan are **not** logged — unless the user explicitly asks.
+**Log only operations that change the brain:** `ingest`, a `query` *that files a synthesis*, a
+`lint`/`deep-lint` *that applies fixes*, `maps` (creating or updating a Map of Content), `attic`
+(an archive/restore, §2.1), `sync` (framework changes), and `setup`. A query answered **inline** (no file written) and a **read-only**
+lint scan are **not** logged — unless the user explicitly asks.
 
 ---
 
@@ -261,7 +287,7 @@ written) and a **read-only** lint scan are **not** logged — unless the user ex
 |---------|-------|--------------|
 | `/ingest` or "add this to my wiki" | **ingest** | Compile inbox files → wiki pages, update index+log, then sort the raw file into its category subfolder. |
 | `/gather <url…>` or "deep-capture these links" | **gather** | *(opt-in)* Deep Raw-layer capture — fetch a seed + the relevant links it cites (preview-and-approve; capped) into `raw/`, then hand to `ingest`. |
-| `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → synthesize a cited answer; offer to file high-value answers into `syntheses/`. |
+| `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → synthesise a cited answer; offer to file high-value answers into `syntheses/`. |
 | `/lint` or "health-check the wiki" | **lint** | Cheap, frequent scan: dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. (No confidence/online checks — those are `deep-lint`'s.) |
 | `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy ~monthly pass: confidence coverage & correctness, staleness, freshness vs online sources, deep structural checks, qmd refresh (if enabled); updates the vault, confirming large changes. |
 | `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search over the wiki via qmd — **dormant** unless qmd is installed + enabled; the `query`/`output` fallback and the refresh-on-write hook. |
@@ -288,7 +314,7 @@ the material justifies it.
 ## 7. Available Skills & When To Use Them
 
 Each skill's own description surfaces automatically — below is just *when to reach for which*:
-- **Capture / convert**: `defuddle` (or WebFetch) for a web page → Markdown; **`markitdown`** to convert any non-`.md` source (PDF/PPTX/DOCX/XLSX/image/audio/HTML/CSV/EPUB/URL) before ingest (§3.1).
+- **Capture / convert**: `defuddle` for a web page → Markdown (WebFetch only for throwaway lookups — **never to capture a source**, §3.1); **`markitdown`** to convert any non-`.md` source (PDF/PPTX/DOCX/XLSX/image/audio/HTML/CSV/EPUB/URL) before ingest (§3.1).
 - **Vault I/O**: prefer **`obsidian-cli`** (cheaper/safer than raw file ops); `obsidian-markdown` for Obsidian-flavoured syntax; `obsidian-bases` (`.base` views) · `json-canvas` (`.canvas` maps).
 - **Custom (this vault)**: `ingest` · `gather` (opt-in deep capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `export-okf` · `output` · `export-template` (publish/update the public framework repo) — see §6.
 - **Version control / backup**: the **Obsidian Git** plugin backs up the *whole vault* (knowledge included) to a *private* remote (history + multi-device sync); `export-template` publishes the *framework only* to the *public* repo. Two repos, never crossed (§11).
@@ -316,9 +342,10 @@ Each skill's own description surfaces automatically — below is just *when to r
 - **Canvas / Excalidraw / Mermaid** — visual maps via the relevant skills.
 - **Dataview** — since pages carry YAML frontmatter, Dataview can build dynamic tables/lists. Don't break existing ```dataview``` blocks.
 - **Graph view** — spot hubs/orphans. Nodes are **colour-coded by type folder** via `colorGroups` in
-  `.obsidian/graph.json` (`path:wiki/<type>/` → colour), so pages `ingest` files into `wiki/<type>/`
-  colour themselves with zero upkeep. Palette + how-to live in Manual.md / that file (the `color` JSON
-  key stays US-spelled — it's Obsidian's).
+  `.obsidian/graph.json` (`path:wiki/<type>/` → colour; `path:attic/` → grey), so pages `ingest` files
+  into `wiki/<type>/` colour themselves with zero upkeep. The palette table lives in Manual.md; the
+  canonical values live in `.claude/skills/lint/palette.json` (the `color` JSON key stays US-spelled —
+  it's Obsidian's).
 
 ---
 
@@ -327,7 +354,8 @@ Each skill's own description surfaces automatically — below is just *when to r
 - At this scale (~100–200 sources, hundreds of pages) **`index.md` is the search layer** — no vector DB needed; the agent reads it first, then `grep`s.
 - **Optional semantic layer — [qmd](https://github.com/tobi/qmd) via the `qmd-search` skill.** A local hybrid
   BM25 + vector + rerank engine, **dormant by default**: the agent uses it only when qmd is installed, an index
-  exists, and the `qmd:` mode isn't `off` (default `auto`); otherwise it silently falls back to `index.md` →
+  exists, and no `.qmd-off` marker sits in the vault root (installing qmd + building an index *is* the
+  opt-in; the marker forces qmd off without uninstalling); otherwise it silently falls back to `index.md` →
   `grep`. **CLI shell-out by default** (MCP daemon optional). **Retrieval only** — `index.md` stays the
   read-first catalogue and the compiled layer keeps governing; qmd ranks by relevance, then the agent re-orders
   by `confidence` (§4.6).
@@ -418,8 +446,10 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   speculation about what the next version might be, and never for routine ops or patch-level work.
 - **Update `Manual.md` only when warranted** — i.e. the change edits existing Manual content, adds
   user-facing usage/info, or the user explicitly asks. Internal-only changes do **not** touch the Manual.
-- **The graph is `wiki/` only.** Non-wiki Markdown — everything under `raw/`, plus `CLAUDE.md`,
-  `Manual.md` and `IDEAS.md` — is excluded from Obsidian's graph/search via `.obsidian/app.json` → `userIgnoreFilters`.
-  In addition, `ingest` Step 0 **sanitizes converted artifacts** (strips control bytes; defangs stray
+- **The graph is `wiki/` plus the attic.** Everything else — `raw/`, `assets/`, `output/`,
+  `okf-export/`, and the root docs (`CLAUDE.md`, `Manual.md`, `IDEAS.md`, `README.md`, …) — is
+  excluded from Obsidian's graph/search via `.obsidian/app.json` → `userIgnoreFilters`; `attic/`
+  stays visible with its own grey group (§2.1) so retired material reads at a glance.
+  In addition, `ingest` Step 0 **sanitises converted artefacts** (strips control bytes; defangs stray
   `[text](bareword)` and `[[…]]` that MarkItDown emits from math/citations). Together these keep the
   knowledge graph free of spurious nodes.
