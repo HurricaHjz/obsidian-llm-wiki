@@ -136,30 +136,45 @@ mk_ideas() {
   cat > IDEAS.md <<'IDEASEOF'
 # IDEAS
 
-> **Owner's scratchpad.** My future ideas, open questions and potential issues, in my own words. **The agent ignores this file in normal runs** — it reads or maintains it only when I explicitly say so. Nothing here is verified or agreed, so it must never drive normal work or enter the wiki without my instruction. I append bullets freely; the agent keeps the Overview table in sync when I ask.
-
-<!-- HOW TO USE (invisible in reading view):
-  - Jot fast: add "- [YYYY-MM-DD] …" bullets at the top of Ideas or Potential issues (date optional).
-  - Ask the agent to "maintain IDEAS.md" and it will number new items, sync the Overview table, and move finished items to the Archive.
-  - Statuses: open · ✅ done · ❌ dropped · ➡️ moved (say where).
--->
+> **Owner's scratchpad.** My copy-ready TODO prompts, future ideas, open questions and standing cautions, in my own words. **The agent ignores this file in normal runs** — it reads or maintains it only when I explicitly say so. Nothing here is verified or agreed, so it must never drive normal work or enter the wiki without my instruction. I write anywhere freely (Ideas is my rawest dump; TODO is my prompt inbox); when I ask, the agent may number, label, sort, move, archive and summarise — but never alters the wording of my raw text without my explicit instruction. Full rules: the HOW TO USE comment at the end of this file.
 
 ## 📋 Overview
-<!-- one row per item; kept in sync by the agent on request; № links a row to its bullet below -->
+<!-- live items only (todo · idea · monitor) — a listed row IS open, so there is no Status column (terminal outcomes ✅ ❌ ➡️ appear on Archive lines); archived rows leave this table; № links a row to its bullet; Cat.: D development · W work · R research · L life · M monitor (every monitor-kind row takes M) -->
 
-| № | Item | Kind | Status |
-|---|------|------|--------|
+| № | Item | Cat. | Kind |
+|---|------|------|------|
 
 ## 💡 Ideas
-<!-- newest first, one line each -->
+<!-- rawest lane: dump fragments freely, newest first; tag with (D/W/R/L[-version]) as a self-reminder, or (M) to earmark for the Monitor lane; promote to TODO when runnable -->
 
+## ⌨️ TODO — prompt queue
+<!-- copy-ready prompts; categories are GROUPING ONLY — execution follows № ascending (owner markers override); my raw input lane — the agent touches statuses only when told -->
 
-## ⚠️ Potential issues / watch-list
-<!-- newest first; risks, suspected bugs, things that felt off -->
+### 🛠️ Development
 
+### 💼 Work
+
+### 🔬 Research
+
+### 🌱 Life
+
+## 📡 Monitor
+<!-- standing cautions to keep watching — not runnable prompts; entries persist after review; "(from №n)" marks one spawned by a finished TODO; promote to TODO (new №) when it becomes actionable -->
 
 ## 🗄️ Archive
 <!-- finished items land here with their № and outcome (✅ done · ❌ dropped · ➡️ moved) plus a word on why -->
+
+<!-- HOW TO USE (agent instructions — read only when the owner invokes an IDEAS operation):
+  - Lanes by actionability: Ideas = raw fragments (owner tags (D/W/R/L[-version]) as self-reminders, (M) = earmarked for Monitor) · TODO = copy-ready prompts under ### category headings, grouping only · Monitor = standing cautions that persist after review · Archive = terminal (✅ done · ❌ dropped · ➡️ moved).
+  - EXECUTION ORDER: "run TODO n" targets a №; "do my TODOs" runs by № ascending across all categories — file position and category never set the order; the owner's inline markers override.
+  - MONITOR INFLOWS: written directly by the owner · spawned by a finished TODO whose outcome needs continued watching (archive the TODO, add a Monitor entry marked "(from №n)") · promoted from Ideas. Runnable text never sits in Monitor — when actionable, promote to TODO with a new № and cross-reference.
+  - DEEP-LINT DELEGATION (the only standing write path besides explicit instruction): a /deep-lint run may open the Monitor section ONLY — evidence-check each caution, report promotion-ripe · dormant · evidence-changed, and append confirmed "(agent)" annotations; TODO/Ideas/Archive stay untouchable, and every such write is reported in-reply and in the run's log entry.
+  - "maintain IDEAS.md" → number new items, sync the Overview (live items only; Cat. column), sort strays into lanes, repair formatting (keep the ### category headings), move finished/rejected items to the Archive, cross-check TODOs against wiki/log.md to propose ✅, and append one-line "(agent)" summaries where useful.
+  - "run TODO n" / "do my TODOs" → execute queue item(s), then update their status in the same breath.
+  - ARCHIVING PRESERVES THE OWNER'S WORDS: an archived TODO's line carries № · date · outcome · a short summary AND the owner's original prompt verbatim (quoted), so nothing the owner wrote is ever lost.
+  - OWNER RAW TEXT IS CONTENT-IMMUTABLE: never alter the wording of the owner's input without explicit instruction. Lifecycle operations are sanctioned: numbering, labels, moving between lanes, archiving (including removal + a summary line), Overview sync, formatting repairs.
+  - Outcomes (Archive lines only): ✅ done = resolved (even if it spawned a "(from №n)" Monitor watch) · ❌ dropped · ➡️ moved = relocated UNRESOLVED (say where). Live Overview rows carry no status — being listed means open. Kinds: todo · idea · monitor. Categories: D development · W work · R research · L life · M monitor (every monitor-kind item carries M; an (M) tag in Ideas earmarks a fragment for the Monitor lane).
+-->
 IDEASEOF
 }
 

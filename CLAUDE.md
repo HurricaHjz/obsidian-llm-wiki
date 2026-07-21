@@ -74,7 +74,7 @@ unknown tags are silently stripped from view.
 ├── CLAUDE.md                  ← THIS schema. The contract you obey.
 ├── Manual.md                  ← human-facing quick-start (usage + prompts). STABLE: update ONLY when
 │                                 the system's architecture/workflow changes — NEVER per ingest/query.
-├── IDEAS.md                   ← 💡 owner's scratchpad (future ideas / issues). Agent IGNORES it in normal runs; reads or maintains it (incl. its Overview table) only on the user's explicit instruction. Not knowledge; never drives work, enters wiki, or ships; seeded by `setup.sh`.
+├── IDEAS.md                   ← 💡 owner's scratchpad: TODO prompt queue · ideas · monitor lane. Agent IGNORES it in normal runs; reads or maintains it (incl. its Overview table) only on the user's explicit instruction ("maintain IDEAS.md", "run TODO n") — sole standing delegation: `/deep-lint` may review its Monitor section (report-first, see the deep-lint skill). Not knowledge; never drives work, enters wiki, or ships; seeded by `setup.sh`.
 │
 ├── assets/                    ← 🖼️ MEDIA LAYER
 │                                 Images, diagrams & reference attachments — incl. *special* PDFs you
@@ -289,7 +289,7 @@ lint scan are **not** logged — unless the user explicitly asks.
 | `/gather <url…>` or "deep-capture these links" | **gather** | *(opt-in)* Deep Raw-layer capture — fetch a seed + the relevant links it cites (preview-and-approve; capped) into `raw/`, then hand to `ingest`. |
 | `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → synthesise a cited answer; offer to file high-value answers into `syntheses/`. |
 | `/lint` or "health-check the wiki" | **lint** | Cheap, frequent scan: dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. (No confidence/online checks — those are `deep-lint`'s.) |
-| `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy ~monthly pass: confidence coverage & correctness, staleness, freshness vs online sources, deep structural checks, qmd refresh (if enabled); updates the vault, confirming large changes. |
+| `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy periodic pass (~monthly, or when flags accumulate): reconciles query-time `flagged:` freshness flags, audits confidence/staleness on changed + flagged + sampled cold pages (never a full-vault LLM re-read), capped online-freshness probes, deep structural checks, the IDEAS.md Monitor review (its sole standing delegation), qmd refresh; updates the vault, confirming large changes. |
 | `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search over the wiki via qmd — **dormant** unless qmd is installed + enabled; the `query`/`output` fallback and the refresh-on-write hook. |
 | `/export-okf` or "export to OKF" | **export-okf** | Export `wiki/` as a portable **OKF** (Open Knowledge Format) bundle to `okf-export/` — deterministic, read-only on the vault, opt-in (see [[Open Knowledge Format]] / the OKF synthesis). |
 | `/output <instruction>` or "write me a …" | **output** | Generate a deliverable (report/brief/deck/table/…) into `output/`, grounded in the wiki + cited; strictly follows the instruction, labels general knowledge, never fabricates. |
@@ -299,7 +299,10 @@ lint scan are **not** logged — unless the user explicitly asks.
 > ingest. `/lint` is for *drift* (manual edits/renames, external or OneDrive/git sync changes) and
 > periodic *discovery* (emerging gap pages, cross-corpus contradictions, stale claims). The monthly
 > **`/deep-lint`** is the heavy superset that additionally audits confidence, staleness and online
-> freshness; routine `/lint` never does that work.
+> freshness; routine `/lint` never does that work. Staleness detection is **event-driven**:
+> `query`/`output` flag suspect pages they have already read (`flagged:` frontmatter, §4.4 conflict
+> blocks — no extra reads), and `deep-lint` reconciles the accumulated flags plus a sampled cold
+> tail rather than re-reading the vault (design: `wiki/developments/deeplint-scalable-maintenance-design.md`).
 
 **Never answer purely in chat for substantial work — answer in files**, then link them. Queries should compound back into the wiki.
 
@@ -438,7 +441,12 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   `Manual.md`, `README.md`, a skill, `setup.sh`), surface it in that reply as a table: what changed ·
   what for · why (table detail scales with the active output style). Where the file is Markdown,
   anchor its table cell as a clickable wikilink to the changed section (`[[file#heading]]`) so the
-  user can jump straight to the modification. A behaviour or governance change must never land silently.
+  user can jump straight to the modification — except files under dot-folders (e.g. `.claude/skills/**`):
+  Obsidian does not index those, a wikilink to them can never resolve (clicking tries to create the
+  note and fails), so cite them as plain code paths. **Every file mention in the table takes exactly
+  one of those two forms** — vault-visible Markdown → wikilink · dot-folder or non-Markdown → plain
+  code path — and the table is re-checked against this rule before the reply is sent (a bare unlinked
+  path to linkable Markdown is a reporting defect). A behaviour or governance change must never land silently.
 - **🧹 Deep-lint at version boundaries.** When the user **explicitly declares** the next version tier or a
   new major feature ("let's start v0.7", "next, we build X"), or a genuinely large multi-file upgrade has
   **just completed**, append one short notice to the reply: `🧹 Before moving on: consider /deep-lint — the

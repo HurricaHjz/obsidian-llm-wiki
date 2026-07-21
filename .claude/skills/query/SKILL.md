@@ -55,6 +55,16 @@ semantic fallback (`qmd query "<q>" --json --files`), confidence-rank the hits, 
   `unverified` claim harden into an asserted fact. Optionally flag a weak citation inline, e.g.
   `[[X]] *(low-confidence)*` (only for `low`/`very-low`). The signal is already in frontmatter, so this is free.
 
+### Step 3b — Freshness duty (Tier-2 flags; costs no extra reads)
+Judge only the pages you have ALREADY read for this answer — never read extra pages for this duty:
+- **Contradiction** (page vs page, or page vs clearly newer evidence just read) → surface it in the
+  reply and add/extend the page's `## Conflicts / Open Questions` block (CLAUDE.md §4.4).
+- **Staleness suspicion** (old `updated` against newer in-wiki evidence; a superseded claim) → one
+  line in the reply + offer the fix now; if not fixed on the spot, record it on the page as
+  frontmatter `flagged: YYYY-MM-DD <one-phrase reason>` so `/deep-lint` reconciles it later.
+- Flags are annotations, not logged ops — the reconciling `deep-lint` run logs their resolution.
+  (Design: `wiki/developments/deeplint-scalable-maintenance-design.md`.)
+
 ### Step 4 — Degrade gracefully (two cases, never a bare refusal)
 - **No coverage** — if `index.md` has nothing relevant and the question is general knowledge, say so first:
   > Nothing in the local wiki covers this — answering from general knowledge:

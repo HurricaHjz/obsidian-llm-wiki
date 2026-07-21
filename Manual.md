@@ -13,7 +13,7 @@
 | `wiki/user/` | **About you** — profile, research, works, plus `Customisation` (how your agent behaves: name, output styles, task roles, and any preferences you add). The agent reads this for context; you curate it. |
 | `output/` | **Deliverables** the agent writes on request — reports, briefs, decks. Kept separate from the brain. |
 | `assets/` | Images and reference attachments — diagrams, screenshots, and *special* PDFs you want to link to. Source PDFs to **ingest** go in `raw/`, not here. |
-| `IDEAS.md` | **Your scratchpad** — jot future ideas and potential issues freely. The agent ignores it unless you explicitly point it there, and tidies its Overview table on request. |
+| `IDEAS.md` | **Your scratchpad** — a copy-ready **TODO prompt queue** plus ideas and a monitor lane of standing cautions, jotted freely. The agent ignores it unless you explicitly point it there: *"maintain IDEAS.md"* tidies and reconciles it, *"run TODO 2"* executes a queued prompt and updates its status. |
 | `attic/` | **Your cold storage** — retired files kept "just in case", each listed in `attic/MANIFEST`. The agent never opens it unless you explicitly ask; archived notes show **grey** in the graph. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
 | `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `deep-lint`, `export-okf` (plus `export-template` for contributors). |
@@ -76,8 +76,8 @@ Type these to the agent, in the Claudian panel or Claude Code.
 **`/lint` — health-check the wiki**
 - Finds broken links, orphans, unindexed pages, and conflicts. A normal `/ingest` self-cleans, so run this after hand-editing, after syncing between machines, or for a periodic review.
 
-**`/deep-lint` — monthly deep maintenance**
-- A heavier, roughly monthly pass that does everything `/lint` does and also audits every page's **confidence level**, flags stale claims, and re-checks your sources against their **live online versions**, updating the wiki where they have changed. Token-intensive by design, so run it about once a month rather than routinely.
+**`/deep-lint` — periodic deep maintenance**
+- A heavier pass (roughly monthly, or when flags pile up) that does everything `/lint` does and also reconciles the staleness flags queries leave behind, audits **confidence** on changed and sampled pages rather than re-reading the whole vault, re-checks a capped, priority-ordered set of sources against their **live online versions**, and reviews the IDEAS Monitor lane — updating the wiki where things changed. Token-bounded by design, and every cap it applies is stated in its report.
 
 **The attic — retire files without deleting them**
 - Say *"archive [[X]] to the attic"* and the agent moves it into `attic/`, records what, where from and why in `attic/MANIFEST.md`, unindexes it, and tidies its links; *"restore X from the attic"* reverses it; *"what's in my attic?"* reads the manifest back to you.

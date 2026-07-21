@@ -51,7 +51,9 @@ from compiled knowledge — *not guessed*. Consult `wiki/user/` for personal con
 is about, or for, the owner. **Triage by `confidence` as `query` does**: lean on `authoritative`/`high`
 pages for load-bearing claims; the field is already in frontmatter, so this is free. If the catalogue
 under-covers and qmd is active (the `qmd-search` skill, dormant unless installed), use it as the semantic
-fallback to locate relevant pages, then deep-read; otherwise `grep`.
+fallback to locate relevant pages, then deep-read; otherwise `grep`. **Freshness duty**: apply
+`query` Step 3b to the pages you read — surface stale/contradicted pages in the report line and mark
+them on-page (`flagged:` frontmatter / §4.4 block); no extra reads for this.
 
 ### Step 3 — Separate grounded · general · unknown (anti-hallucination core)
 Classify every claim before you write it:

@@ -3,8 +3,9 @@ name: lint
 description: >
   Health-check the Obsidian wiki — the "static analysis" pass for a knowledge base. Use when the
   user runs /lint, /health, /scan, or asks to "check the wiki", "find broken links", "clean up the
-  wiki", or "find gaps/orphans/conflicts". Read-only scan that reports dead links, orphan pages,
-  pages missing from index.md, and unresolved knowledge conflicts. Also restores the graph colour
+  wiki", or "find gaps/orphans/conflicts". Read-only scan that reports dead links, dead media
+  embeds, orphan pages, pages missing from index.md, unresolved knowledge conflicts, and the count
+  of pending `flagged:` freshness flags (≥5 suggests a deep-lint). Also restores the graph colour
   palette on request (on-demand only, never on a routine scan). Proposes fixes but only applies them
   after the user confirms.
 user-invocable: true
@@ -36,11 +37,22 @@ reads pages for confidence or fetches anything.
 Read `wiki/index.md`; glob every `.md` under `wiki/` (exclude `index.md`, `log.md`).
 Report: pages registered in the index but **missing on disk**, and pages on disk but **not registered**.
 
-### 2 — Link health
-Extract every `[[wikilink]]` across all wiki pages.
-- Link target doesn't exist → **dead link** (report source page → missing target).
-- **Media embeds** `![[name.png|jpg|pdf|…]]` resolve to `assets/`, not a wiki page — never flag these as dead links.
+### 2 — Link health (one shared script — the single source of truth for link rules)
+Run `python3 .claude/skills/lint/check-links.py` (exit 0 = clean, 1 = findings; deep-lint's
+structural pass uses the same script). It applies the codified rules so scans never re-derive them:
+code spans / fenced blocks / HTML comments are not links; frontmatter `aliases` resolve; vault-path
+and root-doc targets resolve; `wiki/log.md` is exempt as a source (append-only history); and **media
+embeds `![[name.png|pdf|…]]` are checked against `assets/`** — a missing target is a **dead embed**,
+reported separately (they are checked, not skipped). The script prints its scan totals as its own
+positive control (§11): zero findings with zero links scanned is a broken probe, not a clean vault.
 - Page with **no inbound links** from any other page → **orphan** — but **exempt** `index`, `log`, and `maps/` pages (Maps of Content are navigational entry points, not orphans).
+
+### 2b — Pending freshness flags (count only — reconciling them is deep-lint's job)
+`grep -rl "^flagged:" wiki --include='*.md' | wc -l` — with the engine control
+`grep -rl "^confidence:" wiki --include='*.md' | wc -l` (must be >0, proving the probe ran).
+Report the count; at **≥5 flagged pages**, suggest running `/deep-lint` (the adaptive-cadence
+signal from `wiki/developments/deeplint-scalable-maintenance-design.md`). Never read or resolve
+the flagged pages here — lint counts, deep-lint reconciles.
 
 ### 3 — Conflict audit
 Find pages containing `## Conflicts / Open Questions`. List each unresolved conflict (the two sides)
@@ -87,8 +99,11 @@ never on a routine lint.
 - **N unindexed pages**: [[..]] — on disk but missing from index.md
 
 ### ❌ Errors
-- **N dead links**: [[Source]] → [[Missing Target]]
+- **N dead links**: [[Source]] → [[Missing Target]] · **N dead embeds**: [[Source]] → ![[missing.png]]
 - **N unresolved conflicts**: [[Page]]
+
+### ⏳ Flags
+- **N pages carry `flagged:`** (engine control OK) — ≥5 → consider `/deep-lint`
 
 ### 🛠️ Proposed next steps
 1. Auto-register unindexed pages? (y/n)

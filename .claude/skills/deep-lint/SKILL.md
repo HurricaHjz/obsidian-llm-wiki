@@ -4,9 +4,11 @@ description: >
   The heavy, infrequent (~monthly) maintenance pass for the wiki — a superset of `lint`. Use on
   /deep-lint, "monthly maintenance", "deep clean the wiki", "audit confidence", or "check my sources
   are up to date". Does everything `lint` does (dead links, orphans, unindexed pages, conflicts) PLUS
-  confidence coverage & correctness, staleness scoring, and freshness against the original ONLINE
-  sources, and refreshes the qmd index if enabled. Token-expensive by design, so it is NOT routine —
-  run it about once a month. Applies fixes only after confirming large or uncertain changes.
+  reconciling query-time `flagged:` freshness flags, confidence coverage & correctness (changed +
+  flagged + a sampled cold tail — never a full-vault LLM re-read), staleness scoring, capped
+  freshness probes against the original ONLINE sources, the IDEAS.md Monitor review (its sole
+  standing delegation), and a qmd refresh if enabled. Token-bounded by design; run ~monthly or when
+  flags accumulate. Applies fixes only after confirming large or uncertain changes.
 user-invocable: true
 ---
 
@@ -46,17 +48,29 @@ exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the c
   phrases in `wiki/developments/` (e.g. "owner revision", "no longer", "earlier wording", "was removed") —
   development docs read forward-facing (CLAUDE.md §12). Fix on confirmation.
 
-### 2 — Confidence coverage & correctness (per CLAUDE.md §4.6)
+### 2 — Flag-ledger reconciliation (Tier 2 → Tier 3)
+Collect the query-time freshness flags accumulated since the last run — one cheap global grep:
+`grep -rn "^flagged:" wiki --include='*.md'` (glob quoted — unquoted it breaks under zsh; **verify
+the probe against a known positive before trusting an empty result**, per CLAUDE.md §11). For each flagged page: re-read it, resolve the
+suspicion (update the page · re-grade its `confidence` · re-ingest its source via §3.1 tools ·
+or clear a false alarm), **remove the `flagged:` line**, and list the resolution in the report.
+The ledger is the run's first LLM-read priority — these pages were suspected by an agent that had
+actually read them.
+
+### 3 — Confidence coverage & correctness (per CLAUDE.md §4.6)
 - **Coverage:** every non-`map` page must carry a valid `confidence`. Cheap check:
-  `grep -rL "^confidence:" wiki --include=*.md` then drop `map`/`index`/`log`. Assign any missing ones.
-- **Correctness:** re-assess pages **changed since the last deep-lint** (compare `updated`), and any the
-  structural pass flagged, against the §4.6 rubric. Prefer reading only frontmatter + the summary unless
-  a fuller read is needed. Keep one consistent standard; on a tie pick the lower tier.
+  `grep -rL "^confidence:" wiki --include='*.md'` then drop `map`/`index`/`log`. Assign any missing ones.
+- **Correctness:** re-assess pages **changed since the last deep-lint** (compare `updated`), any the
+  structural pass flagged, **plus a random sample of the cold tail** (~10–20 pages with `updated`
+  older than 90 days) — statistical coverage of pages no query ever visits, instead of an exhaustive
+  re-read. **State the sampled fraction in the report** ("sampled 15 of 240 cold pages") — a bound
+  never goes unstated. Prefer reading only frontmatter + the summary unless a fuller read is needed.
+  Keep one consistent standard; on a tie pick the lower tier.
 - Apply the same rule everywhere: peer-reviewed/expert/verified → `authoritative`; preprint/owner/
   official-doc → `high`; reputable secondary → `medium`; promo/social/listing/transcript → `low`;
   agent-speculative → `very-low`. Compiled pages cap at `high`.
 
-### 3 — Staleness
+### 4 — Staleness
 Flag `authoritative`/`high` pages whose `updated` is old or that a newer page supersedes; down-weight or
 add a `## Conflicts / Open Questions` note, and route high-stakes stale claims to the human. Use `updated`
 + supersession; do not silently rewrite.
@@ -64,7 +78,7 @@ add a `## Conflicts / Open Questions` note, and route high-stakes stale claims t
   live work, or long-stale at low confidence — as *suggestions* for the attic (CLAUDE.md §2.1). NEVER
   move anything yourself: archiving happens only on the user's explicit instruction.
 
-### 4 — Freshness against online sources (cheap signals first)
+### 5 — Freshness against online sources (cheap signals first)
 For pages whose `sources:`/`source_url` point at an external URL, check whether the upstream **materially
 changed**, cheapest signal first, and re-ingest **only** when it did:
 - **Cheap probes:** `gh api repos/<o>/<r>` (latest release / `pushed_at` / default-branch commit) for repos;
@@ -73,13 +87,26 @@ changed**, cheapest signal first, and re-ingest **only** when it did:
 - **On a real change → re-ingest through the normal pipeline** (defuddle / `curl` / markitdown per §3.1).
   **Never WebFetch for re-ingest** (it returns a summary, not the source). Merge updates into the existing
   pages (don't duplicate), refresh that page's `confidence` and `updated`, and note the change.
-- **Bound it:** cap fetches per run and `log()` anything skipped, so "checked" never overstates coverage.
+- **Bound and prioritise:** cap fetches per run, ordering candidates by **confidence × age ×
+  inbound-link degree** (hub pages first — a stale hub misleads more queries than a stale leaf), and
+  state anything skipped, so "checked" never overstates coverage.
 
-### 5 — qmd refresh (only if qmd is installed and enabled)
+### 6 — Monitor review (the IDEAS.md delegation — Monitor section ONLY)
+A `/deep-lint` invocation carries the owner's standing delegation to open **only** the `## 📡 Monitor`
+section of `IDEAS.md` — TODO, Ideas and Archive stay untouchable under the normal
+explicit-instruction-only contract. For each Monitor caution: gather current vault **evidence**
+(counts, log history, flag volume — real numbers, not impressions) and report a status:
+**promotion-ripe** (propose a new TODO №, cross-referenced — the owner's word moves it) ·
+**dormant** (evidence unchanged) · **evidence-changed** (summarise what moved). Writes to IDEAS.md
+happen only after this run's normal confirmation, land as appended "(agent)" annotations (the
+owner's wording is content-immutable), and **every IDEAS.md write is reported in the reply's change
+table** (mirroring CLAUDE.md §12 system-file reporting) and listed in this run's log entry.
+
+### 7 — qmd refresh (only if qmd is installed and enabled)
 If qmd is in use, run `qmd update && qmd embed` so the search index reflects the month's changes
 (see [[qmd-opt-in-design]]). Skip silently if qmd is absent.
 
-### 6 — Registries & report
+### 8 — Registries & report
 Update `index.md` for any pages added/renamed. Append one `deep-lint` entry to `log.md` (via shell).
 Produce a report: structural fixes, confidence changes (with before→after), stale flags, sources
 refreshed/skipped, qmd status.
@@ -87,14 +114,18 @@ refreshed/skipped, qmd status.
 ## Report format
 ```markdown
 ## 🧹 Deep-Lint Report — YYYY-MM-DD
+### Flags
+- N `flagged:` pages reconciled (fixed · re-graded · re-ingested · cleared) — probe control-verified
 ### Structural
 - N dead links · N orphans · N unindexed · N unresolved conflicts (fixed: …)
 ### Confidence
-- N pages missing a level (assigned) · N re-tiered (e.g. [[X]] high→authoritative)
+- N pages missing a level (assigned) · N re-tiered (e.g. [[X]] high→authoritative) · cold tail: sampled k of N (list any re-tiered)
 ### Staleness
 - N stale high/authoritative claims flagged: [[..]] · N attic candidates suggested (user decides)
 ### Freshness
-- N sources changed upstream & re-ingested: [[..]] · N checked, unchanged · N skipped (immutable)
+- N sources changed upstream & re-ingested: [[..]] · N checked, unchanged · N skipped (immutable/capped — stated)
+### Monitor (IDEAS delegation)
+- per caution: №n — promotion-ripe / dormant / evidence-changed (+ the evidence)
 ### qmd
 - updated + embedded (or: not enabled)
 ```
@@ -104,7 +135,11 @@ refreshed/skipped, qmd status.
 - **Human in the loop** for large or uncertain changes (mass re-tiering, many re-ingests, conflict
   resolutions) — report and confirm before applying.
 - **Re-ingest via the §3.1 capture tools** (defuddle / curl / markitdown), **never WebFetch**.
-- **Token discipline:** cheap signals before any fetch; scope confidence re-assessment to changed/flagged
-  pages; bound network work per run; never dump whole-file contents to "check" them.
+- **Token discipline:** cheap signals before any fetch; scope LLM re-reads to ledger + changed +
+  sampled pages (never the whole vault); bound network work per run; never dump whole-file contents
+  to "check" them. **Every bound and sample is stated in the report — no silent caps** (CLAUDE.md §11).
+- **IDEAS.md boundary:** the delegation covers the Monitor section ONLY, report-first; any IDEAS write
+  is confirmed, "(agent)"-marked, in the reply's change table, and in the log entry. TODO/Ideas/Archive
+  are never touched by this skill.
 - Append `## [YYYY-MM-DD] deep-lint | <summary>` to `wiki/log.md` (shell append, never Read+Edit).
 - Report in **British/UK English**.
