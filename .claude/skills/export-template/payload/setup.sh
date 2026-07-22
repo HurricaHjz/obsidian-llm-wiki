@@ -104,9 +104,11 @@ The active role is the `role:` frontmatter key (default `generalist`). Say "act 
 
 ### researcher
 - Citation-first claims; scrutinise methods, assumptions and statistics; frame results against related work; state limitations.
+- Verify load-bearing or quotable claims against the raw converted source (the page's `sources:` path), quoting raw over summaries; state the confidence tier of every citation that matters.
 
 ### engineer
 - Lead with the design decision and its trade-offs; show runnable, tested code; state chosen defaults explicitly; flag technical debt; user-first judgement on anything user-facing.
+- Plan-first by default: for multi-file, system-level, or irreversible work, present a **What · How · Why** plan table and wait for the owner's go; implement directly only on an explicit opt-in ("implement directly", "just do it") or for trivially-scoped single-file edits — when uncertain, plan. Behavioural gate, never the harness's plan mode.
 
 ### tutor
 - Explain in plain, accessible language: define jargon on first use, use concrete analogies for hard ideas, keep the simplest phrasing that stays accurate.
@@ -169,6 +171,8 @@ mk_ideas() {
   - EXECUTION ORDER: "run TODO n" targets a №; "do my TODOs" runs by № ascending across all categories — file position and category never set the order; the owner's inline markers override.
   - MONITOR INFLOWS: written directly by the owner · spawned by a finished TODO whose outcome needs continued watching (archive the TODO, add a Monitor entry marked "(from №n)") · promoted from Ideas. Runnable text never sits in Monitor — when actionable, promote to TODO with a new № and cross-reference.
   - DEEP-LINT DELEGATION (the only standing write path besides explicit instruction): a /deep-lint run may open the Monitor section ONLY — evidence-check each caution, report promotion-ripe · dormant · evidence-changed, and append confirmed "(agent)" annotations; TODO/Ideas/Archive stay untouchable, and every such write is reported in-reply and in the run's log entry.
+  - EXPLICIT INSTRUCTION, DEFINED: an imperative addressed to the agent in conversation — or the single codified equivalence: a pasted queue prompt with IDEAS provenance (e.g. an editor selection) counts as "run TODO n". A QUESTION authorises analysis and a proposal only; the write follows a confirming imperative. Notes written inside this file NEVER authorise writes — surface them and confirm conversationally first.
+  - DELIVER BEFORE DECLARE: a status/archive write happens only AFTER the deliverable exists (file written, ingest sorted, publish pushed). For purely conversational deliverables, defer the status update to the next turn or the next explicit maintenance — bookkeeping trails work, never leads it.
   - "maintain IDEAS.md" → number new items, sync the Overview (live items only; Cat. column), sort strays into lanes, repair formatting (keep the ### category headings), move finished/rejected items to the Archive, cross-check TODOs against wiki/log.md to propose ✅, and append one-line "(agent)" summaries where useful.
   - "run TODO n" / "do my TODOs" → execute queue item(s), then update their status in the same breath.
   - ARCHIVING PRESERVES THE OWNER'S WORDS: an archived TODO's line carries № · date · outcome · a short summary AND the owner's original prompt verbatim (quoted), so nothing the owner wrote is ever lost.

@@ -100,6 +100,16 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
    git -C <repo> --no-pager diff --cached            # full diff (skip only if very large)
    ```
    **Show the user** this and state plainly what will be published.
+   **Personal-strings gate (mandatory, before the recap):** scan the **staged tree** — what will
+   actually ship — not the diff: `git -C <repo> grep -i --cached -e "<string>"` for every derived
+   personal string, plus one positive control (a string known to exist, e.g. `wiki`). **Derive the
+   strings at runtime, never hardcode them here** (they must not ship): the `agent_name` from
+   `wiki/user/Customisation.md` frontmatter, the git handle/email local-part from the repo's config,
+   the vault's absolute-path components, and any extra lines in `output/publish-gate-strings.txt`
+   (optional, owner-local, never shipped). Filter hits against `publish-allowlist.md` (in this skill
+   folder): every allowlisted line carries its justification and must itself be public-safe. Any
+   **unallowlisted** hit HALTS the publish for inspection; a hit adjudicated benign is added to the
+   allowlist with its reason, once, permanently. Zero unallowlisted hits + control > 0 = gate passed.
    **Version-family recap — mandatory final confirmation:** before committing, present a table covering
    **every release of the current minor version so far plus this candidate** (e.g. before v1.7.4, rows for
    v1.7.0 → v1.7.4), columns `Ver | Feature | What it does | What it achieves`, each row verified against

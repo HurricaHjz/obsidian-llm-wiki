@@ -80,6 +80,7 @@ chk "build: personal Customisation NOT shipped" '[ ! -e "$BUILT/wiki/user/Custom
 chk "build: shipped setup.sh seeds Customisation" 'grep -q mk_custom "$BUILT/setup.sh"'
 chk "build: personal IDEAS.md NOT shipped"      '[ ! -e "$BUILT/IDEAS.md" ]'
 chk "build: shipped setup.sh seeds IDEAS"       'grep -q mk_ideas "$BUILT/setup.sh"'
+chk "build: publish allowlist ships with skill" '[ -f "$BUILT/.claude/skills/export-template/publish-allowlist.md" ]'
 chk "build: attic contents NOT shipped"         '[ ! -e "$BUILT/attic/MANIFEST.md" ]'
 chk "build: attic skeleton ships (.gitkeep)"    '[ -f "$BUILT/attic/.gitkeep" ]'
 chk "build: shipped setup.sh seeds attic"       'grep -q mk_attic "$BUILT/setup.sh"'
