@@ -82,6 +82,11 @@ with `--ingest`). Report what was captured, skipped, and the running page/cost t
   through a third party, so don't use it for sensitive links.
 - **British/UK English**; translate non-English captures. Don't compile here — that's `/ingest`'s job.
 
+## Logging
+After a completed capture run, append one `gather` entry to `wiki/log.md` via shell (`cat >>`): seed
+URL(s), pages captured, where they landed in `raw/`, and that the batch awaits `/ingest`. A preview-only
+or aborted run (nothing captured) is not logged.
+
 ## Relationship to the other skills
 - **`gather`** → builds the *Raw layer* (deep multi-link capture into `raw/`).
 - **`ingest`** → *compiles* `raw/` into linked `wiki/` pages (run it after gather).

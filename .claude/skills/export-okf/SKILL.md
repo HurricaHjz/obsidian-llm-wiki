@@ -46,6 +46,10 @@ Defaults: `--wiki wiki/`, `--assets assets/`, `--out okf-export/`. The script:
   vault; 39 checks covering frontmatter derivation, link conversion incl. code-awareness, indexes,
   log, asset copy, conformance, read-only, determinism).
 
+## Logging
+After a successful export, append one `export` entry to `wiki/log.md` via shell: bundle path, page/asset
+counts, conformance result. A failed or aborted run is not logged.
+
 ## Maintenance
 OKF is **v0.1 draft** and will change — if the spec moves, update the link/index/log rules and
 `validate()` here (and re-run the test). To export a slice (one cluster) rather than the whole vault,

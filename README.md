@@ -52,7 +52,7 @@ Running an LLM agent consumes API credits.
 
 ## Usage
 
-**New here? Read the [Manual](Manual.md).** It covers the commands, the capture → compile → ask → maintain workflow, and all the options in full — so this README doesn't repeat them.
+**New here? Read the [Manual](MANUAL.md).** It covers the commands, the capture → compile → ask → maintain workflow, and all the options in full — so this README doesn't repeat them.
 
 ## How it works
 
@@ -68,7 +68,7 @@ Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with 
 | `deep-lint` | Heavier ~monthly pass: audit confidence levels, flag stale claims, and refresh sources against their live online versions. |
 | `qmd-search` | *(optional)* Local semantic search over the wiki via qmd; dormant unless installed. |
 | `export-okf` | Export the wiki as a portable Open Knowledge Format bundle. |
-| `export-template` | Publish framework changes to GitHub. Contributors only; see the [Manual](Manual.md) and [CONTRIBUTING](CONTRIBUTING.md). |
+| `export-template` | Publish framework changes to GitHub. Contributors only; see the [Manual](MANUAL.md) and [CONTRIBUTING](CONTRIBUTING.md). |
 
 ## What the repository tracks
 

@@ -6,7 +6,7 @@ description: >
   builds a standalone content-free copy. Use when the user says "publish/export the framework", "update
   the public repo", "pull the latest framework", or "make the base template". Push shows the diff and
   commits+pushes only after you confirm; pull previews first and writes nothing until --apply. Ships the
-  engine (CLAUDE.md, Manual.md, skills, graph config) + a tracked demo in examples/seed/, an MIT LICENSE +
+  engine (CLAUDE.md, MANUAL.md, skills, graph config) + a tracked demo in examples/seed/, an MIT LICENSE +
   README + setup.sh + a .gitignore that TRACKS the framework and IGNORES all knowledge; strips all
   wiki/raw content + personal data; keeps the AI/LLM-research specialisation. Never copies your knowledge;
   the build dir is deleted after publishing. Full runbook: the RUNBOOK.md in this skill folder.
@@ -17,7 +17,7 @@ user-invocable: true
 
 ## Goal
 Turn this private vault into the public **obsidian-llm-wiki** framework — **without any knowledge** (no
-wiki pages, raw sources, logs, or personal data) but **with** the engine (CLAUDE.md, Manual.md, the
+wiki pages, raw sources, logs, or personal data) but **with** the engine (CLAUDE.md, MANUAL.md, the
 skills, the graph config), an empty folder skeleton, a tracked **demo** (`examples/seed/`), a **setup.sh**
 bootstrap, an **MIT** licence + README, and a **.gitignore that tracks the framework and ignores all
 content**. Keeps the AI/LLM-research specialisation.
@@ -52,7 +52,7 @@ apply with graph"). Honour any options they give; only ask for the ones they lef
 **Never sync both ways at once.** Each invocation does exactly one of the following; passing `--pull` and
 `--push` together is a hard error.
 
-**`--push <repo>` — vault → repo (publish).** Overlays the vault-owned framework (CLAUDE.md, Manual.md,
+**`--push <repo>` — vault → repo (publish).** Overlays the vault-owned framework (CLAUDE.md, MANUAL.md,
 `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/`, `.claude/skills/**` (every skill, incl. export-template), `.obsidian` config,
 the seed demo) **plus** the build machinery from this skill's `payload/` (.gitignore/.gitattributes, setup.sh)
 into your existing clone — leaving `.git/` and all knowledge untouched. Then run the **guided publish
@@ -117,7 +117,10 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
 3. **Confirm — mandatory gate:** ask the user to approve and to give/confirm a commit message.
    **Never `commit` or `push` without an explicit "yes".**
 4. **Publish:** `git -C <repo> commit -m "<message>" && git -C <repo> push`
-5. **Report** the commit + push result + the repo URL. If `push` fails on auth, tell the user to set up a
+5. **Report & log:** report the commit + push result + the repo URL, then append one `export` entry to
+   `wiki/log.md` via shell (version, commit hash, what shipped). The publish event logs `export`; the
+   framework edits it ships were already logged as `sync` when made — never log the push as a second
+   `sync`. A failed or aborted push logs nothing. If `push` fails on auth, tell the user to set up a
    GitHub token / SSH key — never handle their credentials yourself.
 6. **Clean up — keep no local copy:** once the push succeeds, delete the build directory
    (`rm -rf template-export`). A `--push` writes straight to the external repo clone, so nothing is left
@@ -126,6 +129,7 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
 ## Update (pull) — guided; preview → confirm → apply
 When the user wants to bring a newer framework from the repo into their vault ("pull the latest framework",
 "update my framework from git"):
+   *(Logging: a confirmed `--pull --apply` changes this vault's framework — log it as `sync`, never `export`.)*
 1. **Preview:** `bash .claude/skills/export-template/export_template.sh --pull <repo>`. Show the user the
    listed framework files that would change (README/CLAUDE/Manual/skills, plus the `payload/` refresh).
    **Nothing is written yet.**

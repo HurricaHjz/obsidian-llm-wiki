@@ -41,7 +41,7 @@ list_skills() {  # echo EVERY skill folder under $1/.claude/skills — auto-disc
 # ── vault-owned framework files: vault → $1  (build & push) ─────────────────────────────────
 copy_framework() {
   local D="$1" s
-  cp "$SRC/CLAUDE.md" "$SRC/Manual.md" "$D/"
+  cp "$SRC/CLAUDE.md" "$SRC/MANUAL.md" "$D/"
   mkdir -p "$D/.claude/skills"
   for s in $(list_skills "$SRC"); do
     rm -rf "$D/.claude/skills/$s"; cp -R "$SRC/.claude/skills/$s" "$D/.claude/skills/"
@@ -143,7 +143,7 @@ if [ "$WANT_PULL" = 1 ]; then
 
   echo "--- framework changes pull would apply to your vault ---"
   CHG=0
-  for f in CLAUDE.md Manual.md README.md LICENSE.md CONTRIBUTING.md; do
+  for f in CLAUDE.md MANUAL.md README.md LICENSE.md CONTRIBUTING.md; do
     diff -q "$REPO/$f" "$SRC/$f" >/dev/null 2>&1 || { echo "  update  $f"; CHG=1; }
   done
   if [ -f "$REPO/$DEMO_IMG" ]; then
@@ -167,7 +167,7 @@ if [ "$WANT_PULL" = 1 ]; then
   fi
 
   cp "$REPO/CLAUDE.md" "$SRC/CLAUDE.md"
-  cp "$REPO/Manual.md" "$SRC/Manual.md"
+  cp "$REPO/MANUAL.md" "$SRC/MANUAL.md"
   for s in $(list_skills "$REPO"); do                    # per-name copy, incl. export-template itself —
     rm -rf "$SRC/.claude/skills/$s"; cp -R "$REPO/.claude/skills/$s" "$SRC/.claude/skills/"   # replacing the running script is Unix-safe (old inode stays open; new version applies next run)
   done

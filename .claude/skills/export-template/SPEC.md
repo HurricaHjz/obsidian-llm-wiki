@@ -6,7 +6,7 @@ What `export_template.sh` produces in `template-export/` (and what the public re
 ```
 obsidian-llm-wiki/                  (= template-export/)
 ├── README.md                  # onboarding: what it is · prerequisites · quick start → Manual
-├── Manual.md                  # how to use it (beginner-first)
+├── MANUAL.md                  # how to use it (beginner-first)
 ├── LICENSE.md                 # MIT — Mingjun (Jerry) Zhang, 2026
 ├── CONTRIBUTING.md
 ├── .gitignore                 # tracks the framework, ignores all knowledge/content
@@ -37,7 +37,7 @@ obsidian-llm-wiki/                  (= template-export/)
   local, and `git push` shares only framework changes.
 
 ## KEEP / STRIP (copied from the live vault by the builder)
-- **KEEP →** CLAUDE.md, Manual.md, `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` (from the vault root),
+- **KEEP →** CLAUDE.md, MANUAL.md, `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` (from the vault root),
   `.claude/skills/**` — **every** skill, **incl. `export-template`** (the contributor publish tool, with its `payload/`),
   `.obsidian/{graph,app,core-plugins,appearance}.json`.
 - **STRIP →** all `wiki/**`, `raw/**`, `assets/**` (bar the README screenshot), `output/**`, `attic/**`, `okf-export/`,
@@ -51,10 +51,10 @@ obsidian-llm-wiki/                  (= template-export/)
 
 ## Push / pull round-trip (how repo and vault stay in sync)
 The builder runs **one direction per invocation** (see SKILL.md):
-- **push** (vault → repo): `copy_framework` (CLAUDE.md, Manual.md, skills, `.obsidian`, seed) +
+- **push** (vault → repo): `copy_framework` (CLAUDE.md, MANUAL.md, skills, `.obsidian`, seed) +
   `copy_packaging` (`README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` from the vault root; setup.sh + git
   dotfiles from `payload/`) + `make_skeleton` + `apply_fixes`.
-- **pull** (repo → vault, with `--apply`): repo framework → vault (CLAUDE.md, Manual.md,
+- **pull** (repo → vault, with `--apply`): repo framework → vault (CLAUDE.md, MANUAL.md,
   `README.md`/`LICENSE.md`/`CONTRIBUTING.md`+`assets/`, all skills — copied **per-name**, incl.
   `export-template` itself (replacing the running script is Unix-safe)); repo setup.sh/git-dotfiles/seed → `payload/`.
 - **Canonical sources:** `README.md`, `LICENSE.md`, `CONTRIBUTING.md` + `assets/` live at the **vault root**
@@ -66,7 +66,7 @@ The builder runs **one direction per invocation** (see SKILL.md):
 
 ## Graph exclusion
 `.obsidian/app.json` `userIgnoreFilters` includes `examples/`, `template-export/`, `okf-export/`,
-`output/`, `raw/`, `CLAUDE.md`, `Manual.md` so the demo + non-wiki files don't clutter the graph.
+`output/`, `raw/`, `CLAUDE.md`, `MANUAL.md` so the demo + non-wiki files don't clutter the graph.
 
 ## The seed demo (purpose)
 A 6-page AI/LLM-research mini-wiki (source → concept · entity · model · benchmark · map) so a first-time

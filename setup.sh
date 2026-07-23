@@ -38,7 +38,7 @@ mk_log() {
 # Wiki Log
 
 > Append-only timeline. Append a `## [date] action | title` entry on every brain-updating op — via shell
-> (`cat >> wiki/log.md`), never by reading the whole file. Actions: ingest · query · lint · deep-lint · sync · setup · maps · attic.
+> (`cat >> wiki/log.md`), never by reading the whole file. Actions: ingest · gather · query · lint · deep-lint · sync · setup · maps · attic · export.
 
 ## [setup] Initialised from the obsidian-llm-wiki framework
 - **Changed**: created the directory scaffold + registries.
@@ -141,7 +141,7 @@ mk_ideas() {
 > **Owner's scratchpad.** My copy-ready TODO prompts, future ideas, open questions and standing cautions, in my own words. **The agent ignores this file in normal runs** — it reads or maintains it only when I explicitly say so. Nothing here is verified or agreed, so it must never drive normal work or enter the wiki without my instruction. I write anywhere freely (Ideas is my rawest dump; TODO is my prompt inbox); when I ask, the agent may number, label, sort, move, archive and summarise — but never alters the wording of my raw text without my explicit instruction. Full rules: the HOW TO USE comment at the end of this file.
 
 ## 📋 Overview
-<!-- live items only (todo · idea · monitor) — a listed row IS open, so there is no Status column (terminal outcomes ✅ ❌ ➡️ appear on Archive lines); archived rows leave this table; № links a row to its bullet; Cat.: D development · W work · R research · L life · M monitor (every monitor-kind row takes M) -->
+<!-- live items only (todo · idea · monitor) — a listed row IS open, so there is no Status column (terminal outcomes ✅ ❌ ➡️ appear on Archive rows); archived rows leave this table; № links a row to its bullet; Cat.: D development · W work · R research · L life · M monitor (every monitor-kind row takes M) -->
 
 | № | Item | Cat. | Kind |
 |---|------|------|------|
@@ -164,7 +164,13 @@ mk_ideas() {
 <!-- standing cautions to keep watching — not runnable prompts; entries persist after review; "(from №n)" marks one spawned by a finished TODO; promote to TODO (new №) when it becomes actionable -->
 
 ## 🗄️ Archive
-<!-- finished items land here with their № and outcome (✅ done · ❌ dropped · ➡️ moved) plus a word on why -->
+<!-- finished items: one row per № (date · outcome · summary); the owner's original text is preserved verbatim in "### Verbatim originals" below — nothing the owner wrote is lost -->
+
+| №   | Date       | Outcome | Summary |
+| --- | ---------- | ------- | ------- |
+
+### Verbatim originals
+<!-- the owner's raw prompt/idea text for each archived №, quoted exactly -->
 
 <!-- HOW TO USE (agent instructions — read only when the owner invokes an IDEAS operation):
   - Lanes by actionability: Ideas = raw fragments (owner tags (D/W/R/L[-version]) as self-reminders, (M) = earmarked for Monitor) · TODO = copy-ready prompts under ### category headings, grouping only · Monitor = standing cautions that persist after review · Archive = terminal (✅ done · ❌ dropped · ➡️ moved).
@@ -175,9 +181,9 @@ mk_ideas() {
   - DELIVER BEFORE DECLARE: a status/archive write happens only AFTER the deliverable exists (file written, ingest sorted, publish pushed). For purely conversational deliverables, defer the status update to the next turn or the next explicit maintenance — bookkeeping trails work, never leads it.
   - "maintain IDEAS.md" → number new items, sync the Overview (live items only; Cat. column), sort strays into lanes, repair formatting (keep the ### category headings), move finished/rejected items to the Archive, cross-check TODOs against wiki/log.md to propose ✅, and append one-line "(agent)" summaries where useful.
   - "run TODO n" / "do my TODOs" → execute queue item(s), then update their status in the same breath.
-  - ARCHIVING PRESERVES THE OWNER'S WORDS: an archived TODO's line carries № · date · outcome · a short summary AND the owner's original prompt verbatim (quoted), so nothing the owner wrote is ever lost.
-  - OWNER RAW TEXT IS CONTENT-IMMUTABLE: never alter the wording of the owner's input without explicit instruction. Lifecycle operations are sanctioned: numbering, labels, moving between lanes, archiving (including removal + a summary line), Overview sync, formatting repairs.
-  - Outcomes (Archive lines only): ✅ done = resolved (even if it spawned a "(from №n)" Monitor watch) · ❌ dropped · ➡️ moved = relocated UNRESOLVED (say where). Live Overview rows carry no status — being listed means open. Kinds: todo · idea · monitor. Categories: D development · W work · R research · L life · M monitor (every monitor-kind item carries M; an (M) tag in Ideas earmarks a fragment for the Monitor lane).
+  - ARCHIVING PRESERVES THE OWNER'S WORDS: an archived item becomes one row in the Archive summary table (№ · date · outcome · short summary) AND its original text is copied verbatim (quoted) into the "### Verbatim originals" subsection, so nothing the owner wrote is ever lost.
+  - OWNER RAW TEXT IS CONTENT-IMMUTABLE: never alter the wording of the owner's input without explicit instruction. Lifecycle operations are sanctioned: numbering, labels, moving between lanes, archiving (including removal + a summary row), Overview sync, formatting repairs.
+  - Outcomes (Archive rows only): ✅ done = resolved (even if it spawned a "(from №n)" Monitor watch) · ❌ dropped · ➡️ moved = relocated UNRESOLVED (say where). Live Overview rows carry no status — being listed means open. Kinds: todo · idea · monitor. Categories: D development · W work · R research · L life · M monitor (every monitor-kind item carries M; an (M) tag in Ideas earmarks a fragment for the Monitor lane).
 -->
 IDEASEOF
 }

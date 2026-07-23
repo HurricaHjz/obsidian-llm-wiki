@@ -7,7 +7,7 @@ your knowledge kept local. Read top to bottom.
 - ✅ Seed demo lives in `examples/seed/` (tracked); `wiki/`+`raw/` ship empty.
 - ✅ `.gitignore` tracks the framework, ignores all knowledge (`wiki/`/`raw/`/`index.md`/`log.md`/`output/`/`okf-export/`).
 - ✅ AI/LLM-research specialisation kept; **MIT**, © 2026 Mingjun (Jerry) Zhang.
-- ✅ Beginner-first `Manual.md`; `README.md` = onboarding that points to the Manual.
+- ✅ Beginner-first `MANUAL.md`; `README.md` = onboarding that points to the Manual.
 - ✅ `setup.sh` bootstraps a fresh clone; `CONTRIBUTING.md` + `.gitattributes` included.
 
 ## A. Build the template
@@ -27,7 +27,7 @@ Produces `template-export/` per `SPEC.md`.
   ```bash
   cd template-export && git init -q && git add -A
   git check-ignore -q wiki/log.md raw/x.md output/y.md wiki/sources/z.md && echo "content ignored ✓"
-  git ls-files | grep -qE 'CLAUDE.md|Manual.md|\.claude/skills/|examples/seed' && echo "framework tracked ✓"
+  git ls-files | grep -qE 'CLAUDE.md|MANUAL.md|\.claude/skills/|examples/seed' && echo "framework tracked ✓"
   cd ..
   ```
 - **setup.sh test**: in a copy, `bash setup.sh` creates `index.md`/`log.md`; `--with-example` loads the demo.
@@ -68,7 +68,7 @@ git -C /path/to/obsidian-llm-wiki pull --ff-only                              # 
 bash .claude/skills/export-template/export_template.sh --push /path/to/obsidian-llm-wiki
 cd /path/to/obsidian-llm-wiki && git add -A && git diff       # review → commit → push
 ```
-`--push` overlays vault-owned files (CLAUDE.md, Manual.md, `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/`,
+`--push` overlays vault-owned files (CLAUDE.md, MANUAL.md, `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/`,
 `.claude/skills/**`, `.obsidian` config, `examples/seed`) **and** the build machinery from the skill's
 `payload/` (setup.sh, .gitignore, .gitattributes), leaving `.git/` untouched. (`--sync` is an alias.)
 
@@ -77,7 +77,7 @@ cd /path/to/obsidian-llm-wiki && git add -A && git diff       # review → commi
 bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki            # preview — writes nothing
 bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki --apply    # apply (+ --with-graph for colours)
 ```
-`--pull` previews which framework files differ, then (with `--apply`) copies CLAUDE.md, Manual.md,
+`--pull` previews which framework files differ, then (with `--apply`) copies CLAUDE.md, MANUAL.md,
 `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` and the skills into your vault and refreshes the `payload/`
 machinery — **never** touching your knowledge (`wiki/ raw/ output/` and your own `assets/` media) or `.obsidian` config. It copies
 skills per-name — including `export-template` itself; replacing the running script mid-pull is Unix-safe (the old inode stays open).

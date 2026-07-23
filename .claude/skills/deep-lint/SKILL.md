@@ -47,6 +47,14 @@ exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the c
   outside backticks/comments — Obsidian parses them as HTML (CLAUDE.md §1); (b) correction-narrative
   phrases in `wiki/developments/` (e.g. "owner revision", "no longer", "earlier wording", "was removed") —
   development docs read forward-facing (CLAUDE.md §12). Fix on confirmation.
+- **Always-on prefix budget (shell-only):** measure the always-on context layers — `wc -c CLAUDE.md`,
+  the summed frontmatter of `.claude/skills/*/SKILL.md` (the ever-loaded `name:`/`description:` block
+  between the `---` markers), and the count of always-on MCP servers (`.mcp.json` / project settings;
+  0 when absent) — and compare against the `prefix budget:` figures in the previous deep-lint log
+  entry (`grep "prefix budget:" wiki/log.md | tail -1`; first run = baseline, nothing to compare).
+  Flag growth >10% for the owner (report-only — trimming is never automatic; CLAUDE.md §12 governs
+  any cut). Record the fresh figures in this run's log entry:
+  `prefix budget: CLAUDE.md <N> B · skill frontmatter <M> B · always-on MCP <k>`.
 
 ### 2 — Flag-ledger reconciliation (Tier 2 → Tier 3)
 Collect the query-time freshness flags accumulated since the last run — one cheap global grep:
@@ -118,6 +126,7 @@ refreshed/skipped, qmd status.
 - N `flagged:` pages reconciled (fixed · re-graded · re-ingested · cleared) — probe control-verified
 ### Structural
 - N dead links · N orphans · N unindexed · N unresolved conflicts (fixed: …)
+- prefix budget: CLAUDE.md N B (Δ vs last audit) · skill frontmatter M B (Δ) · always-on MCP k (>10% growth flagged)
 ### Confidence
 - N pages missing a level (assigned) · N re-tiered (e.g. [[X]] high→authoritative) · cold tail: sampled k of N (list any re-tiered)
 ### Staleness

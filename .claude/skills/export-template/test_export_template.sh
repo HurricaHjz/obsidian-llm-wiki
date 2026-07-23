@@ -22,8 +22,8 @@ build_fake_vault(){
   rm -rf "$ROOT"
   mkdir -p "$V/.claude/skills" "$V/.obsidian" "$V/wiki/sources" "$V/raw" "$V/assets" "$V/output"
   printf '# CLAUDE (test contract)\n' > "$V/CLAUDE.md"
-  printf '# Manual (test)\n' > "$V/Manual.md"
-  printf '# README (test)\n\n![graph](assets/framework_demo.png)\n\nSee the [Manual](Manual.md).\n\nLicence: [LICENSE](LICENSE.md) · [CONTRIBUTING.md](CONTRIBUTING.md)\n' > "$V/README.md"
+  printf '# Manual (test)\n' > "$V/MANUAL.md"
+  printf '# README (test)\n\n![graph](assets/framework_demo.png)\n\nSee the [Manual](MANUAL.md).\n\nLicence: [LICENSE](LICENSE.md) · [CONTRIBUTING.md](CONTRIBUTING.md)\n' > "$V/README.md"
   printf 'FAKE-PNG-BYTES\n' > "$V/assets/framework_demo.png"      # README screenshot — force-tracked
   printf 'LOCAL-USER-MEDIA\n' > "$V/assets/my_photo.png"          # user media — must NOT ship
   printf 'MIT License (test)\n' > "$V/LICENSE.md"

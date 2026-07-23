@@ -16,4 +16,4 @@ The top-level **Map of Content** — your wiki's front door. Start here and bran
 - [[Large Language Model]] · [[GPT]] · [[OpenAI]] · [[MMLU]] — example concept · model · entity · benchmark
 
 ## Your maps
-- Add your own Maps of Content here as the wiki grows (one hub per topic cluster). See `Manual.md`.
+- Add your own Maps of Content here as the wiki grows (one hub per topic cluster). See `MANUAL.md`.
