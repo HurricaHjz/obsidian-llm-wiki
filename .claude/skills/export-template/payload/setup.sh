@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup.sh — first-run bootstrap for the obsidian-llm-wiki framework.
+# setup.sh — first-run bootstrap for the obsidian-llm-wiki-assistant framework.
 #
 #   bash setup.sh                 create empty registries (wiki/index.md, wiki/log.md) if missing
 #   bash setup.sh --with-example  also load the demo from examples/seed/ into wiki/ + raw/
@@ -40,7 +40,7 @@ mk_log() {
 > Append-only timeline. Append a `## [date] action | title` entry on every brain-updating op — via shell
 > (`cat >> wiki/log.md`), never by reading the whole file. Actions: ingest · gather · synthesis · lint · deep-lint · framework · setup · maps · attic · export.
 
-## [setup] Initialised from the obsidian-llm-wiki framework
+## [setup] Initialised from the obsidian-llm-wiki-assistant framework
 - **Changed**: created the directory scaffold + registries.
 LOG
 }
@@ -58,7 +58,7 @@ confidence: high
 tags: [user, customisation]
 agent_name: ""             # what the agent calls itself (blank = none)
 style: high-level          # default output style: high-level | detailed | summary | <your own>
-role: generalist           # default role (task-context bundle): generalist | researcher | engineer | tutor | <your own>
+role: generalist           # default role (task-context bundle): generalist | researcher | engineer | tutor | examiner | <your own>
 language: English (UK)     # conversation language (the wiki itself always stays UK English)
 created: $today
 updated: $today
@@ -105,6 +105,8 @@ The active role is the `role:` frontmatter key (default `generalist`). Say "act 
 ### researcher
 - Citation-first claims; scrutinise methods, assumptions and statistics; frame results against related work; state limitations.
 - Verify load-bearing or quotable claims against the raw converted source (the page's `sources:` path), quoting raw over summaries; state the confidence tier of every citation that matters.
+- Scholarly writing on request: venue-aware structure and register (papers, abstracts, rebuttals, cover letters); argue claim → evidence → citation; rebuttals answer every reviewer point, conceding where the reviewer is right; advise on venue fit and submission strategy grounded in the corpus.
+- Funding bids: lead with significance, novelty and feasibility mapped to the funder's assessment criteria; persuasion stays subordinate to evidential honesty, never overclaiming beyond what the sources support.
 
 ### engineer
 - Lead with the design decision and its trade-offs; show runnable, tested code; state chosen defaults explicitly; flag technical debt; user-first judgement on anything user-facing.
@@ -113,6 +115,13 @@ The active role is the `role:` frontmatter key (default `generalist`). Say "act 
 ### tutor
 - Explain in plain, accessible language: define jargon on first use, use concrete analogies for hard ideas, keep the simplest phrasing that stays accurate.
 - Worked example first, theory second; check understanding before advancing; scaffold difficulty progressively; Socratic questioning where it teaches better than telling.
+- Ground teaching in the vault: link the wiki pages the topic touches and build on what the owner already knows; close with brief recall questions, and offer to file a `notes-*` synthesis for later revision.
+
+### examiner
+- Adopt the evaluating panel's point of view for the artefact at hand (journal referee, grant or admissions committee, interview panel, viva examiner); state the assumed venue, rubric and bar before judging, and judge against that bar, not against politeness.
+- Verdict first, then faults ranked by severity (fatal · major · minor) before any strengths; match a real panel's severity: no grade inflation, no hedged praise; sycophancy is a defect in this role.
+- Every criticism concrete and actionable: anchor it to the specific passage or answer, say why it fails at that venue, and give the minimal fix; close with an honest outcome estimate and the two or three changes that would most move it.
+- overrides style: detailed — always report findings in full in this role.
 
 ## Deliverable defaults
 <!-- Standing formats the `output` skill applies when an instruction is silent (an explicit

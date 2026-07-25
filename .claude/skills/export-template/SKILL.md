@@ -16,7 +16,7 @@ user-invocable: true
 # export-template — produce / sync the shareable framework repo
 
 ## Goal
-Turn this private vault into the public **obsidian-llm-wiki** framework — **without any knowledge** (no
+Turn this private vault into the public **obsidian-llm-wiki-assistant** framework — **without any knowledge** (no
 wiki pages, raw sources, logs, or personal data) but **with** the engine (CLAUDE.md, MANUAL.md, the
 skills, the graph config), an empty folder skeleton, a tracked **demo** (`examples/seed/`), a **setup.sh**
 bootstrap, an **MIT** licence + README, and a **.gitignore that tracks the framework and ignores all
@@ -58,7 +58,7 @@ the seed demo) **plus** the build machinery from this skill's `payload/` (.gitig
 into your existing clone — leaving `.git/` and all knowledge untouched. Then run the **guided publish
 flow** below. (`--sync` is a back-compat alias.)
 ```bash
-bash .claude/skills/export-template/export_template.sh --push /path/to/obsidian-llm-wiki
+bash .claude/skills/export-template/export_template.sh --push /path/to/obsidian-llm-wiki-assistant
 ```
 
 **`--pull <repo>` — repo → vault (update from a newer version).** `git pull`s your clone, then **previews**
@@ -67,8 +67,8 @@ framework into your vault (incl. `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `a
 refresh the `payload/` machinery. Add `--with-graph` to also pull `.obsidian/graph.json` (the colour scheme);
 `app.json`/appearance/core-plugins are **never** pulled.
 ```bash
-bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki            # preview
-bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki --apply    # apply
+bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki-assistant            # preview
+bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki-assistant --apply    # apply
 ```
 
 **Fresh build (no flag)** — a standalone content-free copy (the very first publish, or inspection):

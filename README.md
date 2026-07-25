@@ -1,4 +1,4 @@
-# obsidian-llm-wiki
+# obsidian-llm-wiki-assistant
 
 **Your second brain for Obsidian, built and maintained by an AI agent.**
 
@@ -35,8 +35,8 @@ This is a framework rather than a plugin: it runs on an AI coding agent that rea
 5. **Clone and initialise.**
 
    ```bash
-   git clone https://github.com/HurricaHjz/obsidian-llm-wiki.git
-   cd obsidian-llm-wiki
+   git clone https://github.com/HurricaHjz/obsidian-llm-wiki-assistant.git
+   cd obsidian-llm-wiki-assistant
    bash setup.sh
    ```
 

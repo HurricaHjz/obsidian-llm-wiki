@@ -28,9 +28,10 @@ grep -q '^### summary'        "$ROOT/$CUST" 2>/dev/null && ok "summary style pre
 grep -q '\[\[About Me\]\]'    "$ROOT/$CUST" 2>/dev/null && ok "Related links [[About Me]] (no orphan)" || no "missing ## Related backlink"
 grep -q '^role: generalist'   "$ROOT/$CUST" 2>/dev/null && ok "role knob seeded (generalist default)"  || no "role knob missing"
 grep -q '^## Roles'           "$ROOT/$CUST" 2>/dev/null && ok "Roles section present"                  || no "Roles section missing"
-for r in generalist researcher engineer tutor; do
+for r in generalist researcher engineer tutor examiner; do
   grep -q "^### $r" "$ROOT/$CUST" 2>/dev/null && ok "role seeded: $r" || no "role missing: $r"
 done
+grep -q '^- overrides style: detailed' "$ROOT/$CUST" 2>/dev/null && ok "examiner override line shipped (marked syntax)" || no "examiner override line missing"
 grep -q 'status line'         "$ROOT/$CUST" 2>/dev/null && ok "status-line rule shipped"               || no "status-line rule missing"
 grep -q "never the agent's internal reasoning" "$ROOT/$CUST" 2>/dev/null && ok "reasoning-invariance clause shipped" || no "reasoning-invariance clause missing"
 RAW=$(python3 -c "

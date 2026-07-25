@@ -1,6 +1,6 @@
-# RUNBOOK — publish & maintain the obsidian-llm-wiki framework
+# RUNBOOK — publish & maintain the obsidian-llm-wiki-assistant framework
 
-Turns the private vault into the public framework repo **github.com/HurricaHjz/obsidian-llm-wiki**, with
+Turns the private vault into the public framework repo **github.com/HurricaHjz/obsidian-llm-wiki-assistant**, with
 your knowledge kept local. Read top to bottom.
 
 ## Decisions (locked)
@@ -33,15 +33,15 @@ Produces `template-export/` per `SPEC.md`.
 - **setup.sh test**: in a copy, `bash setup.sh` creates `index.md`/`log.md`; `--with-example` loads the demo.
 
 ## C. Publish (first time)
-1. **github.com → New repository** → name `obsidian-llm-wiki` → **Public** → do **not** add a README or
+1. **github.com → New repository** → name `obsidian-llm-wiki-assistant` → **Public** → do **not** add a README or
    licence (we ship them) → **Create repository**.
 2. In Terminal:
    ```bash
    cd template-export
    git init -b main
    git add -A
-   git commit -m "obsidian-llm-wiki: framework v0.1"
-   git remote add origin https://github.com/HurricaHjz/obsidian-llm-wiki.git
+   git commit -m "obsidian-llm-wiki-assistant: framework v0.1"
+   git remote add origin https://github.com/HurricaHjz/obsidian-llm-wiki-assistant.git
    git push -u origin main
    ```
 3. On GitHub → **Settings → tick "Template repository"**; add a description + topics
@@ -64,9 +64,9 @@ equivalents:
 
 **Push (vault → repo)** — you improved the framework locally and want to publish it:
 ```bash
-git -C /path/to/obsidian-llm-wiki pull --ff-only                              # never clobber remote edits
-bash .claude/skills/export-template/export_template.sh --push /path/to/obsidian-llm-wiki
-cd /path/to/obsidian-llm-wiki && git add -A && git diff       # review → commit → push
+git -C /path/to/obsidian-llm-wiki-assistant pull --ff-only                              # never clobber remote edits
+bash .claude/skills/export-template/export_template.sh --push /path/to/obsidian-llm-wiki-assistant
+cd /path/to/obsidian-llm-wiki-assistant && git add -A && git diff       # review → commit → push
 ```
 `--push` overlays vault-owned files (CLAUDE.md, MANUAL.md, `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/`,
 `.claude/skills/**`, `.obsidian` config, `examples/seed`) **and** the build machinery from the skill's
@@ -74,13 +74,26 @@ cd /path/to/obsidian-llm-wiki && git add -A && git diff       # review → commi
 
 **Pull (repo → vault)** — the repo has a newer framework (another machine, a merged PR) and you want it:
 ```bash
-bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki            # preview — writes nothing
-bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki --apply    # apply (+ --with-graph for colours)
+bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki-assistant            # preview — writes nothing
+bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki-assistant --apply    # apply (+ --with-graph for colours)
 ```
 `--pull` previews which framework files differ, then (with `--apply`) copies CLAUDE.md, MANUAL.md,
 `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` and the skills into your vault and refreshes the `payload/`
 machinery — **never** touching your knowledge (`wiki/ raw/ output/` and your own `assets/` media) or `.obsidian` config. It copies
 skills per-name — including `export-template` itself; replacing the running script mid-pull is Unix-safe (the old inode stays open).
+
+### If the GitHub repo gets renamed
+GitHub redirects the old URL so pushes keep working, but fix the name promptly — a redirect dies if the
+old name is ever re-registered. Three steps, in order:
+1. **Detect:** the push output prints a `remote:` moved notice, or
+   `gh repo view <owner>/<old-name> --json nameWithOwner` resolves to the new name.
+2. **Re-point the clone:** `git -C /path/to/<clone> remote set-url origin
+   https://github.com/<owner>/<new-name>.git`, then verify with `git fetch --dry-run`.
+3. **Sweep the live framework files** for the old name (README.md, this RUNBOOK, SKILL.md, SPEC.md,
+   `payload/setup.sh` — enumerate with `grep -r` first; after replacing, verify zero standalone old-name
+   hits remain plus a positive new-name control). Log the sweep as `framework`; it ships on the next
+   publish. Historical layers (wiki pages, log entries, archived quotes) keep the old name — history
+   stays as written.
 
 ## Golden rules
 - Edit the framework in the **vault**, not in the repo (else `--push` can't carry your change across).
