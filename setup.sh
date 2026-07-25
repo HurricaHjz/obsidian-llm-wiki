@@ -38,7 +38,7 @@ mk_log() {
 # Wiki Log
 
 > Append-only timeline. Append a `## [date] action | title` entry on every brain-updating op — via shell
-> (`cat >> wiki/log.md`), never by reading the whole file. Actions: ingest · gather · query · lint · deep-lint · sync · setup · maps · attic · export.
+> (`cat >> wiki/log.md`), never by reading the whole file. Actions: ingest · gather · synthesis · lint · deep-lint · framework · setup · maps · attic · export.
 
 ## [setup] Initialised from the obsidian-llm-wiki framework
 - **Changed**: created the directory scaffold + registries.

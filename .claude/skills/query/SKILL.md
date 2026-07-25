@@ -91,7 +91,7 @@ qmd is dormant.
 **A pure inline answer is NOT logged** — logging is for brain-updating ops only (see CLAUDE.md §5).
 **Only if Step 5 actually filed a synthesis**, append:
 ```markdown
-## [YYYY-MM-DD] query | <short question>
+## [YYYY-MM-DD] synthesis | <short question>
 - **Output**: filed [[synthesis-slug]]; updated [[index.md]]
 ```
 Log a no-synthesis (inline-only) query **only if the user explicitly asks**.

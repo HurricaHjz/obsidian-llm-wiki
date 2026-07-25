@@ -43,7 +43,7 @@ def build_fixture(root):
       '# Wiki Index\n## Concepts\n- [[Alpha]] — Alpha is first.\n'
       '## Sources\n- [[src-one]] — \U0001F4C4 *research* — A source.\n')
     w(os.path.join(wiki, "log.md"),
-      '# log\n\n## [2026-06-01] sync | Earlier thing\n- detail\n\n'
+      '# log\n\n## [2026-06-01] framework | Earlier thing\n- detail\n\n'
       '## [2026-06-02] ingest | Did a thing\n- detail\n')
     w(os.path.join(assets, "pic.png"), "PNGDATA")
     return wiki, assets

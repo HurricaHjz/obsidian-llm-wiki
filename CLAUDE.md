@@ -27,8 +27,10 @@ pages there only when asked or clearly appropriate.
 
 **Customisation (`wiki/user/Customisation.md`):** the owner's **open-ended** preference layer for the
 agent — its name, conversational output style and role, language, interaction preferences, or any
-other standing preference the owner adds. **At the start of a session, read it if present** before
-substantive work; if it is absent, proceed on built-in defaults (fresh vaults seed it via `setup.sh`).
+other standing preference the owner adds. **Load it at the start of every session, before your first
+reply**: if a `SessionStart` hook has already injected its content into context, use that — never
+re-read it; otherwise read the file as your first action. If it is absent, proceed on built-in
+defaults (fresh vaults seed it via `setup.sh`).
 - **Precedence:** this schema's governance ≫ a live user instruction ≫ `Customisation.md` ≫ built-in
   defaults. It is **user-space config, not a governance layer** — it can never relax the §2
   permissions, raw immutability, the §4.6 confidence rubric, the logging contracts, or the wiki's
@@ -46,7 +48,7 @@ substantive work; if it is absent, proceed on built-in defaults (fresh vaults se
   silent**; an explicit instruction always wins, and an empty or absent section means the agent
   decides. That section is the **single home** of these defaults — `output` re-reads it on every run
   and never copies its values into skills, configs, or other files.
-- **Logging:** a persisted change to this file is logged as `sync`; a session-only style switch is not.
+- **Logging:** a persisted change to this file is logged as `framework`; a session-only style switch is not.
 
 **Language:** Write and maintain the entire wiki in **English with British/UK spelling** (colour,
 organise, analyse, behaviour, optimise, modelling, centre, …), whatever the input language; translate
@@ -273,13 +275,13 @@ On a query, **read this first** to locate relevant pages, then drill in. This re
 - **Changed**: created [[Page A]], [[summary-slug]]; updated [[index.md]]
 - **Conflicts**: none   (or: conflict with [[Page B]], flagged)
 ```
-Actions: `ingest` · `gather` · `query` · `lint` · `deep-lint` · `sync` · `setup` · `maps` · `attic` · `export`.
+Actions: `ingest` · `gather` · `synthesis` · `lint` · `deep-lint` · `framework` · `setup` · `maps` · `attic` · `export`.
 
-**Log only operations that change the brain:** `ingest`, a `query` *that files a synthesis*, a
-`lint`/`deep-lint` *that applies fixes*, `maps` (creating or updating a Map of Content), `attic`
-(an archive/restore, §2.1), `sync` (framework changes), and `setup` — plus two vault-event actions beside the brain: `gather`
+**Log only operations that change the brain:** `ingest`, a `synthesis` (a query answer filed into
+`syntheses/`), a `lint`/`deep-lint` *that applies fixes*, `maps` (creating or updating a Map of Content), `attic`
+(an archive/restore, §2.1), `framework` (a change to the system itself), and `setup` — plus two vault-event actions beside the brain: `gather`
 (a Raw-layer capture run) and `export` (an OKF bundle or a template publish; the publish itself logs `export`, while the
-framework edits it ships were already logged as `sync` when made; a confirmed `--pull --apply` is a framework change → `sync`).
+framework edits it ships were already logged as `framework` when made; a confirmed `--pull --apply` is a framework change → `framework`).
 A query answered **inline** (no file written) and a **read-only** lint scan are **not** logged — unless the user explicitly asks.
 
 ---
@@ -439,7 +441,7 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   active voice, short sentences, scannable structure; cut filler and redundancy. It must never read like
   AI-generated boilerplate. Write as **formal documentation**: no Q&A / FAQ-style phrasing ("Why not X?"),
   no rhetorical questions, and no defensive asides or parentheticals. State each point as a plain claim.
-- **Always log it** — append a `## [date] sync | …` entry to `wiki/log.md`.
+- **Always log it** — append a `## [date] framework | …` entry to `wiki/log.md`.
 - **Always report system-file changes in-reply.** When a response edits a system file (`CLAUDE.md`,
   `MANUAL.md`, `README.md`, a skill, `setup.sh`), surface it in that reply as a table: what changed ·
   what for · why (table detail scales with the active output style). Where the file is Markdown,

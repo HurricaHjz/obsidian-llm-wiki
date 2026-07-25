@@ -119,8 +119,8 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
 4. **Publish:** `git -C <repo> commit -m "<message>" && git -C <repo> push`
 5. **Report & log:** report the commit + push result + the repo URL, then append one `export` entry to
    `wiki/log.md` via shell (version, commit hash, what shipped). The publish event logs `export`; the
-   framework edits it ships were already logged as `sync` when made — never log the push as a second
-   `sync`. A failed or aborted push logs nothing. If `push` fails on auth, tell the user to set up a
+   framework edits it ships were already logged as `framework` when made — never log the push as a second
+   `framework`. A failed or aborted push logs nothing. If `push` fails on auth, tell the user to set up a
    GitHub token / SSH key — never handle their credentials yourself.
 6. **Clean up — keep no local copy:** once the push succeeds, delete the build directory
    (`rm -rf template-export`). A `--push` writes straight to the external repo clone, so nothing is left
@@ -129,7 +129,7 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
 ## Update (pull) — guided; preview → confirm → apply
 When the user wants to bring a newer framework from the repo into their vault ("pull the latest framework",
 "update my framework from git"):
-   *(Logging: a confirmed `--pull --apply` changes this vault's framework — log it as `sync`, never `export`.)*
+   *(Logging: a confirmed `--pull --apply` changes this vault's framework — log it as `framework`, never `export`.)*
 1. **Preview:** `bash .claude/skills/export-template/export_template.sh --pull <repo>`. Show the user the
    listed framework files that would change (README/CLAUDE/Manual/skills, plus the `payload/` refresh).
    **Nothing is written yet.**

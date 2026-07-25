@@ -13,5 +13,6 @@
     "CONTRIBUTING.md",
     "assets/",
     "examples/"
-  ]
+  ],
+  "readableLineLength": false
 }
