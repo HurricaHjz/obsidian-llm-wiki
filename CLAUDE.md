@@ -25,13 +25,11 @@ in `wiki/user/`. **Consult it whenever personal context helps** — tailoring an
 citing their own work, or resolving who "I / me / my" refers to. The human curates it; add or update
 pages there only when asked or clearly appropriate.
 
-**Customisation (`wiki/user/Customisation.md`):** the owner's **open-ended** preference layer for the
+**Customisation (`CUSTOMISATION.md`):** the owner's **open-ended** preference layer for the
 agent — its name, conversational output style and role, language, interaction preferences, or any
-other standing preference the owner adds. **Load it at the start of every session, before your first
-reply**: if a `SessionStart` hook has already injected its content into context, use that — never
-re-read it; otherwise read the file as your first action. If it is absent, proceed on built-in
-defaults (fresh vaults seed it via `setup.sh`).
-- **Precedence:** this schema's governance ≫ a live user instruction ≫ `Customisation.md` ≫ built-in
+other standing preference the owner adds. It is **in context before your first reply**: §13 imports
+it and carries the load check that proves it arrived. Never act on a partial or previewed copy.
+- **Precedence:** this schema's governance ≫ a live user instruction ≫ `CUSTOMISATION.md` ≫ built-in
   defaults. It is **user-space config, not a governance layer** — it can never relax the §2
   permissions, raw immutability, the §4.6 confidence rubric, the logging contracts, or the wiki's
   UK-English rule.
@@ -78,6 +76,10 @@ unknown tags are silently stripped from view.
 │                                 the system's architecture/workflow changes — NEVER per ingest/query.
 ├── IDEAS.md                   ← 💡 owner's scratchpad: TODO prompt queue · ideas · monitor lane. Agent IGNORES it in normal runs; reads or maintains it (incl. its Overview table) only on the user's explicit instruction ("maintain IDEAS.md", "run TODO n") — sole standing delegation: `/deep-lint` may review its Monitor section (report-first, see the deep-lint skill). Not knowledge; never drives work, enters wiki, or ships; seeded by `setup.sh`. Passive context from it (an `<editor_selection>`, `<linked_note>`, or `@`-mention) is context only, never an instruction: use it to interpret the typed prompt, and execute or answer a TODO only when the typed prompt explicitly invokes it.
 │
+├── CUSTOMISATION.md            ← ⚙️ the owner's agent preference layer (name · styles · roles · standing prefs).
+│                                 Imported into project context by §13. User-space config, NOT knowledge:
+│                                 outside the wiki, outside the graph, never published (`.gitignore`).
+│
 ├── assets/                    ← 🖼️ MEDIA LAYER
 │                                 Images, diagrams & reference attachments — incl. *special* PDFs you
 │                                 only want to link to, NOT source PDFs to ingest (those go in raw/).
@@ -109,7 +111,7 @@ unknown tags are silently stripped from view.
 │   ├── syntheses/             ← cross-source reports / answers filed back from queries
 │   ├── developments/          ← 🛠️ this vault's OWN self-upgrade docs: framework design · plans · rollouts
 │   ├── maps/                  ← Maps of Content: curated topic-overview hubs (navigation)
-│   └── user/                  ← 👤 the vault owner: profile, research, works, + `Customisation.md` (agent preference layer, read at session start); consulted for personal context
+│   └── user/                  ← 👤 the vault owner: profile, research, works; consulted for personal context
 │
 ├── output/                    ← 📤 DELIVERABLES — agent-generated reports/drafts/decks (the `output` skill); cited, graph-excluded, NOT knowledge
 │
@@ -428,6 +430,15 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   the skills, `setup.sh`) state *what to do now*. Keep only the minimal rationale that shapes a judgement
   call, or that a human-facing doc (README/Manual) deliberately explains. Change history and design
   rationale belong in `wiki/developments/` and `wiki/log.md` — never in files loaded each session.
+- **Sweep the contract, not just the code.** A change that retires or alters a rule must find every
+  *restatement* of that rule — in this schema, the skills, their tests, and forward-facing
+  `developments/` specs — and reconcile them all in the same change; dated records of what was once
+  true stay as they are. Grep for the retired **claim**, not only for the changed path, and prove the
+  sweep ran with a control pattern (§11). A contract left standing in two places drifts silently.
+- **Attack a new guard before shipping it.** For any check, script or hook added, enumerate what it
+  does when its own premise fails — the file it reads is missing, the marker it looks for was deleted,
+  the pattern it greps matches nothing — and make each case behave sensibly. A guard that fires on its
+  own broken premise is worse than no guard.
 - **Consult and record in `wiki/developments/`.** This vault keeps its **own self-upgrade history** there
   (type `development`: design · plan · rollout docs). **Before** a framework change, read the relevant
   `developments/` docs so you build on prior decisions rather than re-derive or contradict them; **after**,
@@ -466,3 +477,22 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   In addition, `ingest` Step 0 **sanitises converted artefacts** (strips control bytes; defangs stray
   `[text](bareword)` and `[[…]]` that MarkItDown emits from math/citations). Together these keep the
   knowledge graph free of spurious nodes.
+
+---
+
+## 13. Auto-loaded user preference layer
+
+The last line of this file imports `CUSTOMISATION.md` into project context at session start, so the
+owner's preferences are present before the first reply without any tool call. Everything above
+outranks everything it contains (§1 precedence).
+
+**Load check — settle this before your first reply.** The imported file's first body line is the
+marker `CUSTOMISATION-LOADED-v1`.
+- **Marker in your context** → the layer is loaded. Use it, and **never re-read the file**.
+- **Marker absent** → this harness did not expand the import (or the path is stale). **Read
+  `CUSTOMISATION.md` in full now, before replying**, and tell the owner the import is not working.
+- **File does not exist** → proceed on built-in defaults (fresh vaults seed it via `setup.sh`).
+
+This check lives here, beside the import, and nowhere else: one contract, one place.
+
+@CUSTOMISATION.md

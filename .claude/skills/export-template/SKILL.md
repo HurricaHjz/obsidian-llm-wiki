@@ -104,7 +104,7 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
    actually ship — not the diff: `git -C <repo> grep -i --cached -e "<string>"` for every derived
    personal string, plus one positive control (a string known to exist, e.g. `wiki`). **Derive the
    strings at runtime, never hardcode them here** (they must not ship): the `agent_name` from
-   `wiki/user/Customisation.md` frontmatter, the git handle/email local-part from the repo's config,
+   `CUSTOMISATION.md` frontmatter, the git handle/email local-part from the repo's config,
    the vault's absolute-path components, and any extra lines in `output/publish-gate-strings.txt`
    (optional, owner-local, never shipped). Filter hits against `publish-allowlist.md` (in this skill
    folder): every allowlisted line carries its justification and must itself be public-safe. Any

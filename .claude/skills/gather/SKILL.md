@@ -15,10 +15,10 @@ user-invocable: true
 # gather — deep Raw-layer capture (seed + the relevant links it cites)
 
 ## Goal
-Strengthen the **Raw layer** (the real bottleneck of the LLM-Wiki pattern — see [[laozhang-web-pack-skill]]):
+Strengthen the **Raw layer** (the real bottleneck of the LLM-Wiki pattern):
 turn one seed link into a high-quality set of captured sources by following the links it cites, **without**
 fan-out blow-ups or off-topic noise. Output lands in `raw/`; `/ingest` then compiles it. Inspired by the
-[[web-pack]] tool, adapted to this vault's rules.
+`web-pack` tool, adapted to this vault's rules.
 
 **Dual-mode — one command, two speeds:**
 
@@ -90,4 +90,4 @@ or aborted run (nothing captured) is not logged.
 ## Relationship to the other skills
 - **`gather`** → builds the *Raw layer* (deep multi-link capture into `raw/`).
 - **`ingest`** → *compiles* `raw/` into linked `wiki/` pages (run it after gather).
-- **[[web-pack]]** (wiki tool page) → the external Skill that inspired this; **[[Jina Reader]]** → the fallback fetcher.
+- **`web-pack`** (wiki tool page) → the external Skill that inspired this; **`Jina Reader`** → the fallback fetcher.

@@ -37,7 +37,7 @@ build_fake_vault(){
   # "knowledge" that must NEVER ship or be touched by pull
   printf '# secret note\npersonal data here\n' > "$V/wiki/sources/secret.md"
   printf 'raw source\n' > "$V/raw/source1.md"
-  mkdir -p "$V/wiki/user"; printf -- '---\ntitle: "Customisation"\ntype: user\n---\nowner personal prefs\n' > "$V/wiki/user/Customisation.md"  # personal config — must NEVER ship
+  mkdir -p "$V/wiki/user"; printf -- '---\ntitle: "Customisation"\ntype: user\n---\nowner personal prefs\n' > "$V/CUSTOMISATION.md"  # personal config — must NEVER ship
   printf '# IDEAS\n- owner private idea\n' > "$V/IDEAS.md"   # personal scratchpad — must NEVER ship
   mkdir -p "$V/attic"; printf '# Attic Manifest\n- [2026-01-01] [[old-note]] retired\n' > "$V/attic/MANIFEST.md"  # cold storage — must NEVER ship
 }
@@ -76,7 +76,7 @@ chk "build: seed demo shipped"             '[ -d "$BUILT/examples/seed" ]'
 chk "build: wiki ships empty"               '[ -z "$(find "$BUILT/wiki" -type f ! -name .gitkeep)" ]'
 chk "build: raw ships empty"                '[ -z "$(find "$BUILT/raw" -type f ! -name .gitkeep)" ]'
 chk "build: NO knowledge files shipped"     '[ ! -e "$BUILT/wiki/sources/secret.md" ] && [ ! -e "$BUILT/raw/source1.md" ]'
-chk "build: personal Customisation NOT shipped" '[ ! -e "$BUILT/wiki/user/Customisation.md" ]'
+chk "build: personal Customisation NOT shipped" '[ ! -e "$BUILT/CUSTOMISATION.md" ]'
 chk "build: shipped setup.sh seeds Customisation" 'grep -q mk_custom "$BUILT/setup.sh"'
 chk "build: personal IDEAS.md NOT shipped"      '[ ! -e "$BUILT/IDEAS.md" ]'
 chk "build: shipped setup.sh seeds IDEAS"       'grep -q mk_ideas "$BUILT/setup.sh"'
@@ -188,6 +188,34 @@ bash "$SCRIPT" --pull "$CLONE" --apply >/dev/null 2>&1; rc=$?
 chk "self-update: pull completed cleanly (exit 0)"      '[ "$rc" = 0 ]'
 chk "self-update: vault export-template got the change" 'grep -q "UPSTREAM EXPORT-TEMPLATE MARKER" "$V/.claude/skills/export-template/SKILL.md"'
 chk "self-update: export_template.sh still present"     '[ -f "$V/.claude/skills/export-template/export_template.sh" ]'
+
+echo "== 13) the REAL vault README's images can actually ship =="
+VAULT_ROOT="$(cd "$REALSKILL/../../.." && pwd)"
+IMGS=$(grep -oE 'assets/[A-Za-z0-9._-]+\.(png|jpg|jpeg|gif|webp)' "$VAULT_ROOT/README.md" | sort -u)
+chk "control: README references at least one assets/ image" '[ -n "$IMGS" ]'
+for img in $IMGS; do
+  chk "README image exists in vault: $img"            "[ -f \"$VAULT_ROOT/$img\" ]"
+  chk "shipped .gitignore un-ignores it: $img"        "grep -qF '!/$img' \"$REALSKILL/payload/gitignore.txt\""
+  chk "export copies it (readme_images matches): $img" "grep -oE 'assets/[A-Za-z0-9._-]+\\.(png|jpg|jpeg|gif|webp)' \"$VAULT_ROOT/README.md\" | grep -qx '$img'"
+done
+
+echo "== 14) shipped skills carry no wikilink to a page that does not ship =="
+VROOT="$(cd "$REALSKILL/../../.." && pwd)"
+DEADLINKS=$(python3 - "$VROOT" <<'PYEOF'
+import os,glob,re,sys
+v=sys.argv[1]
+pages={os.path.splitext(os.path.basename(f))[0] for f in glob.glob(os.path.join(v,"wiki","**","*.md"),recursive=True)}
+out=[]
+for f in glob.glob(os.path.join(v,".claude","skills","*","SKILL.md")):
+    for m in re.findall(r"\[\[([^\]]+)\]\]", open(f,encoding="utf-8").read()):
+        if m.split("|")[0].split("#")[0].strip() in pages:
+            out.append(os.path.basename(os.path.dirname(f))+":"+m)
+print(" ".join(out))
+PYEOF
+)
+chk "control: vault has wiki pages to link against" '[ -d "$VROOT/wiki" ]'
+chk "no skill links to a non-shipping wiki page"    '[ -z "$DEADLINKS" ]'
+[ -n "$DEADLINKS" ] && echo "      dead: $DEADLINKS"
 
 echo
 echo "================  RESULT: $PASS passed, $FAIL failed  ================"

@@ -32,10 +32,13 @@ integrity is `/lint`'s job; `deep-lint` is the periodic deep clean.
 Run the full `lint` pipeline: index consistency, link health (dead links, orphans — `maps/`/`index`/`log`
 exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the cheap, unambiguous issues
 (register unindexed pages, etc.) after the report.
-- **Customisation sanity (deep-lint only):** if `wiki/user/Customisation.md` exists, verify its frontmatter
+- **Customisation sanity (deep-lint only):** if `CUSTOMISATION.md` exists, verify its frontmatter
   parses, `style:` and `role:` each name a section defined in the file, every `overrides` line names a
-  conversational feature (style / formatting), and it stays within its ~120-line cap. Flag any drift for the
-  owner; never rewrite their preferences.
+  conversational feature (style / formatting), and that its **loading path is intact**: the file carries its
+  `CUSTOMISATION-LOADED-v1` marker line and `CLAUDE.md` still holds the matching `@CUSTOMISATION.md`
+  import (§13). Then **report its always-on cost** — bytes ÷ 4 ≈ tokens re-sent on every request of every
+  session — rather than enforcing a size cap: the owner decides what the preference layer is worth, and only
+  they can trim it. Flag any drift for the owner; never rewrite their preferences.
 - **Attic guard (existence-only):** `attic/` and `attic/MANIFEST.md` exist, and the `path:attic/` colour
   group is present (`apply-palette.py --check` covers it). NEVER open attic contents — the attic is
   explicit-instruction-only (CLAUDE.md §2.1); this check reads nothing inside it.
@@ -112,7 +115,7 @@ table** (mirroring CLAUDE.md §12 system-file reporting) and listed in this run'
 
 ### 7 — qmd refresh (only if qmd is installed and enabled)
 If qmd is in use, run `qmd update && qmd embed` so the search index reflects the month's changes
-(see [[qmd-opt-in-design]]). Skip silently if qmd is absent.
+(see `qmd-opt-in-design`). Skip silently if qmd is absent.
 
 ### 8 — Registries & report
 Update `index.md` for any pages added/renamed. Append one `deep-lint` entry to `log.md` (via shell).

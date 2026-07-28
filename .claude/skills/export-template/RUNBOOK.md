@@ -17,7 +17,7 @@ bash .claude/skills/export-template/export_template.sh template-export
 Produces `template-export/` per `SPEC.md`.
 
 ## B. Verify (script prints most of this — confirm)
-- Skills = all of `ingest gather query lint export-okf output export-template` (export-template ships too, for contributors).
+- Skills = all of `ingest gather query lint deep-lint qmd-search export-okf output export-template` (export-template ships too, for contributors).
 - `template-export/wiki` & `/raw` hold only `.gitkeep` (no seed, no `index.md`/`log.md`); the demo is in
   `template-export/examples/seed/`.
 - No personal leak: grep the build for **your own** name / handle / affiliation
@@ -102,7 +102,3 @@ old name is ever re-registered. Three steps, in order:
 - Never `git add` knowledge (`wiki/**`, `index.md`, `log.md`, `raw/**`, `output/**`); the `.gitignore`
   blocks it — don't force past it.
 - Never ship personal data; keep the demo clearly deletable (`setup.sh --reset`).
-```
-
-The `export-template` skill now **ships too** (for contributors); its `payload/` is its build data, and the
-SPEC/RUNBOOK/tests here travel with it. Non-contributors can ignore it (see the Manual's Advanced caution).

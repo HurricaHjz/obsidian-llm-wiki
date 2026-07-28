@@ -18,7 +18,7 @@ user-invocable: true
 Turn a user instruction + the compiled wiki into a **deliverable file in `output/`** that (a) **follows
 the instruction exactly** (format, scope, length, audience, style), (b) is **grounded** in the wiki and
 **cited**, and (c) **never hallucinates**. This operationalises the vault's own calibration ethos
-([[RLCR]], [[behaviorally-calibrated-rl-hallucination]], [[Calibration]]): be accurate, be calibrated,
+(`RLCR`, `behaviorally-calibrated-rl-hallucination`, `Calibration`): be accurate, be calibrated,
 and **abstain when unsure** rather than confabulate.
 
 ## Triggers
@@ -35,7 +35,7 @@ detail is missing or genuinely ambiguous, ask **1–2 crisp questions**; otherwi
 defaults **and state them**. Never silently widen, narrow, or reinterpret the ask.
 
 **Customisation gap-fill:** for spec fields the instruction leaves **unstated**, check
-`wiki/user/Customisation.md` → `## Deliverable defaults` (if the file and section exist): apply any
+`CUSTOMISATION.md` → `## Deliverable defaults` (if the file and section exist): apply any
 standing defaults found there (citation style, deck format, length conventions) and note them in the
 grounding note. An explicit instruction always overrides; if the section is absent or empty, choose
 sensible defaults yourself (and state them). Conversational output *styles* never apply to
@@ -77,6 +77,20 @@ if the deliverable is external-facing or the user asks.
 Save to **`output/`** (the deliverables layer — *not* the knowledge graph). Filename = a clean
 kebab-case slug + correct extension. Do **not** modify `wiki/` or `raw/`. (If the user wants the result
 compounded back into the knowledge base, that's a `query` synthesis, not an `output`.)
+
+### Step 5b — Register check (prose a reader outside the vault will see)
+Run the counter on what you wrote, before reporting:
+
+```bash
+bash .claude/skills/output/register-check.sh output/<slug>.md
+```
+
+It prints em-dashes, amplifying colons and semicolons per 1,000 words of prose against this vault's
+paper corpus, and exits non-zero on a reading outside the band. HIGH means a mark is carrying work a
+human writer would have done with sentence structure; LOW on em-dashes means the mark has been driven
+to zero, which reads just as synthetic. Fix by rewriting those sentences, never by trading one mark
+for another, then re-run. Skip only for artefacts nobody outside the vault reads (internal trackers,
+tables, note dumps) and say so in the Step 6 report.
 
 ### Step 6 — Report + grounding note
 State the path written, then a 2–3-line **grounding note**: which wiki pages it draws on, what (if

@@ -235,7 +235,7 @@ GPT, Llama) → `wiki/models/`, **benchmark** (any eval dataset named — e.g. A
 **Models & benchmarks link bidirectionally** (CLAUDE.md §4.5): add this paper under the model/benchmark
 page's `## Appears in`, and list the models/benchmarks the paper uses in the source page's `## Related`
 (Obsidian backlinks then close the loop automatically). **Reuse** an existing model/benchmark page —
-never duplicate one (fold `GPT-4`/`GPT-4o` into [[GPT]], `MATH500` into [[MATH]], `Qwen2.5` into [[Qwen]]).
+never duplicate one (fold `GPT-4`/`GPT-4o` into `GPT`, `MATH500` into `MATH`, `Qwen2.5` into `Qwen`).
 
 A single source typically touches **10–15 wiki pages** via cross-links. No orphans — every page
 gets a `## Related` section.

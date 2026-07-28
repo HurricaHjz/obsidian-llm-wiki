@@ -13,6 +13,7 @@
 /okf-export/
 /template-export/
 /IDEAS.md
+/CUSTOMISATION.md
 
 # --- ...but keep the empty folder skeleton (the .gitkeep placeholders) ---
 !/wiki/**/
@@ -21,8 +22,9 @@
 !/output/**/
 !/attic/**/
 !**/.gitkeep
-# the README screenshot is the ONE tracked asset; all other assets/ media stay LOCAL
+# the README images are the ONLY tracked assets; all other assets/ media stay LOCAL
 !/assets/framework_demo.png
+!/assets/hero.png
 # (examples/ is intentionally NOT ignored — it is the shipped demo)
 
 # --- Obsidian per-machine state (graph/app/core-plugins/appearance ARE tracked) ---

@@ -66,7 +66,9 @@ updated: $today
 CUSTHEAD
     cat <<'CUSTBODY'
 
-> **Agent preference layer.** How the agent behaves for you. Identity and output styles below are starter examples — this file is open-ended, so add any standing preference you want every session to honour. The agent reads it at the start of every session; keep it terse (cap ~120 lines). Governance in `CLAUDE.md` always outranks this file.
+`CUSTOMISATION-LOADED-v1` — load marker. `CLAUDE.md` §13 imports this file into project context; if you cannot see this line, the import did not run and you must read `CUSTOMISATION.md` in full before your first reply.
+
+> **Agent preference layer.** How the agent behaves for you. Identity and output styles below are starter examples — this file is open-ended, so add any standing preference you want every session to honour. The agent loads it at the start of every session; keep it terse, since every line is re-sent to the model on every request of every session. Governance in `CLAUDE.md` always outranks this file.
 
 ## Identity
 <!-- Name the agent, set its working standard, say how to address you. -->
@@ -106,7 +108,8 @@ The active role is the `role:` frontmatter key (default `generalist`). Say "act 
 - Citation-first claims; scrutinise methods, assumptions and statistics; frame results against related work; state limitations.
 - Verify load-bearing or quotable claims against the raw converted source (the page's `sources:` path), quoting raw over summaries; state the confidence tier of every citation that matters.
 - Scholarly writing on request: venue-aware structure and register (papers, abstracts, rebuttals, cover letters); argue claim → evidence → citation; rebuttals answer every reviewer point, conceding where the reviewer is right; advise on venue fit and submission strategy grounded in the corpus.
-- Funding bids: lead with significance, novelty and feasibility mapped to the funder's assessment criteria; persuasion stays subordinate to evidential honesty, never overclaiming beyond what the sources support.
+- Funding bids: write to win; sell the vision with confidence and concrete ambition; lead with significance, novelty and feasibility mapped to the funder's assessment criteria; promises are specific and measurable ("v1.0 on two platforms by day 90"), never unquantified adjectives; planned work is pitched as what the grant unlocks, future-tense and labelled as such, never reported as done: an undone experiment is a promise, not a result; persuasion stays subordinate to evidential honesty.
+- Prose craft (external-facing artefacts: bids, papers, letters, statements): write as a fluent human scholar, never in AI-boilerplate register; no filler, self-praise or stock adjectives; let concrete evidence (numbers, artefacts, credentials) carry the persuasion; only vocabulary the target reader can parse, never vault-internal terms; finish with one re-read as the target reader, fixing grammar and flow, verifying the format contract (word caps, plain-text fields), and confirming the strongest available evidence appears in the text itself, not only in the notes.
 
 ### engineer
 - Lead with the design decision and its trade-offs; show runnable, tested code; state chosen defaults explicitly; flag technical debt; user-first judgement on anything user-facing.
@@ -139,7 +142,7 @@ Leave empty to let the agent decide per deliverable. -->
 ## Related
 - [[About Me]] — who the owner is (this page is how the agent behaves)
 CUSTBODY
-  } > wiki/user/Customisation.md
+  } > CUSTOMISATION.md
 }
 
 mk_ideas() {
@@ -234,7 +237,7 @@ case "${1:-}" in
     else
       echo "! examples/seed not found — created empty registries only."
     fi
-    [ -f wiki/user/Customisation.md ] || mk_custom
+    [ -f CUSTOMISATION.md ] || mk_custom
     [ -f IDEAS.md ] || mk_ideas
     [ -f attic/MANIFEST.md ] || mk_attic
     apply_palette
@@ -242,7 +245,7 @@ case "${1:-}" in
   --reset)
     rm -f "$DEMO_RAW" "${DEMO_WIKI[@]}" 2>/dev/null || true
     mk_index; mk_log
-    [ -f wiki/user/Customisation.md ] || mk_custom
+    [ -f CUSTOMISATION.md ] || mk_custom
     [ -f IDEAS.md ] || mk_ideas
     [ -f attic/MANIFEST.md ] || mk_attic
     echo "✓ reset: demo removed, registries blanked. Drop a source into raw/ and run /ingest."
@@ -250,7 +253,7 @@ case "${1:-}" in
   ""|--init)
     [ -f wiki/index.md ] || mk_index
     [ -f wiki/log.md ]   || mk_log
-    [ -f wiki/user/Customisation.md ] || mk_custom
+    [ -f CUSTOMISATION.md ] || mk_custom
     [ -f IDEAS.md ] || mk_ideas
     [ -f attic/MANIFEST.md ] || mk_attic
     apply_palette

@@ -14,7 +14,7 @@ user-invocable: true
 # qmd-search — optional semantic search over the wiki (dormant until qmd is installed)
 
 ## What this is
-A thin, **dormant** adapter to [[qmd]] (design: `wiki/developments/qmd-opt-in-design.md`; setup runbook:
+A thin, **dormant** adapter to `qmd` (design: `wiki/developments/qmd-opt-in-design.md`; setup runbook:
 `wiki/developments/equipping-the-wiki-with-qmd.md`). It carries **zero runtime cost** until a user installs
 qmd and builds an index. It does **not** replace `index.md` (the curated, read-first catalogue); it is the
 *semantic fallback* `query`/`output` reach for when the catalogue under-covers a question, and the

@@ -14,8 +14,8 @@ user-invocable: true
 # export-okf — turn the vault into a portable OKF bundle
 
 Why this exists: OKF is a *format*; `CLAUDE.md` is the *method*. This exports the former from the
-latter (the "Option A" plan) — see the synthesis [[claude-md-vs-okf-complementary-layers]] and the
-concept [[Open Knowledge Format]]. **Opt-in**: the vault stays the source of truth; OKF is a derived
+latter (the "Option A" plan) — see the synthesis `claude-md-vs-okf-complementary-layers` and the
+concept `Open Knowledge Format`. **Opt-in**: the vault stays the source of truth; OKF is a derived
 artifact, only worth producing when sharing / interop / ingesting others' bundles is the goal.
 
 ## Trigger

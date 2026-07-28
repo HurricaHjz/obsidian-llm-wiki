@@ -13,7 +13,7 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
 ├── .gitattributes
 ├── setup.sh                   # first-run bootstrap (registries; --with-example; --reset)
 ├── CLAUDE.md                  # the agent's contract
-├── .claude/skills/            # ingest · gather · query · output · lint · export-okf · export-template (ships with its payload/)
+├── .claude/skills/            # ingest · gather · query · output · lint · deep-lint · qmd-search · export-okf · export-template (ships with its payload/)
 ├── .obsidian/                 # graph.json, app.json, core-plugins.json, appearance.json ONLY
 ├── assets/                   # framework_demo.png (.gitkeep)  ← README screenshot (force-tracked); other media gitignored
 ├── output/                    # empty (.gitkeep)
@@ -41,7 +41,7 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
   `.claude/skills/**` — **every** skill, **incl. `export-template`** (the contributor publish tool, with its `payload/`),
   `.obsidian/{graph,app,core-plugins,appearance}.json`.
 - **STRIP →** all `wiki/**`, `raw/**`, `assets/**` (bar the README screenshot), `output/**`, `attic/**`, `okf-export/`,
-  `wiki/user/**`, personal data, `.obsidian/workspace.json`/`plugins/`/`community-plugins.json`, `.claudian/`, `.git/`.
+  `wiki/user/**`, `CUSTOMISATION.md`, personal data, `.obsidian/workspace.json`/`plugins/`/`community-plugins.json`, `.claudian/`, `.git/`.
 
 ## Conventions the scaffold must preserve
 - Every empty content dir keeps a `.gitkeep`.

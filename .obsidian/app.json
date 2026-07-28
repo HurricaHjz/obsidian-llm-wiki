@@ -1,18 +1,19 @@
 {
   "attachmentFolderPath": "assets",
   "userIgnoreFilters": [
+    "examples/",
     "raw/",
     "okf-export/",
     "output/",
     "CLAUDE.md",
     "MANUAL.md",
     "IDEAS.md",
+    "CUSTOMISATION.md",
     "template-export/",
     "README.md",
     "LICENSE.md",
     "CONTRIBUTING.md",
-    "assets/",
-    "examples/"
+    "assets/"
   ],
   "readableLineLength": false
 }

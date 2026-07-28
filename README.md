@@ -1,6 +1,20 @@
 # obsidian-llm-wiki-assistant
 
-**Your second brain for Obsidian, built and maintained by an AI agent.**
+**A personal assistant that remembers you, and a second brain that maintains itself.**
+
+> *Tony Stark never had to reintroduce himself to Jarvis. With today's AI you do it every day: close the chat, and everything you explained is gone.*
+
+![Memory-analogy diagram: a computer's CPU, RAM and disk on top; below, an AI agent, its fading context-window cards, and a violet vault holding a knowledge graph, with one note card flying into the vault](assets/hero.png)
+
+The problem is memory, not intelligence. An agent does all its thinking in a context window that empties the moment a conversation ends. Think of the model as a CPU and the context window as its RAM, fast but volatile; with no disk underneath, everything you teach it is quietly thrown away. This project adds that disk, with a layered wiki as the bridge. You drop raw sources into your Obsidian vault, the agent compiles them into linked notes it looks after entirely on its own, and whenever a conversation needs something, the right notes flow back up into working memory. Everything stays plain Markdown, yours to open, read and correct. Feed it for a month and the assistant stops being a stranger; a year in, nothing else will know your work the way it does.
+
+What you build on that memory is up to you:
+
+* **A true personal assistant**, the goal this project is built towards: an agent that knows your work, your habits and your people because it remembers them (one day, even an elderly parent's medication and appointments).
+* **A research assistant**, what ships today: drop in papers and articles, ask questions, and get answers cited from your own library.
+* **A shared brain for many agents**, the direction of travel: plain files under a written contract, so a main agent holding the wiki can brief specialist agents in co-work settings.
+
+## What it does today
 
 Simply drop in your sources (PDFs, slides, links, blogs, and almost any other file format). The agent processes each one into linked Markdown, files it correctly, and keeps your cross-references and catalogue completely up to date. Instead of building a folder of unread clippings, you create a structured, compounding knowledge base that an AI can read natively.
 
@@ -10,7 +24,7 @@ Once populated, the wiki can:
 * **Persistent insight:** It proactively synthesises across your sources and offers to save valuable answers as permanent, linked notes, so a brilliant idea from a conversation can be preserved instead of lost when the chat ends.
 * **Self-maintenance and growth:** The system actively cross-links files, merges duplicates, and flags conflicting information or knowledge gaps. It automatically maintains your catalogue and graph as your information compounds.
 
-We purposely designed the architecture to be universal and highly adaptable. Although it is pre-tuned for AI and machine learning research (treating models and benchmarks as primary note types), you can easily customise the repository to perfectly fit your own field or workflow. You can also personalise the agent itself in `wiki/user/Customisation.md`, created on first setup: its name, tone, output styles and task roles come as starter examples, and the file is open-ended — add whatever standing preferences you want every session to follow.
+We purposely designed the architecture to be universal and highly adaptable. Although it is pre-tuned for AI and machine learning research (treating models and benchmarks as primary note types), you can easily customise the repository to perfectly fit your own field or workflow. You can also personalise the agent itself in `CUSTOMISATION.md`, created on first setup: its name, tone, output styles and task roles come as starter examples, and the file is open-ended — add whatever standing preferences you want every session to follow.
 
 ![The knowledge graph the agent builds, coloured by note type](assets/framework_demo.png)
 

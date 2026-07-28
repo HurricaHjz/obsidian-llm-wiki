@@ -4,8 +4,9 @@
 # Run:  bash test_setup_customisation.sh
 set -uo pipefail
 PAY="$(cd "$(dirname "${BASH_SOURCE[0]}")/payload" && pwd)/setup.sh"
+VAULT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 ROOT="${TMPDIR:-/tmp}/setuptest.$$"
-CUST="wiki/user/Customisation.md"
+CUST="CUSTOMISATION.md"
 PASS=0; FAIL=0
 ok(){ PASS=$((PASS+1)); echo "    ok   — $1"; }
 no(){ FAIL=$((FAIL+1)); echo "  FAIL   — $1"; }
@@ -40,8 +41,10 @@ s=open('$ROOT/$CUST').read()
 b=re.sub(r'\A---\n.*?\n---\n','',s,flags=re.S); b=re.sub(r'<!--.*?-->','',b,flags=re.S); b=re.sub(r'\`[^\`]*\`','',b)
 print(len(re.findall(r'<[a-zA-Z][\w-]*>',b)))" 2>/dev/null || echo 99)
 [ "$RAW" = 0 ]                                && ok "no raw HTML-parsed tokens in rendered prose"      || no "$RAW raw <tag> token(s) leak into rendered prose"
-L=$(wc -l < "$ROOT/$CUST" | tr -d ' ')
-[ "$L" -le 120 ]                              && ok "within ~120-line cap ($L)"            || no "exceeds cap ($L lines)"
+grep -q 'CUSTOMISATION-LOADED-v1'     "$ROOT/$CUST" 2>/dev/null && ok "load marker seeded"                  || no "load marker missing"
+grep -q '^@CUSTOMISATION\.md' "$VAULT/CLAUDE.md" && ok "shipped CLAUDE.md imports the preference layer" || no "CLAUDE.md import line missing"
+L=$(wc -l < "$ROOT/$CUST" | tr -d ' '); B=$(wc -c < "$ROOT/$CUST" | tr -d ' ')
+[ "$B" -le 10240 ]                            && ok "seeded template stays lean (${B} B / $L lines)"      || no "seeded template too heavy (${B} B / $L lines)"
 
 echo "== 3) re-run is idempotent (never overwrites user edits) =="
 fresh; ( cd "$ROOT" && bash setup.sh >/dev/null 2>&1 ); printf '\nMY EDIT\n' >> "$ROOT/$CUST"

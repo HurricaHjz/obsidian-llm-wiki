@@ -19,7 +19,9 @@ SRC="$(cd "$SCRIPT_DIR/../../.." && pwd)"                 # vault root = 3 level
 KIT="$SCRIPT_DIR/payload"   # the publish payload (build machinery: setup.sh, git dotfiles, seed demo) lives in this skill
 [ -d "$KIT/example" ] || { echo "ERROR: skill payload missing at $KIT"; exit 1; }
 
-DEMO_IMG="assets/framework_demo.png"   # the ONE framework asset shipped from assets/ (force-tracked); README screenshot
+# Images under assets/ are shipped only when the README references them (force-tracked).
+# Keep the `!` exceptions in payload/gitignore.txt in sync, or the file copies but stays uncommittable.
+readme_images() { grep -oE 'assets/[A-Za-z0-9._-]+\.(png|jpg|jpeg|gif|webp)' "$1" 2>/dev/null | sort -u || true; }
 
 strip_junk() {   # drop regenerable cache / OS junk so it never ships or pollutes a pull diff
   for d in "$@"; do
@@ -63,7 +65,10 @@ copy_packaging() {
     cp "$SRC/$f" "$D/$f"
   done
   rm -f "$D/LICENSE"; rm -rf "$D/docs"                                              # drop legacy no-ext LICENSE + old docs/ folder
-  [ -f "$SRC/$DEMO_IMG" ] && { mkdir -p "$D/assets"; cp "$SRC/$DEMO_IMG" "$D/$DEMO_IMG"; }   # README screenshot (force-tracked)
+  mkdir -p "$D/assets"
+  for img in $(readme_images "$SRC/README.md"); do
+    if [ -f "$SRC/$img" ]; then cp "$SRC/$img" "$D/$img"; fi                        # README images (force-tracked)
+  done
   cp "$KIT/gitignore.txt"      "$D/.gitignore"
   cp "$KIT/gitattributes.txt"  "$D/.gitattributes"
   cp "$KIT/setup.sh"           "$D/setup.sh"; chmod +x "$D/setup.sh"
@@ -112,7 +117,10 @@ refresh_local() {
   for f in README.md LICENSE.md CONTRIBUTING.md; do                                 # canonical at the vault root
     [ -f "$R/$f" ] && cp "$R/$f" "$SRC/$f"
   done
-  [ -f "$R/$DEMO_IMG" ] && { mkdir -p "$SRC/assets"; cp "$R/$DEMO_IMG" "$SRC/$DEMO_IMG"; }
+  mkdir -p "$SRC/assets"
+  for img in $(readme_images "$R/README.md"); do
+    if [ -f "$R/$img" ]; then cp "$R/$img" "$SRC/$img"; fi
+  done
   for pair in ".gitignore:gitignore.txt" ".gitattributes:gitattributes.txt" "setup.sh:setup.sh"; do
     s="${pair%%:*}"; d="${pair##*:}"; [ -f "$R/$s" ] && cp "$R/$s" "$KIT/$d"
   done
@@ -146,9 +154,11 @@ if [ "$WANT_PULL" = 1 ]; then
   for f in CLAUDE.md MANUAL.md README.md LICENSE.md CONTRIBUTING.md; do
     diff -q "$REPO/$f" "$SRC/$f" >/dev/null 2>&1 || { echo "  update  $f"; CHG=1; }
   done
-  if [ -f "$REPO/$DEMO_IMG" ]; then
-    diff -q "$REPO/$DEMO_IMG" "$SRC/$DEMO_IMG" >/dev/null 2>&1 || { echo "  update  $DEMO_IMG"; CHG=1; }
-  fi
+  for img in $(readme_images "$REPO/README.md"); do
+    if [ -f "$REPO/$img" ]; then
+      diff -q "$REPO/$img" "$SRC/$img" >/dev/null 2>&1 || { echo "  update  $img"; CHG=1; }
+    fi
+  done
   for s in $(list_skills "$REPO"); do
     diff -rq -x __pycache__ -x '*.pyc' -x .DS_Store "$REPO/.claude/skills/$s" "$SRC/.claude/skills/$s" >/dev/null 2>&1 || { echo "  update  .claude/skills/$s"; CHG=1; }
   done
