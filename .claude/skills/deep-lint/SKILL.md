@@ -32,8 +32,9 @@ integrity is `/lint`'s job; `deep-lint` is the periodic deep clean.
 Run the full `lint` pipeline: index consistency, link health (dead links, orphans — `maps/`/`index`/`log`
 exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the cheap, unambiguous issues
 (register unindexed pages, etc.) after the report.
-- **Customisation sanity (deep-lint only):** if `CUSTOMISATION.md` exists, verify its frontmatter
-  parses, `style:` and `role:` each name a section defined in the file, every `overrides` line names a
+- **Customisation sanity (deep-lint only):** if `CUSTOMISATION.md` exists, verify its `## Settings`
+  block exists and that its `style` and `role` values each name a section defined in the file (knobs live in the
+  body, never the frontmatter — the §13 import strips YAML), every `overrides` line names a
   conversational feature (style / formatting), and that its **loading path is intact**: the file carries its
   `CUSTOMISATION-LOADED-v1` marker line and `CLAUDE.md` still holds the matching `@CUSTOMISATION.md`
   import (§13). Then **report its always-on cost** — bytes ÷ 4 ≈ tokens re-sent on every request of every

@@ -21,13 +21,14 @@ if bash -n "$PAY"; then ok "valid bash syntax"; else no "syntax error"; fi
 echo "== 2) plain init seeds a valid Customisation =="
 fresh; ( cd "$ROOT" && bash setup.sh >/dev/null 2>&1 )
 [ -f "$ROOT/$CUST" ]                          && ok "init creates $CUST"                  || no "init did not create $CUST"
-grep -q '^type: user$'        "$ROOT/$CUST" 2>/dev/null && ok "frontmatter type: user"    || no "missing type: user"
-grep -q '^style: high-level'  "$ROOT/$CUST" 2>/dev/null && ok "default style: high-level"  || no "default style not high-level"
+grep -q '^- \*\*style\*\*: high-level' "$ROOT/$CUST" 2>/dev/null && ok "style knob seeded in ## Settings" || no "style knob missing from ## Settings"
+grep -q '^## Settings' "$ROOT/$CUST" 2>/dev/null && ok "## Settings block present" || no "## Settings block missing"
+sed -n '/^---$/,/^---$/p' "$ROOT/$CUST" | grep -qE '^(style|role|agent_name|language):' && no "knob still in frontmatter (import strips YAML)" || ok "no knob left in frontmatter"
 grep -q '^### high-level'     "$ROOT/$CUST" 2>/dev/null && ok "default style defined in-file" || no "default style has no ### section"
 grep -q '^### detailed'       "$ROOT/$CUST" 2>/dev/null && ok "detailed style present"     || no "detailed style missing"
 grep -q '^### summary'        "$ROOT/$CUST" 2>/dev/null && ok "summary style present"      || no "summary style missing"
 grep -q '\[\[About Me\]\]'    "$ROOT/$CUST" 2>/dev/null && ok "Related links [[About Me]] (no orphan)" || no "missing ## Related backlink"
-grep -q '^role: generalist'   "$ROOT/$CUST" 2>/dev/null && ok "role knob seeded (generalist default)"  || no "role knob missing"
+grep -q '^- \*\*role\*\*: generalist' "$ROOT/$CUST" 2>/dev/null && ok "role knob seeded in ## Settings" || no "role knob missing from ## Settings"
 grep -q '^## Roles'           "$ROOT/$CUST" 2>/dev/null && ok "Roles section present"                  || no "Roles section missing"
 for r in generalist researcher engineer tutor examiner; do
   grep -q "^### $r" "$ROOT/$CUST" 2>/dev/null && ok "role seeded: $r" || no "role missing: $r"
