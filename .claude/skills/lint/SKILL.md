@@ -14,15 +14,14 @@ user-invocable: true
 # lint — knowledge-graph health check
 
 ## Goal
-Bring software static-analysis discipline to the wiki. Find the rot that accumulates as a
-knowledge base grows: **dead links, orphans, unindexed pages, unresolved conflicts.**
+Find the rot that accumulates as a knowledge base grows: **dead links, orphans, unindexed pages,
+unresolved conflicts.**
 
 ## When to run (and when not)
-`ingest` and `query` already leave the graph integrity-clean (ingest self-checks at its Step 7), so
-**don't lint routinely after a normal ingest — there's nothing to fix.** Run lint when integrity may
-have *drifted* from outside that path (manual edits/renames/deletes in Obsidian, external or
-OneDrive/git sync changes, many ingests over time), or periodically for *discovery* a per-source
-ingest can't do: emerging gap pages, cross-corpus contradictions, and stale claims.
+**Don't lint routinely after a normal ingest** — ingest/query leave the graph integrity-clean by
+construction (CLAUDE.md §6). Run lint for *drift* (manual edits/renames/deletes in Obsidian, external or
+OneDrive/git sync changes) and periodic *discovery* (emerging gap pages, cross-corpus contradictions,
+stale claims).
 
 **Scope boundary:** confidence coverage, staleness scoring, and online-source freshness are **not**
 lint's job — they live in the heavier, ~monthly **`deep-lint`**. Routine `/lint` stays cheap and never
@@ -45,7 +44,7 @@ and root-doc targets resolve; `wiki/log.md` is exempt as a source (append-only h
 embeds `![[name.png|pdf|…]]` are checked against `assets/`** — a missing target is a **dead embed**,
 reported separately (they are checked, not skipped). The script prints its scan totals as its own
 positive control (§11): zero findings with zero links scanned is a broken probe, not a clean vault.
-- Page with **no inbound links** from any other page → **orphan** — but **exempt** `index`, `log`, and `maps/` pages (Maps of Content are navigational entry points, not orphans).
+- Orphans are agent-checked (not part of the script): a page with **no inbound links** from any other page → **orphan** — but **exempt** `index`, `log`, and `maps/` pages (Maps of Content are navigational entry points, not orphans).
 
 ### 2b — Pending freshness flags (count only — reconciling them is deep-lint's job)
 `grep -rl "^flagged:" wiki --include='*.md' | wc -l` — with the engine control
@@ -65,8 +64,8 @@ supersede. Suggest sources or web searches to fill gaps.
 ## Graph colour restore (on-demand — NOT part of a routine lint)
 The graph's per-type colours live in `.obsidian/graph.json` → `colorGroups`. That file is **volatile**:
 Obsidian rewrites it from memory whenever a graph setting changes (or a sync clobbers it), and can wipe
-the palette so the graph turns all-grey. Unlike dead links or orphans, a wiped palette is **immediately
-visible**, so there is no need to scan for it on every lint — handle it **only on a real signal**.
+the palette so the graph turns all-grey. A wiped palette is **immediately visible**, so handle it
+**only on a real signal** — never scan for it on a routine lint.
 
 **Trigger — do this only when:**
 1. the user reports a grey/colourless graph or asks to check/fix/restore graph colours, **or**
@@ -119,4 +118,6 @@ never on a routine lint.
 - **Graph colour restore is on-demand only** (see its section) — never scanned or read on a routine lint.
 - After approved fixes, append to `wiki/log.md`:
   `## [YYYY-MM-DD] lint | fixed N issues (M dead links, K unindexed)`.
+- **Refresh on write:** if approved fixes touched wiki pages and qmd is active, run the `qmd-search`
+  refresh hook (`qmd update && qmd embed`); a no-op when qmd is dormant.
 - Report in **British/UK English**.

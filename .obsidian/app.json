@@ -3,7 +3,6 @@
   "userIgnoreFilters": [
     "examples/",
     "raw/",
-    "okf-export/",
     "output/",
     "CLAUDE.md",
     "MANUAL.md",

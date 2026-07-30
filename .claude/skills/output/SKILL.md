@@ -5,8 +5,8 @@ description: >
   outline, …) into the output/ directory — grounded in the wiki and strictly following the user's
   instruction. Use when the user runs /output, or says "write/draft/produce/generate me a <X> about
   <Y>", "make a <report/brief/deck/email/table> from my notes/wiki", or "turn [[topic]] into <format>
-  in output/". Distinct from `query` (answers inline or files a cited synthesis INTO the wiki) and
-  `export-okf` (exports the whole vault). The deliverable goes to output/, cites the wiki pages it
+  in output/". Distinct from `query` (answers inline or files a cited synthesis INTO the wiki).
+  The deliverable goes to output/, cites the wiki pages it
   draws on, clearly labels any general-knowledge content, and NEVER fabricates facts, figures, quotes
   or citations.
 user-invocable: true
@@ -17,9 +17,7 @@ user-invocable: true
 ## Goal
 Turn a user instruction + the compiled wiki into a **deliverable file in `output/`** that (a) **follows
 the instruction exactly** (format, scope, length, audience, style), (b) is **grounded** in the wiki and
-**cited**, and (c) **never hallucinates**. This operationalises the vault's own calibration ethos
-(`RLCR`, `behaviorally-calibrated-rl-hallucination`, `Calibration`): be accurate, be calibrated,
-and **abstain when unsure** rather than confabulate.
+**cited**, and (c) **never hallucinates** — abstain when unsure rather than confabulate.
 
 ## Triggers
 - `/output <instruction>`
@@ -41,8 +39,7 @@ grounding note. An explicit instruction always overrides; if the section is abse
 sensible defaults yourself (and state them). Conversational output *styles* never apply to
 deliverables (CLAUDE.md §1) — this gap-fill covers content-format defaults only. **Single source of
 truth:** deliverable defaults live *only* in that Customisation section — re-read it on every run and
-never copy its values into this skill, any config, or the deliverable itself (beyond applying them),
-so an edit there takes effect immediately everywhere.
+never copy its values into this skill, any config, or the deliverable itself (beyond applying them).
 
 ### Step 2 — Ground in the wiki (read first, like `query`)
 Read `wiki/index.md`, then deep-read the relevant pages (follow `## Related` one hop). Collect the
@@ -78,20 +75,6 @@ Save to **`output/`** (the deliverables layer — *not* the knowledge graph). Fi
 kebab-case slug + correct extension. Do **not** modify `wiki/` or `raw/`. (If the user wants the result
 compounded back into the knowledge base, that's a `query` synthesis, not an `output`.)
 
-### Step 5b — Register check (prose a reader outside the vault will see)
-Run the counter on what you wrote, before reporting:
-
-```bash
-bash .claude/skills/output/register-check.sh output/<slug>.md
-```
-
-It prints em-dashes, amplifying colons and semicolons per 1,000 words of prose against this vault's
-paper corpus, and exits non-zero on a reading outside the band. HIGH means a mark is carrying work a
-human writer would have done with sentence structure; LOW on em-dashes means the mark has been driven
-to zero, which reads just as synthetic. Fix by rewriting those sentences, never by trading one mark
-for another, then re-run. Skip only for artefacts nobody outside the vault reads (internal trackers,
-tables, note dumps) and say so in the Step 6 report.
-
 ### Step 6 — Report + grounding note
 State the path written, then a 2–3-line **grounding note**: which wiki pages it draws on, what (if
 anything) is labelled general-knowledge, and any gaps flagged or questions still open.
@@ -106,8 +89,3 @@ anything) is labelled general-knowledge, and any gaps flagged or questions still
 - **British/UK English** and all other CLAUDE.md rules apply.
 - **Not logged by default** — a deliverable is not a brain-update (CLAUDE.md §5). Log only if the user
   asks, or if the run also files a wiki page.
-
-## Relationship to the other skills
-- **`query`** → answers a question (inline, or a cited **synthesis filed into the wiki** to compound knowledge).
-- **`output`** → produces a **standalone deliverable into `output/`** for use outside the wiki.
-- **`export-okf`** → exports the **whole vault** as a portable OKF bundle.

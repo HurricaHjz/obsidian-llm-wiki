@@ -4,10 +4,10 @@ Thanks for your interest! This repo is the **framework** for a self-maintaining 
 (Obsidian + an AI coding agent). Contributions that improve the *framework* are welcome.
 
 ## What lives here (and what doesn't)
-- **In scope (tracked):** `CLAUDE.md`, `Manual.md`, `.claude/skills/**`, `.obsidian/` config, the folder
+- **In scope (tracked):** `CLAUDE.md`, `MANUAL.md`, `.claude/skills/**`, `.obsidian/` config, the folder
   skeleton (`.gitkeep`), and the demo in `examples/`.
-- **Never committed:** anyone's actual knowledge — `wiki/`, `raw/`, `index.md`, `log.md`, `output/`,
-  `okf-export/` are git-ignored. Please don't add personal notes or content to the repo.
+- **Never committed:** anyone's actual knowledge — `wiki/`, `raw/`, `index.md`, `log.md`, `output/`
+  are git-ignored. Please don't add personal notes or content to the repo.
 
 ## How to contribute
 - **Issues / ideas:** open an issue describing the workflow problem or the improvement.
@@ -15,7 +15,7 @@ Thanks for your interest! This repo is the **framework** for a self-maintaining 
 - **Publishing your changes:** if you work in a vault full of your own notes, the `export-template` skill
   packages **just** the framework (none of your notes) and syncs it with GitHub: `--push` to publish your
   changes, `--pull` to update from upstream. It previews and asks before writing anything. For a clean
-  fork you can use plain `git` instead. Details in the [Manual](Manual.md)'s Advanced section.
+  fork you can use plain `git` instead. Details in the [Manual](MANUAL.md)'s Advanced section.
 - **Skills** are a `SKILL.md` (the contract) plus optional helper scripts *with tests* — see
   `.claude/skills/gather/` (`gather_links.py` + `test_gather_links.py`). If you touch a helper, run its
   `test_*.py` and keep it green.

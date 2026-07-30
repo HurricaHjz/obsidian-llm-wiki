@@ -43,8 +43,7 @@ Do not ask which mode to use unless the choice is genuinely risky.
 - Skip irrelevant/off-topic source material instead of compiling noise. Don't re-read pages you just wrote.
 
 ## Modes: depth & style (auto standard/concise; research is opt-in)
-Modes set how deep/academic the output is (orthogonal to Pacing). **All modes are equally rigorous
-and token-efficient — `research` only permits more depth where the material justifies it; never padding.**
+Modes set how deep/academic the output is (orthogonal to Pacing).
 
 - **standard (DEFAULT)** — articles, blogs, posts, docs. Run Steps 2–4 as written.
 - **concise** — auto-pick for short/low-density sources (brief tweet, link dump, thin page): 1–3-sentence
@@ -130,12 +129,10 @@ f="<filename>"; u="<source: URL, or empty>"
 > in a different file** (same paper, different PDF/version; an OpenReview page) won't match — spot it
 > while reading, then apply the same decision (update vs `duplicates`).
 
-- **Cost**: one shell call, near-empty output → a few hundred tokens at most (<~1–3% of an ingest).
 - **Opt-out**: `--no-dedup` (or "skip dedup") skips this pre-flight for bulk all-new loads. On by default (cheap).
 
 ### Step 0 — Normalize to Markdown (MarkItDown) — non-`.md` sources ONLY
-**If the source is already `.md`, SKIP this entire step — do NOT invoke MarkItDown.** Conversion is
-only for binary / non-Markdown inputs; running it on a `.md` file wastes tokens and adds nothing.
+**If the source is already `.md`, SKIP this entire step — do NOT invoke MarkItDown.**
 
 Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.html`, `.csv`, `.epub`,
 … or a YouTube/web URL):
@@ -154,8 +151,6 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
        `python3 -c "from markitdown import MarkItDown; open('raw/<stem>.md','w').write(MarkItDown().convert('<url>').text_content)"`
      - **Fallback — a web page none of the above can capture** (JS-heavy / anti-bot / empty or garbled result) → `curl -sL "https://r.jina.ai/<url>"` (Jina Reader renders server-side → clean Markdown). **Last resort only**; it routes the URL through a third party, so skip it for sensitive or login-walled pages.
      - **Opt-in `--verbatim` (byte-exact original).** When the user wants the *unaltered* source (research-grade provenance / exact quoting), `curl -sL "<url>" > raw/<stem>.md` (or `gh`) and keep the bytes **unmodified** — skip the step-3 defang/clean (raw/ is graph-excluded anyway). For an HTML page, `curl` it then `python3 -m markitdown` to convert deterministically (full content, no summary). Heavier on tokens → opt-in, not the default.
-   - *(If a `markitdown-mcp` server is ever configured, the `markitdown` skill's `convert_to_markdown(uri)`
-     tool becomes an equivalent alternative.)*
 3. **Save** the Markdown into `raw/` as `<original-stem>.md` (use `<original-stem>.converted.md` if
    that name is taken). **This is the only time you may add a file to `raw/`.** Prepend provenance:
    ```yaml
@@ -174,8 +169,14 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
 4. **Keep the original untouched.** The original and the converted `.md` are now a **pair**. For a
    URL source there is no local original — the converted `.md` is the only file; keep the URL in
    `converted_from`.
-5. **Fallback if conversion is empty/garbled** (e.g. scanned, image-only PDF): read the original
-   pages as images, or ask the user to OCR first. Never fabricate content.
+5. **Agent conversion — opt-in `--agent-convert`, and the offered fallback.** On `--agent-convert` (or
+   "transcribe it yourself"), skip the engine: read the original directly (PDF pages / images via the
+   Read tool) and transcribe it to `raw/<stem>.md` yourself — a faithful transcription, never a summary;
+   mark illegible spots `unverified`; set provenance `converted_by: agent`. Reserve it for sources where
+   layout or precision defeats MarkItDown — it costs real tokens, so it is never the default. **Fallback:**
+   when a conversion returns empty/garbled text (e.g. a scanned, image-only PDF), OFFER this route with a
+   page/token estimate and proceed only on explicit confirmation; otherwise ask the user to OCR
+   externally. Never fabricate content.
 
 > From here on, "the source" means the **converted `.md`** (for converted sources) or the original
 > `.md` (for native-Markdown sources).
@@ -185,8 +186,9 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
 - If it references images worth keeping, download them into `assets/` and read them separately
   (LLMs can't read inline-image Markdown in one pass).
 - If the clip is mainly a **pointer to a richer primary source** (a docs page, repo, or article URL),
-  **follow that link** and fetch the real source with the right tool (`defuddle`/WebFetch for a page,
-  WebFetch for a `.md` URL, MarkItDown for a YouTube/binary URL) — compile from the source, not the stub.
+  **follow that link** and fetch the real source with the Step 0 capture chain (`defuddle` for a page,
+  `curl` for a raw `.md`/text URL, MarkItDown for a YouTube/binary URL — never WebFetch) — compile
+  from the source, not the stub.
 
 ### Step 2 — Extract & (if needed) translate
 Pull out: **core thesis** (1–2 sentences), **entities** (people/companies), **tools** (software/apps/plugins/skills/services),
@@ -249,7 +251,8 @@ gets a `## Related` section.
   intact; restores it if a fresh clone had `colorGroups` wiped by Obsidian). If it prints `APPLIED…`, tell
   the user to reload Obsidian with the graph view closed. This runs **only** here (registries missing),
   never on a normal ingest. Then proceed.
-- **`wiki/index.md`** → add each new page under Sources / Entities / Concepts with a one-line desc.
+- **`wiki/index.md`** → add each new page under its type heading (Sources / Entities / Tools / Models /
+  Benchmarks / Concepts / Syntheses / …) with a one-line desc.
 - **`wiki/log.md`** → append **via shell** (`cat >> wiki/log.md …`; never Read the whole file — it grows unbounded):
   ```markdown
   ## [YYYY-MM-DD] ingest | <short title>
@@ -292,10 +295,6 @@ Before reporting done, verify your own output so a later `/lint` would find noth
 
 Fix any gap immediately. Scope this to the pages you touched — don't re-scan the whole wiki (efficiency).
 
-> **A correct ingest is self-linting** — no follow-up `/lint` is needed. `/lint` exists for *drift*
-> (manual edits, external/sync changes) and periodic *discovery* (gap pages, cross-corpus
-> contradictions, stale claims) — things a single per-source ingest cannot guarantee.
-
 ### Step 8 — Report the new pages + confidence (for the user to check)
 After the self-check, surface a short summary so the human can review the agent's trust assignments: list
 each page **created or updated** with its assigned `confidence` (add a word of basis for any non-obvious
@@ -309,7 +308,6 @@ Ingested 1 source → 6 pages (review confidence):
 - [[Some Entity]] — low  (single promo source)
 Flag any you'd like re-graded.
 ```
-This keeps the human in the loop on confidence — the one field the agent assigns by judgement.
 
 ## Hard constraints
 - **Pace via the Pacing section** (default = `auto`). Keep the human in the loop for conflicts and

@@ -16,7 +16,7 @@
 | `IDEAS.md` | **Your scratchpad** — a copy-ready **TODO prompt queue** plus ideas and a monitor lane of standing cautions, jotted freely. The agent ignores it unless you explicitly point it there: *"maintain IDEAS.md"* tidies and reconciles it, *"run TODO 2"* executes a queued prompt and updates its status. |
 | `attic/` | **Your cold storage** — retired files kept "just in case", each listed in `attic/MANIFEST`. The agent never opens it unless you explicitly ask; archived notes show **grey** in the graph. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
-| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `deep-lint`, `export-okf` (plus `export-template` for contributors). |
+| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `deep-lint` (plus `export-template` for contributors). |
 
 Every note in `wiki/` also carries a **confidence level**, so you can see at a glance how far to trust it:
 
@@ -67,6 +67,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 **Deeper `/ingest` options**
 - `/ingest --verbatim <url>` — save the **exact** page rather than a cleaned version, for precise quoting.
 - `/ingest --no-dedup` — skip the automatic "already ingested?" check when loading material you know is new.
+- `/ingest --agent-convert <file>` — the agent itself transcribes a PDF or image to Markdown instead of the automatic converter, for precision on complex layouts (heavier on tokens, so opt-in). If an automatic conversion comes back empty or garbled, the agent offers this route with a cost estimate before anything else.
 - Capture is automatic by type: web pages via `defuddle`, Markdown and text via `curl`, audio/video/binary via MarkItDown, with **Jina Reader** as a fallback for awkward or JavaScript-heavy pages.
 
 **`/gather` — deep-capture a whole topic**
@@ -87,9 +88,6 @@ Type these to the agent, in the Claudian panel or Claude Code.
 > Worth adding when your wiki is **already large enough that `index.md` is hard to scan**, *or* when you **expect it to grow very large** — in that case adopt it **early**: the index then builds up incrementally (one quick re-embed per note as you go) instead of as one slow bulk embed later, and you get search-by-meaning the whole way up.
 - Once enabled, the agent **searches by meaning** (not just exact keywords) — but **only when it's actually needed**: when the normal `index.md` + keyword search comes up short for a question. It is **not** run on every search, and you don't have to ask for it — the agent decides when it genuinely helps (you *can* force it with `/qmd-search <query>`). Whenever qmd is off or absent, search silently falls back to the normal path.
 - It stays **dormant and cost-free** until you install and enable it, runs **only as quick one-shot calls** (nothing is ever left running in the background), and the agent keeps its index fresh automatically as you add or change notes. Ask the agent to set it up when you're ready.
-
-**`/export-okf` — export a portable copy**
-- Turns the wiki into a portable **OKF** bundle in `okf-export/`, to share with other tools. Read-only on your vault.
 
 **Back up your vault — Obsidian Git (optional)**
 - The **Obsidian Git** plugin saves your *entire* vault — notes and all — to a **private** Git remote, giving you version history and sync across machines. Set it up once (a private repo + the plugin's backup command).

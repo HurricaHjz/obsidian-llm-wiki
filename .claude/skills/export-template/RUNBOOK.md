@@ -3,13 +3,6 @@
 Turns the private vault into the public framework repo **github.com/HurricaHjz/obsidian-llm-wiki-assistant**, with
 your knowledge kept local. Read top to bottom.
 
-## Decisions (locked)
-- ✅ Seed demo lives in `examples/seed/` (tracked); `wiki/`+`raw/` ship empty.
-- ✅ `.gitignore` tracks the framework, ignores all knowledge (`wiki/`/`raw/`/`index.md`/`log.md`/`output/`/`okf-export/`).
-- ✅ AI/LLM-research specialisation kept; **MIT**, © 2026 Mingjun (Jerry) Zhang.
-- ✅ Beginner-first `MANUAL.md`; `README.md` = onboarding that points to the Manual.
-- ✅ `setup.sh` bootstraps a fresh clone; `CONTRIBUTING.md` + `.gitattributes` included.
-
 ## A. Build the template
 ```bash
 bash .claude/skills/export-template/export_template.sh template-export
@@ -17,7 +10,7 @@ bash .claude/skills/export-template/export_template.sh template-export
 Produces `template-export/` per `SPEC.md`.
 
 ## B. Verify (script prints most of this — confirm)
-- Skills = all of `ingest gather query lint deep-lint qmd-search export-okf output export-template` (export-template ships too, for contributors).
+- Skills = all of `ingest gather query lint deep-lint qmd-search output export-template` (export-template ships too, for contributors).
 - `template-export/wiki` & `/raw` hold only `.gitkeep` (no seed, no `index.md`/`log.md`); the demo is in
   `template-export/examples/seed/`.
 - No personal leak: grep the build for **your own** name / handle / affiliation
@@ -46,9 +39,9 @@ Produces `template-export/` per `SPEC.md`.
    ```
 3. On GitHub → **Settings → tick "Template repository"**; add a description + topics
    (`obsidian`, `claude`, `second-brain`, `llm`, `knowledge-management`, `ai-research`).
-4. The README screenshot already ships at `assets/framework_demo.png` (tracked, referenced by `README.md`).
-   To refresh it later, replace `assets/framework_demo.png` at your vault root (where the README lives),
-   then `--push` again.
+4. The README images already ship (`assets/framework_demo.png`, `assets/hero.png` — tracked, referenced
+   by `README.md`). To refresh one later, replace it under `assets/` at your vault root (where the README
+   lives), then `--push` again.
 
 > No `gh` CLI needed. Prefer a GUI? **GitHub Desktop**: File → Add local repo → `template-export` →
 > Publish repository (untick "keep private").

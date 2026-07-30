@@ -15,8 +15,7 @@ user-invocable: true
 
 ## What this is
 A thin, **dormant** adapter to `qmd` (design: `wiki/developments/qmd-opt-in-design.md`; setup runbook:
-`wiki/developments/equipping-the-wiki-with-qmd.md`). It carries **zero runtime cost** until a user installs
-qmd and builds an index. It does **not** replace `index.md` (the curated, read-first catalogue); it is the
+`wiki/developments/equipping-the-wiki-with-qmd.md`). It does **not** replace `index.md` (the curated, read-first catalogue); it is the
 *semantic fallback* `query`/`output` reach for when the catalogue under-covers a question, and the
 **refresh hook** that keeps qmd's embeddings current as the wiki changes. qmd retrieves; the wiki governs
 (compile, cross-link, confidence, conflicts).
@@ -36,11 +35,10 @@ qmd search is **not** a default step. Invoke it only when:
 2. **the agent judges the cheap path insufficient** — `index.md` + `grep` under-cover the question (it needs
    semantic recall, or the corpus is too large to scan reliably).
 
-Otherwise answer from `index.md` → `grep` and **do not call qmd**. Rationale: a qmd *query* reads passages
-**into the agent's context** (real tokens) and adds latency, so it must earn that cost; the index-first path
-is free and usually enough. This gates only the **read** side. The **write** side — refreshing embeddings on
-every page change — always runs when qmd is active, because it is **local compute that costs ≈ no agent
-tokens** (the agent only shells out and waits).
+Otherwise answer from `index.md` → `grep` and **do not call qmd** — a qmd *query* reads passages into the
+agent's context (real tokens), so it must earn that cost. This gates only the **read** side; the **write**
+side — refreshing embeddings on every page change — always runs when qmd is active (local compute,
+≈ no agent tokens).
 
 ## Search (only when active)
 - **CLI shell-out by default** (no daemon):
@@ -67,9 +65,7 @@ files, in this order:**
    **first** so the re-embedded file already carries its final frontmatter. A **no-op** when qmd is dormant.
 
 Invoked by every write path — `ingest` (end of an ingest), `query` (after filing a synthesis), `deep-lint`,
-and any other operation that writes a page. Run it **once per write operation**, not per file. Because the
-agent always knows exactly when and what it changed, it just calls this explicitly — there is no scheduled
-or always-on refresh anywhere.
+and any other operation that writes a page. Run it **once per write operation**, not per file.
 
 ## Graceful degradation (mandatory)
 Any qmd call that errors, times out, or returns nonzero → **fall back silently** to `index.md` → `grep`

@@ -93,7 +93,7 @@ p = sys.argv[1]
 try: d = json.load(open(p))
 except Exception: sys.exit(0)
 flt = d.get("userIgnoreFilters", [])
-for x in ["examples/", "template-export/", "okf-export/"]:
+for x in ["examples/", "template-export/"]:
     if x not in flt: flt.append(x)
 d["userIgnoreFilters"] = flt
 json.dump(d, open(p, "w"), indent=2)

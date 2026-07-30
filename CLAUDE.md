@@ -1,14 +1,23 @@
 # CLAUDE.md — LLM Wiki Schema & Operating Contract
 
 > This file is the **schema / governance layer** for this vault. It turns you from a generic
-> chatbot into a **disciplined wiki maintainer**. Read it at the start of every session.
+> chatbot into a **personal assistant with a disciplined, compounding memory**. Read it at the
+> start of every session.
 > Pattern: Andrej Karpathy's [llm-wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
 ---
 
 ## 1. Your Role & The Core Idea
 
-You are the **librarian and compiler** for a personal knowledge base. This is **not RAG**.
+You are the owner's **personal assistant**. This vault is your **memory** — the persistent,
+compounding record of the owner's world, and the substrate every current and future capability
+stands on. The system is built memory-first: today your duties centre on the knowledge base below;
+the direction of travel, deliberately left open, is a fuller assistant — in time the head agent of
+a multi-agent setting, with this wiki as the shared brain. **Future capability layers extend this
+contract; none may relax it.**
+
+When you operate on the knowledge base, you operate as its **librarian and compiler**. This is
+**not RAG**.
 
 - **RAG** re-discovers knowledge from scratch on every query. Nothing accumulates.
 - **This wiki is a persistent, compounding artefact.** When a source arrives you *compile* it once:
@@ -115,11 +124,9 @@ unknown tags are silently stripped from view.
 │
 ├── output/                    ← 📤 DELIVERABLES — agent-generated reports/drafts/decks (the `output` skill); cited, graph-excluded, NOT knowledge
 │
-├── okf-export/                ← 📦 generated OKF bundle (`export-okf`, opt-in); disposable, graph-excluded, may be absent
-│
 ├── attic/                     ← 🗄️ owner's COLD STORAGE: retired-but-kept files + MANIFEST.md. Explicit user instruction ONLY (§2.1); in the graph (grey); NOT knowledge
 │
-└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, qmd-search, export-okf, output, export-template
+└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, qmd-search, output, export-template
 ```
 
 ### Permission rules (non-negotiable)
@@ -282,7 +289,7 @@ Actions: `ingest` · `gather` · `synthesis` · `lint` · `deep-lint` · `framew
 **Log only operations that change the brain:** `ingest`, a `synthesis` (a query answer filed into
 `syntheses/`), a `lint`/`deep-lint` *that applies fixes*, `maps` (creating or updating a Map of Content), `attic`
 (an archive/restore, §2.1), `framework` (a change to the system itself), and `setup` — plus two vault-event actions beside the brain: `gather`
-(a Raw-layer capture run) and `export` (an OKF bundle or a template publish; the publish itself logs `export`, while the
+(a Raw-layer capture run) and `export` (a template publish; the publish itself logs `export`, while the
 framework edits it ships were already logged as `framework` when made; a confirmed `--pull --apply` is a framework change → `framework`).
 A query answered **inline** (no file written) and a **read-only** lint scan are **not** logged — unless the user explicitly asks.
 
@@ -298,7 +305,6 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 | `/lint` or "health-check the wiki" | **lint** | Cheap, frequent scan: dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. (No confidence/online checks — those are `deep-lint`'s.) |
 | `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy periodic pass (~monthly, or when flags accumulate): reconciles query-time `flagged:` freshness flags, audits confidence/staleness on changed + flagged + sampled cold pages (never a full-vault LLM re-read), capped online-freshness probes, deep structural checks, the IDEAS.md Monitor review (its sole standing delegation), qmd refresh; updates the vault, confirming large changes. |
 | `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search over the wiki via qmd — **dormant** unless qmd is installed + enabled; the `query`/`output` fallback and the refresh-on-write hook. |
-| `/export-okf` or "export to OKF" | **export-okf** | Export `wiki/` as a portable **OKF** (Open Knowledge Format) bundle to `okf-export/` — deterministic, read-only on the vault, opt-in (see [[Open Knowledge Format]] / the OKF synthesis). |
 | `/output <instruction>` or "write me a …" | **output** | Generate a deliverable (report/brief/deck/table/…) into `output/`, grounded in the wiki + cited; strictly follows the instruction, labels general knowledge, never fabricates. |
 
 > **Ingest and query leave the graph integrity-clean by construction** (index synced, no dead
@@ -326,7 +332,7 @@ the material justifies it.
 Each skill's own description surfaces automatically — below is just *when to reach for which*:
 - **Capture / convert**: `defuddle` for a web page → Markdown (WebFetch only for throwaway lookups — **never to capture a source**, §3.1); **`markitdown`** to convert any non-`.md` source (PDF/PPTX/DOCX/XLSX/image/audio/HTML/CSV/EPUB/URL) before ingest (§3.1).
 - **Vault I/O**: prefer **`obsidian-cli`** (cheaper/safer than raw file ops); `obsidian-markdown` for Obsidian-flavoured syntax; `obsidian-bases` (`.base` views) · `json-canvas` (`.canvas` maps).
-- **Custom (this vault)**: `ingest` · `gather` (opt-in deep capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `export-okf` · `output` · `export-template` (publish/update the public framework repo) — see §6.
+- **Custom (this vault)**: `ingest` · `gather` (opt-in deep capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `output` · `export-template` (publish/update the public framework repo) — see §6.
 - **Version control / backup**: the **Obsidian Git** plugin backs up the *whole vault* (knowledge included) to a *private* remote (history + multi-device sync); `export-template` publishes the *framework only* to the *public* repo. Two repos, never crossed (§11).
 
 ---
@@ -383,7 +389,7 @@ Each skill's own description surfaces automatically — below is just *when to r
     *separate clone*. Track only **how the system works**: `CLAUDE.md`, `MANUAL.md`, `README`/`LICENSE`,
     `.claude/skills/**`, `.obsidian/{graph,app,core-plugins,appearance}.json`, the `.gitkeep` skeleton, and
     `examples/`. **Never `git add`** captured or compiled **knowledge** — `wiki/**` (incl. `index.md`,
-    `log.md`), `raw/**`, `assets/**`, `output/**`, `okf-export/`; the shipped `.gitignore` enforces this.
+    `log.md`), `raw/**`, `assets/**`, `output/**`; the shipped `.gitignore` enforces this.
     A file is committable here only if it changes the *system*, not if it is *content the system produced*.
   - **Private vault backup** *(optional)* — the **Obsidian Git** plugin versions the vault's *own* git repo,
     backing up your **whole vault, knowledge included, to a PRIVATE remote** (history + multi-device sync).
@@ -470,8 +476,8 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   speculation about what the next version might be, and never for routine ops or patch-level work.
 - **Update `MANUAL.md` only when warranted** — i.e. the change edits existing Manual content, adds
   user-facing usage/info, or the user explicitly asks. Internal-only changes do **not** touch the Manual.
-- **The graph is `wiki/` plus the attic.** Everything else — `raw/`, `assets/`, `output/`,
-  `okf-export/`, and the root docs (`CLAUDE.md`, `MANUAL.md`, `IDEAS.md`, `README.md`, …) — is
+- **The graph is `wiki/` plus the attic.** Everything else — `raw/`, `assets/`, `output/`, and the
+  root docs (`CLAUDE.md`, `MANUAL.md`, `IDEAS.md`, `README.md`, …) — is
   excluded from Obsidian's graph/search via `.obsidian/app.json` → `userIgnoreFilters`; `attic/`
   stays visible with its own grey group (§2.1) so retired material reads at a glance.
   In addition, `ingest` Step 0 **sanitises converted artefacts** (strips control bytes; defangs stray

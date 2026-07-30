@@ -39,8 +39,8 @@ Read `wiki/index.md` and locate candidate pages across **Sources / Entities / Co
 Open the most relevant pages in full with the read tool (or `obsidian-cli`). Follow `## Related`
 links one hop out when it helps. **When candidates are many, first check their `confidence` cheaply
 (one `grep "^confidence:" <candidate files>`, frontmatter only) and deep-read `authoritative`/`high`
-first; pull in `medium` as needed; consult `low`/`very-low` only to fill gaps.** This is net
-token-saving — it skips full reads of low-value pages. **If the catalogue under-covers the question and
+first; pull in `medium` as needed; consult `low`/`very-low` only to fill gaps.**
+**If the catalogue under-covers the question and
 qmd is active** (the `qmd-search` skill — dormant unless qmd is installed + enabled), use it as the
 semantic fallback (`qmd query "<q>" --json --files`), confidence-rank the hits, then deep-read; otherwise
 `grep` as usual.
@@ -53,7 +53,7 @@ semantic fallback (`qmd query "<q>" --json --files`), confidence-rank the hits, 
   `updated`); state `authoritative`/`high` plainly, but attribute and hedge `low`/`very-low`
   ("a promotional listing claims…", "an unverified transcript suggests…"); never let a `very-low` or
   `unverified` claim harden into an asserted fact. Optionally flag a weak citation inline, e.g.
-  `[[X]] *(low-confidence)*` (only for `low`/`very-low`). The signal is already in frontmatter, so this is free.
+  `[[X]] *(low-confidence)*` (only for `low`/`very-low`).
 
 ### Step 3b — Freshness duty (Tier-2 flags; costs no extra reads)
 Judge only the pages you have ALREADY read for this answer — never read extra pages for this duty:

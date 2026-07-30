@@ -76,16 +76,16 @@ bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-
 bash .claude/skills/export-template/export_template.sh template-export
 ```
 
-## Where the publish files live (and why nothing goes stale)
-- **At the vault root** — `README.md`, `LICENSE.md`, `CONTRIBUTING.md` + the `assets/` screenshot: canonical and
-  visible, so you read/verify and edit them in place, exactly as a clone shows them (all README links resolve).
-- **`payload/` (in this skill)** — the build machinery that shouldn't sit loose in a vault: setup.sh and
-  `.gitignore`/`.gitattributes` (kept as inert `*.txt`), plus the seed demo.
+## Where the publish files live
+- **At the vault root** — `README.md`, `LICENSE.md`, `CONTRIBUTING.md` + the `assets/` screenshot
+  (canonical and visible; edit them in place).
+- **`payload/` (in this skill)** — the build machinery: setup.sh and `.gitignore`/`.gitattributes`
+  (kept as inert `*.txt`), plus the seed demo.
 
 Both round-trip: **push reads** from these locations; **`pull --apply` writes** back to them (the root docs →
-the vault root, the machinery → `payload/`). So an edit that lands on the repo (a merged PR, a typo fix)
-flows home on the next pull and is preserved on the next push — never clobbered. The only thing deleted after
-a publish is the build dir (`template-export/`); the root files and `payload/` always stay.
+the vault root, the machinery → `payload/`), so a repo-side edit flows home on the next pull and is never
+clobbered by a push. The only thing deleted after a publish is the build dir (`template-export/`); the root
+files and `payload/` always stay.
 
 ## Publish (push) — guided; the agent automates, you confirm
 When the user wants to publish/update the public repo (`/export-template publish`, "push the latest
@@ -134,7 +134,8 @@ When the user wants to bring a newer framework from the repo into their vault ("
    listed framework files that would change (README/CLAUDE/Manual/skills, plus the `payload/` refresh).
    **Nothing is written yet.**
 2. **Confirm — mandatory gate:** ask the user to approve overwriting those vault framework files. Remind
-   them their knowledge (`wiki/ raw/ output/` (and your own `assets/` media)) and `.obsidian` config are left untouched.
+   them their knowledge (`wiki/ raw/ output/` (and your own `assets/` media)) and `.obsidian` config (bar
+   `graph.json` when they choose `--with-graph`) are left untouched.
    **Never `--apply` without an explicit "yes".**
 3. **Apply:** `bash .claude/skills/export-template/export_template.sh --pull <repo> --apply`
    (add `--with-graph` only if they also want the colour scheme).
@@ -158,19 +159,15 @@ When the user wants to bring a newer framework from the repo into their vault ("
   `wiki/` + `raw/` ship empty (`.gitkeep`); the demo lives in `examples/seed/` only.
 - **Git policy baked in**: the shipped `.gitignore` tracks the framework and ignores all content, so a
   user's notes never get committed (matches CLAUDE.md §11).
-- `export-template` **ships too** — it is the contributor publish tool (see the Manual's Advanced caution).
-  It syncs like any other skill; non-contributors can simply ignore it.
+- `export-template` **ships too** and syncs like any other skill — the contributor publish tool;
+  non-contributors can ignore it.
 
 ## After building — verify + publish
 See RUNBOOK.md §B (verify: content git-ignored; framework tracked; no personal leak) and
 §C (publish: GitHub New repo → `git init/add/commit/remote/push` → mark as a Template repository).
 
-## Relationship to other skills & to Obsidian Git
-- **export-okf** exports the *knowledge* (wiki) as an OKF bundle. **export-template** exports the
-  *framework* (the empty engine) for others to reuse.
-- **Obsidian Git** (plugin) is **complementary, not a replacement.** It backs up the *whole vault — your
-  knowledge included — to a PRIVATE remote* (history + multi-device sync) by versioning the vault's own git
-  repo. `export-template` instead builds and publishes a *separate, knowledge-free clone* to the *public*
-  framework repo. Different repos, different jobs: never point the vault's backup remote at the public
-  framework repo, and never publish knowledge. The publish/pull git steps stay shell-driven here because
-  the framework repo is a separate clone, **not** the open vault that Obsidian Git operates on.
+## Relationship to Obsidian Git
+The Obsidian Git plugin versions the vault's *own* repo (private backup, knowledge included); this skill
+publishes a *separate, knowledge-free clone* to the *public* framework repo — two repos, never crossed
+(CLAUDE.md §11). The publish/pull git steps stay shell-driven here because the framework repo is a
+separate clone, **not** the open vault that Obsidian Git operates on.

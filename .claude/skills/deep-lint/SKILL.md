@@ -15,8 +15,7 @@ user-invocable: true
 # deep-lint — monthly deep maintenance
 
 ## Goal
-Keep the whole knowledge base **correct, calibrated, and current** in one bundled pass. Everything
-expensive that routine `/lint` deliberately skips lives here, so `/lint` can stay cheap and frequent.
+Keep the whole knowledge base **correct, calibrated, and current** in one bundled pass.
 
 ## When to run
 **About once a month**, or before a milestone (a big query session, an export, enabling qmd). It reads
@@ -66,8 +65,7 @@ Collect the query-time freshness flags accumulated since the last run — one ch
 the probe against a known positive before trusting an empty result**, per CLAUDE.md §11). For each flagged page: re-read it, resolve the
 suspicion (update the page · re-grade its `confidence` · re-ingest its source via §3.1 tools ·
 or clear a false alarm), **remove the `flagged:` line**, and list the resolution in the report.
-The ledger is the run's first LLM-read priority — these pages were suspected by an agent that had
-actually read them.
+The ledger is the run's first LLM-read priority.
 
 ### 3 — Confidence coverage & correctness (per CLAUDE.md §4.6)
 - **Coverage:** every non-`map` page must carry a valid `confidence`. Cheap check:

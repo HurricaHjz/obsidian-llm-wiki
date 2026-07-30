@@ -30,7 +30,7 @@ build_fake_vault(){
   printf '# Contributing (test)\n' > "$V/CONTRIBUTING.md"
   for f in app core-plugins appearance; do printf '{\n  "x": 1\n}\n' > "$V/.obsidian/$f.json"; done
   printf '{ "colorGroups": [ {"query":"path:wiki/models/","color":1} ], "showOrphans": true, "scale": 0.5, "close": true, "search": "q", "collapse-filter": true }\n' > "$V/.obsidian/graph.json"
-  for s in ingest query lint export-okf output gather newskill; do  # 'newskill' tests dynamic discovery
+  for s in ingest query lint oldskill output gather newskill; do  # 'newskill' tests dynamic discovery
     mkdir -p "$V/.claude/skills/$s"; printf '# %s skill\n' "$s" > "$V/.claude/skills/$s/SKILL.md"
   done
   cp -R "$REALSKILL" "$V/.claude/skills/export-template"
@@ -145,10 +145,10 @@ chk "apply: raw untouched"                  '[ -f "$V/raw/source1.md" ]'
 
 echo "== Phase 6: bytecode / OS junk ignored in the pull diff =="
 setup_published
-mkdir -p "$V/.claude/skills/export-okf/__pycache__"; printf 'x' > "$V/.claude/skills/export-okf/__pycache__/m.pyc"
+mkdir -p "$V/.claude/skills/oldskill/__pycache__"; printf 'x' > "$V/.claude/skills/oldskill/__pycache__/m.pyc"
 printf 'junk' > "$V/.claude/skills/gather/.DS_Store"
 out="$(bash "$SCRIPT" --pull "$CLONE" 2>&1)"
-chk "junk: export-okf NOT flagged"          '! echo "$out" | grep -q "export-okf"'
+chk "junk: oldskill NOT flagged"            '! echo "$out" | grep -q "oldskill"'
 chk "junk: gather NOT flagged"              '! echo "$out" | grep -q "gather"'
 chk "junk: overall already matches"         'echo "$out" | grep -q "already matches"'
 

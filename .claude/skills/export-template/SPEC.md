@@ -13,26 +13,26 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
 ├── .gitattributes
 ├── setup.sh                   # first-run bootstrap (registries; --with-example; --reset)
 ├── CLAUDE.md                  # the agent's contract
-├── .claude/skills/            # ingest · gather · query · output · lint · deep-lint · qmd-search · export-okf · export-template (ships with its payload/)
+├── .claude/skills/            # ingest · gather · query · output · lint · deep-lint · qmd-search · export-template (ships with its payload/)
 ├── .obsidian/                 # graph.json, app.json, core-plugins.json, appearance.json ONLY
-├── assets/                   # framework_demo.png (.gitkeep)  ← README screenshot (force-tracked); other media gitignored
+├── assets/                   # README images (framework_demo.png, hero.png) force-tracked; other media gitignored
 ├── output/                    # empty (.gitkeep)
 ├── attic/                     # empty (.gitkeep) — owner cold storage; contents gitignored
 ├── raw/                       # 11 empty lanes (.gitkeep) — NO seed (content is gitignored)
 │   └── 1-articles/ … 9-originals/ · archives/ · duplicates/
-├── wiki/                      # 9 empty type folders (.gitkeep) — NO seed, NO index/log (gitignored)
-│   └── concepts/ entities/ tools/ models/ benchmarks/ sources/ syntheses/ maps/ user/
+├── wiki/                      # 10 empty type folders (.gitkeep) — NO seed, NO index/log (gitignored)
+│   └── concepts/ entities/ tools/ models/ benchmarks/ sources/ syntheses/ developments/ maps/ user/
 └── examples/seed/             # the demo (TRACKED, separate from wiki/raw so .gitignore keeps it)
     ├── raw/2-papers/example-gpt4-and-mmlu.md
     └── wiki/{index.md, log.md, sources/, concepts/, entities/, models/, benchmarks/, maps/}
 ```
 
-## Git tracking policy (the heart of this version)
+## Git tracking policy
 - **Tracked (framework):** README, Manual, LICENSE.md, CONTRIBUTING, .gitignore, .gitattributes, setup.sh,
   CLAUDE.md, `.claude/skills/**`, `.obsidian/{graph,app,core-plugins,appearance}.json`, the `.gitkeep`
   skeleton, and `examples/`.
-- **Ignored (local knowledge):** `wiki/**` (incl. `index.md`, `log.md`), `raw/**`, `assets/**` (bar the README screenshot),
-  `output/**`, `attic/**`, `okf-export/`, `template-export/`, plus `.obsidian/workspace*.json`/`plugins/`/`cache`.
+- **Ignored (local knowledge):** `wiki/**` (incl. `index.md`, `log.md`), `raw/**`, `assets/**` (bar the README images),
+  `output/**`, `attic/**`, `template-export/`, plus `.obsidian/workspace*.json`/`plugins/`/`cache`.
 - Net: a fresh clone ships **empty** (skeleton + demo only); when anyone uses it their content stays
   local, and `git push` shares only framework changes.
 
@@ -40,7 +40,7 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
 - **KEEP →** CLAUDE.md, MANUAL.md, `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` (from the vault root),
   `.claude/skills/**` — **every** skill, **incl. `export-template`** (the contributor publish tool, with its `payload/`),
   `.obsidian/{graph,app,core-plugins,appearance}.json`.
-- **STRIP →** all `wiki/**`, `raw/**`, `assets/**` (bar the README screenshot), `output/**`, `attic/**`, `okf-export/`,
+- **STRIP →** all `wiki/**`, `raw/**`, `assets/**` (bar the README images), `output/**`, `attic/**`,
   `wiki/user/**`, `CUSTOMISATION.md`, personal data, `.obsidian/workspace.json`/`plugins/`/`community-plugins.json`, `.claudian/`, `.git/`.
 
 ## Conventions the scaffold must preserve
@@ -65,7 +65,7 @@ The builder runs **one direction per invocation** (see SKILL.md):
   with `--with-graph`.
 
 ## Graph exclusion
-`.obsidian/app.json` `userIgnoreFilters` includes `examples/`, `template-export/`, `okf-export/`,
+`.obsidian/app.json` `userIgnoreFilters` includes `examples/`, `template-export/`,
 `output/`, `raw/`, `CLAUDE.md`, `MANUAL.md` so the demo + non-wiki files don't clutter the graph.
 
 ## The seed demo (purpose)
