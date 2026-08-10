@@ -74,6 +74,12 @@ if the deliverable is external-facing or the user asks.
 Save to **`output/`** (the deliverables layer — *not* the knowledge graph). Filename = a clean
 kebab-case slug + correct extension. Do **not** modify `wiki/` or `raw/`. (If the user wants the result
 compounded back into the knowledge base, that's a `query` synthesis, not an `output`.)
+**Root vs subfolders (CLAUDE.md §2):** the root holds one-off / temporary deliverables; standing
+artefacts live in the matching subfolder (`user-notes/` owner quick-references · `fundings/` funding
+applications) and are **actively maintained** — a run that updates one edits it in place. Create a
+new subfolder only on the user's instruction. When filing a standing artefact derived from wiki
+pages, add a "maintained derivative" line to each source page's `## Related` so future edits
+propagate.
 
 ### Step 6 — Report + grounding note
 State the path written, then a 2–3-line **grounding note**: which wiki pages it draws on, what (if

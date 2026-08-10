@@ -62,7 +62,11 @@ This is a framework rather than a plugin: it runs on an AI coding agent that rea
 
 6. **Back up your vault (optional).** Install the [Obsidian Git](https://github.com/Vinzent03/obsidian-git) plugin to sync your *whole* vault — notes included — to a **private** repository, for version history and multi-device backup. Keep that private remote separate from this public framework repo; your notes are never part of it.
 
-Running an LLM agent consumes API credits.
+## Hardware and running costs
+
+Any computer that runs Obsidian is enough. The intelligence lives in the cloud agent, so there is no GPU to buy and no local model to host, and the vault itself is plain text that stays at megabytes even after months of use. The one optional extra, qmd semantic search, runs a small embedding model comfortably on a laptop CPU.
+
+The real cost is API credits or plan quota, and the framework is built to keep it small. The agent reads selectively, catalogue first and then only the notes a task needs, instead of loading the whole vault. It also benefits from Claude's prompt caching. The stable opening of every session (the agent's rules and your preferences) is cached after the first turn, and re-reading cached text costs about a tenth of the normal input price, so long working sessions stay warm and cheap. Two habits help: batch new sources into one ingest run, and keep one task per conversation.
 
 ## Usage
 

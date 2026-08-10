@@ -45,7 +45,8 @@ print(len(re.findall(r'<[a-zA-Z][\w-]*>',b)))" 2>/dev/null || echo 99)
 grep -q 'CUSTOMISATION-LOADED-v1'     "$ROOT/$CUST" 2>/dev/null && ok "load marker seeded"                  || no "load marker missing"
 grep -q '^@CUSTOMISATION\.md' "$VAULT/CLAUDE.md" && ok "shipped CLAUDE.md imports the preference layer" || no "CLAUDE.md import line missing"
 L=$(wc -l < "$ROOT/$CUST" | tr -d ' '); B=$(wc -c < "$ROOT/$CUST" | tr -d ' ')
-[ "$B" -le 10240 ]                            && ok "seeded template stays lean (${B} B / $L lines)"      || no "seeded template too heavy (${B} B / $L lines)"
+# leanness guard only — the old ~10 KB bound encoded the hook-transport limit retired in v0.7.6; raised 2026-07-31 for the shipped Human-expert register default
+[ "$B" -le 12288 ]                            && ok "seeded template stays lean (${B} B / $L lines)"      || no "seeded template too heavy (${B} B / $L lines)"
 
 echo "== 3) re-run is idempotent (never overwrites user edits) =="
 fresh; ( cd "$ROOT" && bash setup.sh >/dev/null 2>&1 ); printf '\nMY EDIT\n' >> "$ROOT/$CUST"

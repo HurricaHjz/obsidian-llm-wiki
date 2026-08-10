@@ -13,7 +13,7 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
 ├── .gitattributes
 ├── setup.sh                   # first-run bootstrap (registries; --with-example; --reset)
 ├── CLAUDE.md                  # the agent's contract
-├── .claude/skills/            # ingest · gather · query · output · lint · deep-lint · qmd-search · export-template (ships with its payload/)
+├── .claude/skills/            # ingest · gather · query · output · lint · deep-lint · attic · qmd-search · export-template (ships with its payload/)
 ├── .obsidian/                 # graph.json, app.json, core-plugins.json, appearance.json ONLY
 ├── assets/                   # README images (framework_demo.png, hero.png) force-tracked; other media gitignored
 ├── output/                    # empty (.gitkeep)

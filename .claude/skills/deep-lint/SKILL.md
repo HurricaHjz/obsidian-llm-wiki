@@ -85,8 +85,10 @@ Flag `authoritative`/`high` pages whose `updated` is old or that a newer page su
 add a `## Conflicts / Open Questions` note, and route high-stakes stale claims to the human. Use `updated`
 + supersession; do not silently rewrite.
 - **Archive candidates (suggest-only):** flag pages that look retired — superseded and not cited by any
-  live work, or long-stale at low confidence — as *suggestions* for the attic (CLAUDE.md §2.1). NEVER
-  move anything yourself: archiving happens only on the user's explicit instruction.
+  live work, or long-stale at low confidence — as *suggestions* for the attic (CLAUDE.md §2.1), each
+  presented as a ready-to-issue invocation (`/attic archive <page> — <reason>`; the `attic` skill runs
+  the full runbook). NEVER move anything yourself: archiving happens only on the user's explicit
+  instruction.
 
 ### 5 — Freshness against online sources (cheap signals first)
 For pages whose `sources:`/`source_url` point at an external URL, check whether the upstream **materially
@@ -132,7 +134,7 @@ refreshed/skipped, qmd status.
 ### Confidence
 - N pages missing a level (assigned) · N re-tiered (e.g. [[X]] high→authoritative) · cold tail: sampled k of N (list any re-tiered)
 ### Staleness
-- N stale high/authoritative claims flagged: [[..]] · N attic candidates suggested (user decides)
+- N stale high/authoritative claims flagged: [[..]] · N attic candidates suggested as ready `/attic` invocations (user decides)
 ### Freshness
 - N sources changed upstream & re-ingested: [[..]] · N checked, unchanged · N skipped (immutable/capped — stated)
 ### Monitor (IDEAS delegation)

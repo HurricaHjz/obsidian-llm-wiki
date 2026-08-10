@@ -123,10 +123,16 @@ unknown tags are silently stripped from view.
 │   └── user/                  ← 👤 the vault owner: profile, research, works; consulted for personal context
 │
 ├── output/                    ← 📤 DELIVERABLES — agent-generated reports/drafts/decks (the `output` skill); cited, graph-excluded, NOT knowledge
+│   │   (root = TEMP: one-off / unprocessed deliverables, mirroring raw/'s inbox pattern)
+│   ├── user-notes/            ← standing owner quick-references (roles, cache/tokens, …)
+│   └── fundings/              ← funding applications + the live campaign dossier
+│   │   Subfolder files are STANDING, ACTIVELY MAINTAINED artefacts, not fire-and-forget output:
+│   │   their wiki source pages carry a "maintained derivative" line in `## Related` — when you
+│   │   edit such a page, update the derivative in the same pass. New subfolders on user instruction only.
 │
 ├── attic/                     ← 🗄️ owner's COLD STORAGE: retired-but-kept files + MANIFEST.md. Explicit user instruction ONLY (§2.1); in the graph (grey); NOT knowledge
 │
-└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, qmd-search, output, export-template
+└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, attic, qmd-search, output, export-template
 ```
 
 ### Permission rules (non-negotiable)
@@ -136,6 +142,7 @@ unknown tags are silently stripped from view.
 | **`raw/`** | **Read** any file. **Move** a processed file into its category subfolder. **Add** a Markdown file *only* as the MarkItDown conversion of a non-Markdown source (keep the original — see §3.1). | **Edit, rewrite, or delete** the *content* of any existing raw file, or add any other file by hand. |
 | **`assets/`** | **Read** media; **add** new downloaded media; reference via `![[...]]`. | Delete the user's media without asking. |
 | **`wiki/`** | **Full read/write.** Create, update, merge, refactor, link. | Leave orphan pages or break the index/log contracts. |
+| **`output/`** | **Full read/write.** File deliverables (root = one-off/temp); **maintain** standing subfolder artefacts — when a source page flagged "maintained derivative" changes, update the derivative in the same pass. | Treat a deliverable as knowledge (index it, or cite it as a wiki source), or delete a standing artefact without asking. |
 | **`attic/`** | **Nothing in normal ops.** On an **explicit user instruction only**: read it, archive into it, or restore from it (§2.1). | Read, cite, or index its contents in any normal operation, or delete anything in it. |
 | **`.claude/`** | Read & update skills when asked. | Change settings without explaining. |
 
@@ -160,6 +167,10 @@ and is written ONLY during the two operations below.
 - **Graph:** the attic IS in the graph, coloured grey — the manifest's `[[links]]` give every archived
   note an edge (orphan nodes are hidden in the graph settings), so retired material stays visible
   without ever re-entering the knowledge base.
+- **Procedure:** archive/restore operations run through the **`attic` skill** (census → harvest of
+  future-useful facts into surviving pages → owner-approved preview → move + manifest → plain-text
+  link sweep → control-verified check). The skill is procedure only — the permissions above remain
+  the contract — and routine `/lint` guards the boundary (no live page may link into the attic).
 
 ---
 
@@ -304,6 +315,7 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 | `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → synthesise a cited answer; offer to file high-value answers into `syntheses/`. |
 | `/lint` or "health-check the wiki" | **lint** | Cheap, frequent scan: dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. (No confidence/online checks — those are `deep-lint`'s.) |
 | `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy periodic pass (~monthly, or when flags accumulate): reconciles query-time `flagged:` freshness flags, audits confidence/staleness on changed + flagged + sampled cold pages (never a full-vault LLM re-read), capped online-freshness probes, deep structural checks, the IDEAS.md Monitor review (its sole standing delegation), qmd refresh; updates the vault, confirming large changes. |
+| `/attic archive <files>` · `/attic restore <item>` or "archive X to the attic" | **attic** | *(explicit-only, never automatic)* The §2.1 runbook: inbound-reference census, harvest into surviving pages, owner-approved preview, move + manifest, plain-text link sweep, control-verified check. Deep-lint only suggests candidates; this skill moves them on the owner's word. |
 | `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search over the wiki via qmd — **dormant** unless qmd is installed + enabled; the `query`/`output` fallback and the refresh-on-write hook. |
 | `/output <instruction>` or "write me a …" | **output** | Generate a deliverable (report/brief/deck/table/…) into `output/`, grounded in the wiki + cited; strictly follows the instruction, labels general knowledge, never fabricates. |
 
@@ -332,7 +344,7 @@ the material justifies it.
 Each skill's own description surfaces automatically — below is just *when to reach for which*:
 - **Capture / convert**: `defuddle` for a web page → Markdown (WebFetch only for throwaway lookups — **never to capture a source**, §3.1); **`markitdown`** to convert any non-`.md` source (PDF/PPTX/DOCX/XLSX/image/audio/HTML/CSV/EPUB/URL) before ingest (§3.1).
 - **Vault I/O**: prefer **`obsidian-cli`** (cheaper/safer than raw file ops); `obsidian-markdown` for Obsidian-flavoured syntax; `obsidian-bases` (`.base` views) · `json-canvas` (`.canvas` maps).
-- **Custom (this vault)**: `ingest` · `gather` (opt-in deep capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `output` · `export-template` (publish/update the public framework repo) — see §6.
+- **Custom (this vault)**: `ingest` · `gather` (opt-in deep capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `attic` (explicit-only cold-storage archive/restore) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `output` · `export-template` (publish/update the public framework repo) — see §6.
 - **Version control / backup**: the **Obsidian Git** plugin backs up the *whole vault* (knowledge included) to a *private* remote (history + multi-device sync); `export-template` publishes the *framework only* to the *public* repo. Two repos, never crossed (§11).
 
 ---

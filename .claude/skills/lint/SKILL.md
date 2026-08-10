@@ -4,8 +4,8 @@ description: >
   Health-check the Obsidian wiki — the "static analysis" pass for a knowledge base. Use when the
   user runs /lint, /health, /scan, or asks to "check the wiki", "find broken links", "clean up the
   wiki", or "find gaps/orphans/conflicts". Read-only scan that reports dead links, dead media
-  embeds, orphan pages, pages missing from index.md, unresolved knowledge conflicts, and the count
-  of pending `flagged:` freshness flags (≥5 suggests a deep-lint). Also restores the graph colour
+  embeds, orphan pages, pages missing from index.md, unresolved knowledge conflicts, live links
+  leaking into the attic, and the count of pending `flagged:` freshness flags (≥5 suggests a deep-lint). Also restores the graph colour
   palette on request (on-demand only, never on a routine scan). Proposes fixes but only applies them
   after the user confirms.
 user-invocable: true
@@ -52,6 +52,17 @@ positive control (§11): zero findings with zero links scanned is a broken probe
 Report the count; at **≥5 flagged pages**, suggest running `/deep-lint` (the adaptive-cadence
 signal from `wiki/developments/deeplint-scalable-maintenance-design.md`). Never read or resolve
 the flagged pages here — lint counts, deep-lint reconciles.
+
+### 2c — Attic-leak check (filenames only — attic contents are never opened)
+Live pages must never link into the attic (CLAUDE.md §2.1): Obsidian resolves wikilinks vault-wide,
+so a surviving `[[link]]` to an archived note silently reconnects retired material and can pull a
+query in. List basenames only — `find attic -type f -name '*.md'`, skip `MANIFEST.md` (the check
+reads names, never contents; attic absent or empty → report "attic-leak: n/a"). For each basename
+`b`, grep live wiki (excluding `wiki/log.md`, append-only history) for the exact link forms
+`"[[b]]" "[[b|" "[[b#" "/b]]" "/b|"` — plain-text mentions ("b (archived)") are the §2.1 sweep
+style and are NOT findings. Any hit is a **leak finding**: report it; the fix (owner-confirmed) is
+re-sweeping to plain text per §2.1, or `/attic restore` if the page should live again. Control
+(§11): the same pipeline against one known live page name must return >0 before reporting "no leaks".
 
 ### 3 — Conflict audit
 Find pages containing `## Conflicts / Open Questions`. List each unresolved conflict (the two sides)
