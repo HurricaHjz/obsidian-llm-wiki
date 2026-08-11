@@ -217,6 +217,22 @@ chk "control: vault has wiki pages to link against" '[ -d "$VROOT/wiki" ]'
 chk "no skill links to a non-shipping wiki page"    '[ -z "$DEADLINKS" ]'
 [ -n "$DEADLINKS" ] && echo "      dead: $DEADLINKS"
 
+echo "== 15) every shipped skill is documented in README + MANUAL =="
+SKDIR15="$(cd "$REALSKILL/.." && pwd)"            # the real .claude/skills/
+VROOT15="$(cd "$REALSKILL/../../.." && pwd)"      # the real vault root
+SKILLS15=$(cd "$SKDIR15" && ls -d */ | tr -d '/')
+chk "control: shipped skills enumerated"        "[ -n \"$SKILLS15\" ]"
+MISS_R15=""; MISS_M15=""
+for s in $SKILLS15; do
+  grep -qF "| \`$s\` |" "$VROOT15/README.md" || MISS_R15="$MISS_R15 $s"
+  grep -qF "\`$s\`"     "$VROOT15/MANUAL.md" || MISS_M15="$MISS_M15 $s"
+done
+chk "every shipped skill has a README skill-table row" "[ -z \"$MISS_R15\" ]"
+chk "every shipped skill is named in MANUAL"           "[ -z \"$MISS_M15\" ]"
+[ -n "$MISS_R15" ] && echo "      README missing:$MISS_R15"
+[ -n "$MISS_M15" ] && echo "      MANUAL missing:$MISS_M15"
+chk "control: probe fails on a fabricated skill" "! grep -qF '| \`no-such-skill\` |' \"$VROOT15/README.md\""
+
 echo
 echo "================  RESULT: $PASS passed, $FAIL failed  ================"
 rm -rf "$ROOT"

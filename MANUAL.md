@@ -10,15 +10,16 @@
 |--------|---------------|
 | `raw/` | **Your sources** (the inbox). Drop files, clips, or links here in almost any format: PDF, Word, PowerPoint, Excel, Markdown and plain text, CSV, HTML and web pages (articles, blogs, GitHub repos and gists), images (PNG/JPG), audio (MP3/WAV), EPUB, and YouTube links. Once processed, the agent files each into a numbered subfolder (`1-articles` … `9-originals`, `archives`, `duplicates`). |
 | `wiki/` | **The compiled brain:** `concepts/ entities/ tools/ models/ benchmarks/ sources/ syntheses/ developments/ maps/ user/`, plus `index.md` (the catalogue) and `log.md` (history). |
-| `wiki/user/` | **About you** — profile, research, works, plus `CUSTOMISATION.md` at the vault root (how your agent behaves: name, output styles, task roles, and any preferences you add). The agent reads this for context; you curate it. |
+| `wiki/user/` | **About you** — profile, research, works. The agent reads this for personal context; you curate it. |
 | `output/` | **Deliverables** the agent writes on request — reports, briefs, decks. Kept separate from the brain. The root holds one-off pieces; subfolders (`user-notes/`, `fundings/`) hold standing documents the agent keeps up to date as the underlying knowledge changes. |
 | `assets/` | Images and reference attachments — diagrams, screenshots, and *special* PDFs you want to link to. Source PDFs to **ingest** go in `raw/`, not here. |
 | `IDEAS.md` | **Your scratchpad** — a copy-ready **TODO prompt queue** plus ideas and a monitor lane of standing cautions, jotted freely. The agent ignores it unless you explicitly point it there: *"maintain IDEAS.md"* tidies and reconciles it, *"run TODO 2"* executes a queued prompt and updates its status. |
-| `attic/` | **Your cold storage** — retired files kept "just in case", each listed in `attic/MANIFEST`. The agent never opens it unless you explicitly ask; archived notes show **grey** in the graph. |
+| `attic/` | **Your cold storage** — retired files kept "just in case", each listed in `attic/MANIFEST.md`. The agent never opens it unless you explicitly ask; archived notes show **grey** in the graph. |
+| `CUSTOMISATION.md` | **How your agent behaves** (vault root, seeded on first setup) — its name, output styles, task roles, and any standing preferences you add. Edit it, or just ask the agent. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
-| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `deep-lint` (plus `export-template` for contributors). |
+| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `deep-lint`, `attic`, and `qmd-search` (plus `export-template` for contributors). |
 
-Every note in `wiki/` also carries a **confidence level**, so you can see at a glance how far to trust it:
+Every note in `wiki/` (except the navigational maps) also carries a **confidence level**, so you can see at a glance how far to trust it:
 
 | Level           | What it means                                                                              |
 | --------------- | ------------------------------------------------------------------------------------------ |

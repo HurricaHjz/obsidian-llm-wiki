@@ -83,13 +83,14 @@ Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with 
 | `query` | Answer a question from the wiki, with citations. |
 | `output` | Produce a grounded, cited document in `output/`. |
 | `lint` | Check the wiki for broken links, orphans, and gaps (cheap, frequent). |
-| `deep-lint` | Heavier ~monthly pass: audit confidence levels, flag stale claims, and refresh sources against their live online versions. |
+| `deep-lint` | Heavier ~monthly pass, token-bounded: audit confidence levels, flag stale claims, and re-check a capped set of sources against their live online versions. |
+| `attic` | Retire notes into cold storage, or restore them — only ever on your explicit instruction. |
 | `qmd-search` | *(optional)* Local semantic search over the wiki via qmd; dormant unless installed. |
 | `export-template` | Publish framework changes to GitHub. Contributors only; see the [Manual](MANUAL.md) and [CONTRIBUTING](CONTRIBUTING.md). |
 
 ## What the repository tracks
 
-The repository holds the framework only — skills, rules, configuration, and a small demo. Your own notes stay on your machine: `wiki/`, `raw/`, `index.md`, `log.md`, and `output/` are excluded by `.gitignore`, so pushing only ever publishes changes to the framework.
+The repository holds the framework only — skills, rules, configuration, and a small demo. Your own notes stay on your machine: `wiki/`, `raw/`, `output/`, `attic/`, `index.md`, `log.md`, and your personal `CUSTOMISATION.md` are excluded by `.gitignore`, so pushing only ever publishes changes to the framework.
 
 To back those notes up, use the optional Obsidian Git step above — a separate, private repository.
 
