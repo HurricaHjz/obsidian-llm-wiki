@@ -71,9 +71,10 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - `/ingest --agent-convert <file>` — the agent itself transcribes a PDF or image to Markdown instead of the automatic converter, for precision on complex layouts (heavier on tokens, so opt-in). If an automatic conversion comes back empty or garbled, the agent offers this route with a cost estimate before anything else.
 - Capture is automatic by type: web pages via `defuddle`, Markdown and text via `curl`, audio/video/binary via MarkItDown, with **Jina Reader** as a fallback for awkward or JavaScript-heavy pages.
 
-**`/gather` — deep-capture a whole topic**
-- `/gather <url> [url2 …]` — fetches a starting page **and the relevant sources it cites** (papers, repos, docs) into `raw/`, then hands off to `/ingest`. It **previews what it will fetch and asks first**, and caps how much it pulls.
-- Conservative by default (one hop, up to ten pages). Override with `--max-depth 2`, `--max-pages 50`, `--same-domain`, `--include a,b` / `--exclude c,d`, `--yes` (skip the preview), or `--ingest` (compile afterwards) — or simply describe it: *"gather these, two hops, only the papers."*
+**`/gather` — capture from the web: links, or a whole topic**
+- `/gather <url> [url2 …]` — fetches the page(s) **and the relevant sources they cite** (papers, repos, docs) into `raw/`, then hands off to `/ingest`. It **previews what it will fetch and asks first**, and caps how much it pulls.
+- `/gather --search "<topic>"` — no links needed: the agent web-searches the topic, triages the hits, and shows you a **dated shortlist to approve** before anything is fetched. Add `--rounds 2` to let it search again for whatever the first haul left uncovered. This is the vault's own deep-research route — after `/ingest`, ask `/query` or `/output` for the cited report.
+- Conservative by default (search mode captures just the approved results; link mode follows one citation hop; up to ten pages). Override with `--expand 2` (citation hops), `--focus "X"` (only material relevant to X), `--max-pages 50`, `--same-domain`, `--include a,b` / `--exclude c,d`, `--yes` (skip the preview), or `--ingest` (compile afterwards) — or simply describe it: *"gather these, two hops, only the papers."*
 
 **`/lint` — health-check the wiki**
 - Finds broken links, orphans, unindexed pages, and conflicts. A normal `/ingest` self-cleans, so run this after hand-editing, after syncing between machines, or for a periodic review.

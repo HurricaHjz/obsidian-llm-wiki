@@ -4,7 +4,7 @@
 
 > *Tony Stark never had to reintroduce himself to Jarvis. With today's AI you do it every day: close the chat, and everything you explained is gone.*
 
-![Memory-analogy diagram: a computer's CPU, RAM and disk on top; below, an AI agent, its fading context-window cards, and a violet vault holding a knowledge graph, with one note card flying into the vault](assets/hero.png)
+![Two loops around an AI agent labelled cpu with its context tray labelled ram: on the left, the user sends a question and receives an answer; on the right, the agent files sources into a violet vault labelled disk that holds a knowledge graph, and draws a note back into its tray](assets/hero.png)
 
 The problem is memory, not intelligence. An agent does all its thinking in a context window that empties the moment a conversation ends. Think of the model as a CPU and the context window as its RAM, fast but volatile; with no disk underneath, everything you teach it is quietly thrown away. This project adds that disk, with a layered wiki as the bridge. You drop raw sources into your Obsidian vault, the agent compiles them into linked notes it looks after entirely on its own, and whenever a conversation needs something, the right notes flow back up into working memory. Everything stays plain Markdown, yours to open, read and correct. Feed it for a month and the assistant stops being a stranger; a year in, nothing else will know your work the way it does.
 
@@ -79,7 +79,7 @@ Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with 
 | Skill | Purpose |
 |-------|---------|
 | `ingest` | Compile sources from `raw/` into linked notes. |
-| `gather` | Capture a topic (a page and the sources it cites) into `raw/`. |
+| `gather` | Capture a topic into `raw/` — web-search it, or start from a page and the sources it cites. |
 | `query` | Answer a question from the wiki, with citations. |
 | `output` | Produce a grounded, cited document in `output/`. |
 | `lint` | Check the wiki for broken links, orphans, and gaps (cheap, frequent). |
