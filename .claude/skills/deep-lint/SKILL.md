@@ -33,8 +33,9 @@ exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the c
 (register unindexed pages, etc.) after the report.
 - **Customisation sanity (deep-lint only):** if `CUSTOMISATION.md` exists, verify its `## Settings`
   block exists and that its `style` and `role` values each name a section defined in the file (knobs live in the
-  body, never the frontmatter — the §13 import strips YAML), every `overrides` line names a
-  conversational feature (style / formatting), and that its **loading path is intact**: the file carries its
+  body, never the frontmatter — the §13 import strips YAML), that no role line still uses the retired
+  `- overrides <feature>:` syntax (mechanism retired 2026-08-17 — such a line is inert; flag it for the
+  owner to reword, never rewrite it), and that its **loading path is intact**: the file carries its
   `CUSTOMISATION-LOADED-v1` marker line and `CLAUDE.md` still holds the matching `@CUSTOMISATION.md`
   import (§13). Then **report its always-on cost** — bytes ÷ 4 ≈ tokens re-sent on every request of every
   session — rather than enforcing a size cap: the owner decides what the preference layer is worth, and only

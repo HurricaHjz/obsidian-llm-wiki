@@ -34,7 +34,9 @@ grep -q '^## Roles'           "$ROOT/$CUST" 2>/dev/null && ok "Roles section pre
 for r in generalist researcher engineer tutor examiner; do
   grep -q "^### $r" "$ROOT/$CUST" 2>/dev/null && ok "role seeded: $r" || no "role missing: $r"
 done
-grep -q '^- overrides style: detailed' "$ROOT/$CUST" 2>/dev/null && ok "examiner override line shipped (marked syntax)" || no "examiner override line missing"
+grep -Eq '^- overrides[ :]' "$ROOT/$CUST" && no "retired override syntax still seeded" || ok "no marked-override lines (mechanism retired 2026-08-17)"
+grep -q 'no role may change the active style' "$ROOT/$CUST" 2>/dev/null && ok "roles-never-change-style clause seeded" || no "clause missing"
+grep -q 'offer the full report' "$ROOT/$CUST" 2>/dev/null && ok "examiner compression-notice line seeded" || no "notice line missing"
 grep -q 'status line'         "$ROOT/$CUST" 2>/dev/null && ok "status-line rule shipped"               || no "status-line rule missing"
 grep -q "never the agent's internal reasoning" "$ROOT/$CUST" 2>/dev/null && ok "reasoning-invariance clause shipped" || no "reasoning-invariance clause missing"
 RAW=$(python3 -c "
