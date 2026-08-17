@@ -21,12 +21,13 @@ if bash -n "$PAY"; then ok "valid bash syntax"; else no "syntax error"; fi
 echo "== 2) plain init seeds a valid Customisation =="
 fresh; ( cd "$ROOT" && bash setup.sh >/dev/null 2>&1 )
 [ -f "$ROOT/$CUST" ]                          && ok "init creates $CUST"                  || no "init did not create $CUST"
-grep -q '^- \*\*style\*\*: high-level' "$ROOT/$CUST" 2>/dev/null && ok "style knob seeded in ## Settings" || no "style knob missing from ## Settings"
+grep -q '^- \*\*style\*\*: balanced' "$ROOT/$CUST" 2>/dev/null && ok "style knob seeded in ## Settings" || no "style knob missing from ## Settings"
 grep -q '^## Settings' "$ROOT/$CUST" 2>/dev/null && ok "## Settings block present" || no "## Settings block missing"
 sed -n '/^---$/,/^---$/p' "$ROOT/$CUST" | grep -qE '^(style|role|agent_name|language):' && no "knob still in frontmatter (import strips YAML)" || ok "no knob left in frontmatter"
-grep -q '^### high-level'     "$ROOT/$CUST" 2>/dev/null && ok "default style defined in-file" || no "default style has no ### section"
+grep -q '^### balanced'       "$ROOT/$CUST" 2>/dev/null && ok "default style defined in-file" || no "default style has no ### section"
 grep -q '^### detailed'       "$ROOT/$CUST" 2>/dev/null && ok "detailed style present"     || no "detailed style missing"
 grep -q '^### summary'        "$ROOT/$CUST" 2>/dev/null && ok "summary style present"      || no "summary style missing"
+grep -q '^### brief'          "$ROOT/$CUST" 2>/dev/null && ok "brief style present"        || no "brief style missing"
 grep -q '\[\[About Me\]\]'    "$ROOT/$CUST" 2>/dev/null && ok "Related links [[About Me]] (no orphan)" || no "missing ## Related backlink"
 grep -q '^- \*\*role\*\*: generalist' "$ROOT/$CUST" 2>/dev/null && ok "role knob seeded in ## Settings" || no "role knob missing from ## Settings"
 grep -q '^## Roles'           "$ROOT/$CUST" 2>/dev/null && ok "Roles section present"                  || no "Roles section missing"
@@ -45,8 +46,8 @@ print(len(re.findall(r'<[a-zA-Z][\w-]*>',b)))" 2>/dev/null || echo 99)
 grep -q 'CUSTOMISATION-LOADED-v1'     "$ROOT/$CUST" 2>/dev/null && ok "load marker seeded"                  || no "load marker missing"
 grep -q '^@CUSTOMISATION\.md' "$VAULT/CLAUDE.md" && ok "shipped CLAUDE.md imports the preference layer" || no "CLAUDE.md import line missing"
 L=$(wc -l < "$ROOT/$CUST" | tr -d ' '); B=$(wc -c < "$ROOT/$CUST" | tr -d ' ')
-# leanness guard only — the old ~10 KB bound encoded the hook-transport limit retired in v0.7.6; raised 2026-07-31 for the shipped Human-expert register default
-[ "$B" -le 12288 ]                            && ok "seeded template stays lean (${B} B / $L lines)"      || no "seeded template too heavy (${B} B / $L lines)"
+# leanness guard only — the old ~10 KB bound encoded the hook-transport limit retired in v0.7.6; raised 2026-07-31 for the shipped Human-expert register default; raised 2026-08-14 for the four-style delivery ladder
+[ "$B" -le 14336 ]                            && ok "seeded template stays lean (${B} B / $L lines)"      || no "seeded template too heavy (${B} B / $L lines)"
 
 echo "== 3) re-run is idempotent (never overwrites user edits) =="
 fresh; ( cd "$ROOT" && bash setup.sh >/dev/null 2>&1 ); printf '\nMY EDIT\n' >> "$ROOT/$CUST"

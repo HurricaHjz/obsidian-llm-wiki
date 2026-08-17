@@ -46,7 +46,7 @@ it and carries the load check that proves it arrived. Never act on a partial or 
   and change only what the user reads — never internal reasoning, planning, tool use, or processing
   depth. Wiki pages, frontmatter, confidence assignment and its reporting, `index`/`log` entries,
   ingest/lint reports, conflict surfacing and `output/` deliverables stay **style-invariant**. Style
-  (register) is orthogonal to the §6 processing modes (depth).
+  (delivery) is orthogonal to the §6 processing modes (depth).
 - **Roles** do shape how the agent works — task emphasis, approach and rigour, sometimes trading a
   little efficiency for quality — while never touching the governance floor or the style-invariant
   surfaces above.
@@ -332,7 +332,7 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 **Never answer purely in chat for substantial work — answer in files**, then link them. Queries should compound back into the wiki.
 
 ### Processing modes (depth; orthogonal to pacing — full detail in the `ingest`/`query` skills)
-**standard** (default; balanced) · **concise** (auto for short/low-density sources) · **research**
+**standard** (default) · **concise** (auto for short/low-density sources) · **research**
 (important papers — **opt-in or ask-first, never silent**; raises *accuracy & structure* + adds academic
 frontmatter, **not** verbosity). Every mode stays token-efficient; `research` permits depth only where
 the material justifies it.

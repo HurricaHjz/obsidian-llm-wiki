@@ -9,6 +9,7 @@ description: >
   "deep-capture these links", "grab this article AND the repos/papers it cites". Preview-and-approve
   gates by default; conservative caps + a hard 100-page ceiling; expert flags (--search/--seed,
   --expand, --focus, --rounds, --max-pages, --include/--exclude, --same-domain, --yes, --ingest).
+  Big budgets flow through a ranked policy gate (--shortlist, --queries tune the funnel).
   Opt-in; does nothing until invoked. It only CAPTURES into raw/ — /ingest compiles. Writes only new
   raw files, their asset images and its own log entry (never edits existing raw content).
 user-invocable: true
@@ -28,21 +29,28 @@ then compiles. Capture is document-granular — whole pages, verbatim; salience 
 - Explicit `--seed` / `--search "<brief>"` overrides inference. Neither URL nor topic — or `--seed`
   with no URL — → **ask**. Out-of-range flag values are clamped to their bounds and the clamp is
   reported at the gate.
-- Every run echoes its parsed **run-spec** (mode · seeds/brief · focus · expand · rounds · caps) at
-  the first gate, so a misroute dies at the preview, never at capture.
+- Every run echoes its parsed **run-spec** (mode · seeds/brief · focus · expand · rounds · caps;
+  search mode adds the brief's facet list and the `funnel_knobs.py` block) at the first gate, so a
+  misroute dies at the preview, never at capture. A mid-run constraint change (caps, date window,
+  focus, mode — at an open gate or between rounds) re-echoes the FULL updated run-spec, never just
+  the changed value.
 
 | | Non-expert (defaults) | Expert (override) |
 |---|---|---|
 | Scope | search: results only (expand 0) · seed: 1 citation hop · ≤10 pages | `--expand 2`, `--max-pages 50`, `--same-domain`, or natural language ("two hops, only papers") |
-| Confirmation | **always previews the plan + cost estimate and waits** | `--yes` skips previews for trusted runs |
+| Confirmation | **always previews the plan + cost estimate and waits** | `--yes` skips previews for trusted runs (the search Discover gate still waits) |
 | Link choice | built-in heuristics (consistent) | `--include a,b` / `--exclude c,d` / `--focus "<topic>"` |
 | Ceiling | hard cap **100 pages — nobody can override** | same (protects the token budget) |
 
 ## Flags
 `--search "<brief>"` · `--seed` · `--expand N` — citation hops beyond the fetched base (default:
-seed 1 · search 0; `--max-depth` accepted as a legacy alias) · `--focus "<topic>"` — semantic
+seed 1 · search 0; no fixed clamp — the page caps bound it; `--max-depth` accepted as a legacy
+alias) · `--focus "<topic>"` — semantic
 relevance filter (implied by the brief in search mode) · `--rounds N` — search-mode iterative
-deepening (default 1, max 3) · `--max-pages N` (default 10; hard ceiling 100) · `--same-domain` ·
+deepening (default 1, max 3) · `--max-pages N` (default 10; hard ceiling 100) · `--shortlist N` —
+full-detail rows at the Discover gate (search mode; default min(12, remaining budget); clamp ≤20) ·
+`--queries N` — search queries per round (search mode; default 2 per brief facet within 3–12;
+clamp ≤12) · `--same-domain` ·
 `--include a,b` / `--exclude c,d` (seed mode: URL substring patterns for the classifier · search
 mode: domain names for the search engine, with non-domain patterns applied as substring
 post-filters on the results) · `--yes` (skip Step-4 previews — the Discover gate always waits) ·
@@ -51,28 +59,60 @@ post-filters on the results) · `--yes` (skip Step-4 previews — the Discover g
 ## Pipeline
 ### 0 — Scope (both modes)
 Parse args + natural language into the run-spec; NL intent maps to flags (*"two hops, only papers"*
-→ `--expand 2 --include arxiv,doi,/paper`; *"only the parts about X"* → `--focus "X"`). Unstated →
-the safe defaults above.
+→ `--expand 2 --include arxiv,doi,/paper`; *"only the parts about X"* → `--focus "X"`; *"show me
+10"* → `--shortlist 10`). Unstated → the safe defaults above.
 
 ### 1 — Discover (search mode only)
-1. Derive 3–6 query angles from the brief (distinct phrasings/aspects; recency terms where
-   freshness matters). Run WebSearch per query, with `--include`/`--exclude` mapped to
-   allowed/blocked domains. Pool ≤30 candidates.
+1. State the brief's **facets** (its distinct sub-questions — the list is printed in the run-spec
+   echo), then fix the round's knobs deterministically:
+   ```bash
+   python3 .claude/skills/gather/funnel_knobs.py --max-pages <N> --facets <F> \
+           [--shortlist N] [--queries N] [--pages-captured N] [--date-window] [--json]
+   ```
+   (Queries = 2/facet within 3–12 · shortlist = min(12, remaining budget), `--shortlist` ≤20 ·
+   pool = min(60, max(3×shortlist, ⌈1.5×remaining⌉)) · spot-check policy. Every clamp is reported
+   and the block is echoed VERBATIM at the gate.) Derive that many query angles (distinct
+   phrasings/aspects; recency terms where freshness matters) and run WebSearch per query, with
+   `--include`/`--exclude` mapped to allowed/blocked domains. The pool holds the top candidates
+   by triage score, up to the pool value — a cap, not a quota: underfill is reported, with
+   `--queries`/`--rounds` suggested.
 2. Triage on result metadata — no capture fetches at this stage. Dedupe by URL; classify provenance
-   (official docs / paper / repo / engineering blog / news / aggregator); date-check (≤6 WebFetch
-   spot-checks per round on unclear finalists — throwaway reads, never capture; unknown → mark "date
-   unverified"); score relevance against the brief. Drop junk (listicles, undated marketing,
-   off-topic) — every drop listed with its reason.
+   (official docs / paper / repo / engineering blog / news / aggregator); score relevance against
+   the brief; date-check ≤6 WebFetch spot-checks per round on unclear finalists (throwaway reads,
+   never capture; unknown → mark "date unverified"). A **hard date window** — an explicit
+   user-stated cutoff ("2026-04 onwards", "last three months"; a mere freshness preference like
+   "recent work" is NOT one) — instead date-verifies EVERY top-tier row pre-gate, the overrun
+   past the ≤6 baseline declared at the gate, and rule-selected below-fold rows are date-checked
+   at capture: out-of-window pages are discarded unwritten, the spent fetch reported, and the
+   shortfall NOT auto-backfilled — offer a follow-up rule or round instead. Drop junk (listicles,
+   undated marketing, off-topic) — every drop listed with its reason.
 3. Vault de-dup pre-check: grep shortlist URLs against `source_url`/`converted_from` in `raw/` and
    `wiki/` — matches are shown as "already in vault", not proposed.
-4. Present the shortlist (≤12 — a menu, not a promise: approvals capture at most the `--max-pages`
-   budget): numbered — title · provenance class · date · one-line relevance · likely raw/ category
-   subfolder (informational; capture writes to the raw/ root, ingest sorts later) — headed by the
-   run-spec, with a cost estimate and everything dropped or deduped. **GATE — never skipped, even
-   with `--yes`**: discovered pages are unknowns and always get human curation. With `--expand 0`
-   (the search default) this approval IS the capture approval → approved rows go straight to
-   Step 5 (the approved pages themselves are the captures). With `--expand ≥ 1`, approved rows
-   enter Steps 2–4 as seeds AND are captured at Step 5.
+4. Present the **Discover gate**, headed by the run-spec + funnel block + the LITERAL queries run:
+   - **Top tier** (shortlist-size rows, full detail — a menu, not a promise): numbered — title ·
+     provenance class · date (✓ = page-verified) · one-line relevance · likely raw/ category
+     subfolder (informational; capture writes to the raw/ root, ingest sorts later).
+   - **Ranked remainder** (only when the remaining budget exceeds the shortlist): every further
+     pool candidate as a one-liner — rank · title · provenance · date · relevance — capturable by
+     rule. When the budget does NOT exceed the shortlist, candidates below the cutoff are
+     summarised in one line ("+K ranked below — say 'show all'"), never silently dropped.
+   - Everything dropped or deduped, with reasons; a cost estimate for the top tier and, when the
+     ranked tier is engaged, for a full-budget rule.
+   **GATE — never skipped, even with `--yes`**: discovered pages are unknowns and always get
+   human curation. Approval semantics, pinned: a bare "approve" captures the TOP TIER ONLY (the
+   gate's prompt line says so; if an explicit `--shortlist` made the tier exceed the remaining
+   budget, it captures the tier's top rows up to the budget, clamp reported). For more, give a
+   rule ("top N by relevance"; N > remaining budget
+   is clamped and reported), a rule plus curation ("top 25, drop 9, add 31"), or row-by-row
+   choices. Before capturing, echo the RESOLVED set in one line (rows · count · cost); an
+   ambiguous rule is asked back, never guessed. A rule NEVER carries across rounds — each round's
+   gate is fresh ("same rule" must be said); an explicit DROP does persist — a row the user
+   dropped at an earlier gate this run stays out of every later tier and rule resolution,
+   re-listed only among the drops ("dropped at round 1") if a later search re-surfaces it, and
+   re-entering only when named explicitly. With `--expand 0` (the search default) this approval
+   IS the capture approval → approved rows go straight to Step 5 (the approved pages themselves
+   are the captures). With `--expand ≥ 1`, approved rows enter Steps 2–4 as seeds AND are
+   captured at Step 5.
 
 Guards: WebSearch unavailable → say so and ask for seed URLs — never substitute model memory. Zero
 hits → print the queries run (proof the probe ran) and offer reformulations. Results are US-region
@@ -81,10 +121,11 @@ hits → print the queries run (proof the probe ran) and offer reformulations. R
 ### 2 — Fetch the seed(s)
 Capture each seed with the `ingest` Step-0 chain (`defuddle` for pages, `curl` for raw/`.md`,
 `markitdown` for binaries, **Jina Reader fallback** if those fail). Save the seed Markdown to a
-temp file for Step 3. Base pages (seeds, or search-mode approved results) are themselves captures:
-they are written to `raw/` at Step 5 and count against the page caps. Seed mode with `--expand 0`
-skips Steps 3–4 entirely — the given URLs are the whole capture set (batch-capture shorthand),
-previewed once with the cost estimate unless `--yes`.
+temp file for Step 3 (outside the vault, e.g. `/tmp` — not a vault write). Base pages (seeds, or
+search-mode approved results) are themselves captures: they are written to `raw/` at Step 5 and
+count against the page caps. Seed mode with `--expand 0` skips Steps 3–4 entirely — the given
+URLs are the whole capture set (batch-capture shorthand), previewed once with the cost estimate
+BEFORE anything is fetched (unless `--yes`).
 
 ### 3 — Plan (the consistency engine — deterministic)
 Run the classifier so every gather applies the SAME rules:
@@ -99,7 +140,7 @@ each `expand`/`maybe` link is annotated for topical fit and demotions are propos
 shown side by side in the preview. The script's output is never altered; nothing is silently
 dropped.
 
-### 4 — Preview & confirm (DEFAULT — skip only with `--yes`)
+### 4 — Preview & confirm (DEFAULT for expansion hops — skip only with `--yes`; the `--expand 0` paths above carry their own approval)
 Show the plan **and an estimated cost** ("will fetch N pages ≈ ~M k tokens to capture + compile;
 ask about K; skipping J" — assume ≈4k tokens per captured page and ≈2× that to compile, and state
 the assumption), headed by the run-spec. Invite the user to **approve / prune / adjust caps /
@@ -109,7 +150,10 @@ run never exceeds it. Under `--yes` this preview is skipped with the conservativ
 step — the human stays in control.
 
 ### 5 — Capture (into raw/)
-Fetch each APPROVED link with the same chain (→ Jina fallback). For each, write `raw/<slug>.md`
+Fetch each APPROVED link with the same chain (→ Jina fallback). A page whose whole chain fails
+(Jina included) is reported — URL, engines tried — and its slot is never auto-backfilled from
+the ranked remainder; offer a follow-up rule or round instead (the date-window discard rule,
+mirrored). For each captured page, write `raw/<slug>.md`
 with provenance frontmatter (`converted_from` / `converted_by` / `converted_on`, plus `source_url`
 so ingest's de-dup keeps working), download body images to `assets/` with relative paths, and
 **sanitize** as in `ingest` Step 0. Respect `--max-pages` and the hard **100-page ceiling**
@@ -121,8 +165,12 @@ edit existing raw files — only add new ones.
 ### 6 — Rounds (search mode, `--rounds > 1`)
 From the round's captured material, list the brief's open gaps (subtopics still uncovered —
 derived from what was already read; no re-reads). No gaps → stop early and say so. Otherwise
-derive next-round queries from the gaps and re-enter Step 1; every round gets the same gate and
-shares the cumulative caps.
+re-enter Step 1, re-running `funnel_knobs.py` with `--pages-captured` AND `--facets` = the number
+of open gaps: the gap list IS that round's facet list (printed at its gate), and the gap-derived
+queries ARE that round's Step-1.1 derivation (2 per gap, within the band). Every knob recomputes
+from the REMAINING budget, so later rounds shrink naturally. Every round gets the same gate under
+the same semantics and shares the cumulative caps; no approval rule carries over from an earlier
+round (explicit drops DO persist — Step 1.4).
 
 ### 7 — Hand off to ingest
 The captures now sit in the `raw/` inbox. Offer to run `/ingest` to compile them (or chain
@@ -146,9 +194,9 @@ total. For a synthesised report on the topic, follow with `/query` (filed into t
 
 ## Logging
 After a completed capture run, append one `gather` entry to `wiki/log.md` via shell (`cat >>`):
-mode, seed URL(s) or the brief + the queries run (and rounds), pages captured, where they landed
-in `raw/`, and that the batch awaits `/ingest`. A preview-only or aborted run (nothing captured)
-is not logged.
+mode, seed URL(s) or the brief + the queries run (and rounds), any policy rule approved at the
+gate, pages captured, where they landed in `raw/`, and that the batch awaits `/ingest`. A
+preview-only or aborted run (nothing captured) is not logged.
 
 ## Relationship to the other skills
 - **`gather`** → builds the *Raw layer* (search-driven or seed-driven multi-link capture into `raw/`).
