@@ -15,8 +15,9 @@ check("default budget 10",        k["budget"] == 10 and k["remaining"] == 10)
 check("default shortlist 10",     k["shortlist"] == 10)          # min(12, remaining)
 check("default queries 6",        k["queries"] == 6)             # 2 x 3 facets
 check("default pool 30",          k["pool"] == 30)               # 3 x shortlist (v2 parity)
-check("default spot-checks 6",    k["spot_checks"] == 6)
-check("default tier dormant",     k["policy_tier"] is False)
+check("default date-checks 6",    k["date_checks"] == 6)
+check("default remainder hidden", k["show_remainder"] is False)
+check("default no marker",        k["raise_marker"] is False)
 check("default no clamps",        k["clamps"] == [])
 
 print("== query band ==")
@@ -39,7 +40,7 @@ k = f.derive(40, 5)
 check("big run shortlist 12",     k["shortlist"] == 12)
 check("big run queries 10",       k["queries"] == 10)
 check("big run pool 60",          k["pool"] == 60)               # 1.5 x 40 = 60
-check("big run tier engaged",     k["policy_tier"] is True)
+check("big run remainder shown",  k["show_remainder"] is True)
 check("pool ceiling 60",          f.derive(100, 6)["pool"] == 60)
 check("pool floor 3x shortlist",  f.derive(12, 3)["pool"] == 36)  # 3x12 > 1.5x12
 
@@ -54,20 +55,46 @@ k = f.derive(40, 5, pages_captured=30)
 check("remaining 10",             k["remaining"] == 10)
 check("shortlist follows 10",     k["shortlist"] == 10)
 check("pool follows 30",          k["pool"] == 30)
-check("tier off at 10<=10",       k["policy_tier"] is False)
-check("dormant label = remaining", "remaining ≤ shortlist" in f.render(f.derive(30, 3, pages_captured=25)))
+check("remainder off at 10<=10",  k["show_remainder"] is False)
+check("collapsed label rendered", "further rows collapsed" in f.render(f.derive(30, 3, pages_captured=25)))
 k = f.derive(40, 5, pages_captured=40)
 check("exhausted flagged",        k["exhausted"] is True)
-check("exhausted renders once",   f.render(k).count("exhausted") == 1)
+check("spent renders once",       f.render(k).count("spent") == 1)
 
-print("== tier boundary ==")
-check("budget 12 = shortlist off", f.derive(12, 4)["policy_tier"] is False)
-check("budget 13 > shortlist on",  f.derive(13, 4)["policy_tier"] is True)
+print("== display boundary ==")
+check("budget 12 = menu, hidden", f.derive(12, 4)["show_remainder"] is False)
+check("budget 13 > menu, shown",  f.derive(13, 4)["show_remainder"] is True)
+
+print("== advice (v3.1: widens display, never consent) ==")
+k = f.derive(10, 4, advice=15)                       # remaining 10 = menu 10, advice 15
+check("advice > menu shows rows", k["show_remainder"] is True)
+check("advice sets raise marker", k["raise_marker"] is True)
+check("advice kept in dict",      k["advice"] == 15)
+check("advice <= menu no show",   f.derive(10, 4, advice=7)["show_remainder"] is False)
+check("advice > pool clamps",     f.derive(10, 4, advice=99)["advice"] == 30)
+check("advice clamp reported",    any("--advice" in c for c in f.derive(10, 4, advice=99)["clamps"]))
+check("advice line rendered",     "~15 worth capturing" in f.render(f.derive(10, 4, advice=15)))
+check("no advice renders dash",   "advice —" in f.render(f.derive(10, 4)))
+try: f.derive(10, 3, advice=-1); check("advice -1 raises", False)
+except ValueError: check("advice -1 raises", True)
+
+print("== raise marker & reachability (v3.1) ==")
+check("oversized shortlist marks", f.derive(6, 3, shortlist=10)["raise_marker"] is True)
+check("engaged pool>R marks",      f.derive(40, 5)["raise_marker"] is True)   # pool 60 > 40
+check("marker line rendered",      "explicit budget raise" in f.render(f.derive(40, 5)))
+check("reachable = min(R, pool)",  f.derive(100, 6)["reachable"] == 60)
+check("reachability line at R>P",  "consider --rounds" in f.render(f.derive(100, 6)))
+check("no reachability at R<=P",   "consider --rounds" not in f.render(f.derive(10, 4)))
 
 print("== date window ==")
 k = f.derive(40, 5, date_window=True)
-check("window spot-cap = K",      k["spot_checks"] == 12)
-check("window in render",         "date-window" in f.render(k))
+check("window checks = menu",     k["date_checks"] == 12)
+check("cutoff in render",         "cutoff active" in f.render(k))
+
+print("== render flow line (v3.1) ==")
+r = f.render(f.derive(10, 4))
+check("flow line first",          r.startswith("FUNNEL") and "→ your approval →" in r.splitlines()[0])
+check("retired terms absent",     all(t not in r for t in ("dormant", "engaged", "policy tier", "spot-check")))
 
 print("== errors ==")
 try: f.derive(10, 0); check("facets 0 raises", False)
@@ -80,13 +107,17 @@ r = subprocess.run([sys.executable, "funnel_knobs.py", "--max-pages", "40", "--f
                     "--date-window", "--json"], capture_output=True, text=True,
                    cwd=__file__.rsplit("/", 1)[0])
 j = json.loads(r.stdout)
-check("cli json ok",              r.returncode == 0 and j["queries"] == 10 and j["spot_checks"] == 12)
+check("cli json ok",              r.returncode == 0 and j["queries"] == 10 and j["date_checks"] == 12)
 r = subprocess.run([sys.executable, "funnel_knobs.py", "--max-pages", "10", "--facets", "3"],
                    capture_output=True, text=True, cwd=__file__.rsplit("/", 1)[0])
 check("cli text has FUNNEL",      r.returncode == 0 and r.stdout.startswith("FUNNEL"))
 r = subprocess.run([sys.executable, "funnel_knobs.py", "--max-pages", "10", "--facets", "0"],
                    capture_output=True, text=True, cwd=__file__.rsplit("/", 1)[0])
 check("cli facets 0 exits 2",     r.returncode == 2)
+r = subprocess.run([sys.executable, "funnel_knobs.py", "--max-pages", "10", "--facets", "3",
+                    "--ledger-id", "no-such-run-xyz"], capture_output=True, text=True,
+                   cwd=__file__.rsplit("/", 1)[0])
+check("cli ledger-miss declares", r.returncode == 0 and "DECLARE" in r.stderr)
 
 print(f"\n{P} passed, {F} failed")
 sys.exit(1 if F else 0)

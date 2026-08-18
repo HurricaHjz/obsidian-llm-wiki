@@ -87,7 +87,7 @@ Everything the prompt makes relevant, at whatever altitude the question sets —
 The natural answer: high-level first, low-level detail only where it earns its place, length scaling with the question — the reply as it would be with no style set.
 
 ### brief
-Balanced held short: a few fluent, easy-to-read paragraphs, low-level detail only where load-bearing and often none — still flowing prose that reads as a full answer, never a summary's clipped terseness.
+Balanced held short — visibly shorter than balanced would be for the same prompt: a few fluent, easy-to-read paragraphs, low-level detail only where load-bearing and often none — still flowing prose that reads as a full answer, never a summary's clipped terseness. Role additions (checks, worked examples) count inside that ceiling, not on top of it; a draft running to balanced's length compresses by dropping resolution, never by clipping the prose.
 
 ### summary
 The minimum that fully answers: a few sentences, or a tight table or bullet structure where it reads faster; essentials only, no preamble.
