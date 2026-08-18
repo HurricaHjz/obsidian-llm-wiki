@@ -115,7 +115,8 @@ declared in the run-spec echo:
    shortfall NOT auto-backfilled — offer a follow-up rule or round instead. Drop junk (listicles,
    undated marketing, off-topic) — every drop listed with its reason.
 3. Vault de-dup pre-check — mechanised: `python3 .claude/skills/gather/capture_write.py dedup
-   --urls <candidates> --control <known-present URL>` scans `source_url`/`converted_from` across
+   --urls url1,url2,url3 --control <known-present URL>` (comma-joined or space-separated — the
+   script accepts both) scans `source_url`/`converted_from` across
    `raw/` + `wiki/`; the control URL must hit or the scan aborts (proof the probe ran, CLAUDE.md
    §11; `--allow-no-control` only for a provably fresh vault, declared). Matches are shown as
    "already in vault", not proposed.

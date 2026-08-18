@@ -113,7 +113,10 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
    **Version-family recap — mandatory final confirmation:** before committing, present a table covering
    **every release of the current minor version so far plus this candidate** (e.g. before v1.7.4, rows for
    v1.7.0 → v1.7.4), columns `Ver | Feature | What it does | What it achieves`, each row verified against
-   the actual files/tests (never from memory). The user's go-ahead on this table is the publish approval.
+   the actual files/tests (never from memory). **Enumerate the family from evidence, not memory**: derive
+   the released rows from `git -C <repo> log --oneline` AND the vault log's `export |` entries at recap
+   time — a parallel session may have published since this session last looked (v0.8.3 shipped mislabelled
+   because a same-day release was missed this way). The user's go-ahead on this table is the publish approval.
 3. **Confirm — mandatory gate:** ask the user to approve and to give/confirm a commit message.
    **Never `commit` or `push` without an explicit "yes".**
 4. **Publish:** `git -C <repo> commit -m "<message>" && git -C <repo> push`

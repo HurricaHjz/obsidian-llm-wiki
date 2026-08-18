@@ -309,6 +309,12 @@ Ingested 1 source → 6 pages (review confidence):
 Flag any you'd like re-graded.
 ```
 
+**Completion gate:** an ingest is not done until this report has appeared in the reply. Deliver it in
+the same reply that declares the run complete — never deferred to a later turn, and never displaced by
+the self-check or other verification running long. A batch run reports every page of the batch in one
+table; an interrupted run reports the pages compiled so far at the point it stops. If zero pages were
+created, one line saying so satisfies the gate.
+
 ## Hard constraints
 - **Pace via the Pacing section** (default = `auto`). Keep the human in the loop for conflicts and
   large/uncertain batches; don't ask permission for small, low-risk, on-topic batches.
@@ -317,7 +323,7 @@ Flag any you'd like re-graded.
 - Convert every non-`.md` source with `markitdown` before reading it; never guess a binary file's contents.
 - Every wiki page must have a `## Related` section (no orphans).
 - Every wiki page (except `map`) carries a `confidence` — assign it per CLAUDE.md §4.6 (free, since you've already read the source).
-- After ingesting, **report the created/updated pages with their `confidence`** so the user can review and re-grade (Step 8).
+- After ingesting, **report the created/updated pages with their `confidence`** so the user can review and re-grade — a completion gate: no done-declaration without it (Step 8).
 - **Refresh on write:** if qmd is active, refresh its index for the pages you created/updated (`qmd update && qmd embed`, incremental — the `qmd-search` hook); a no-op when qmd is dormant.
 - Entities/Concepts = Title Case filenames; Sources/Syntheses = kebab-case.
 - Write everything in **British/UK English** (US spelling only inside verbatim quotes, proper nouns, or code).

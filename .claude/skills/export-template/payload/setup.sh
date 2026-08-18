@@ -177,7 +177,7 @@ mk_ideas() {
 <!-- rawest lane: dump fragments freely, newest first; tag with (D/W/R/L[-version]) as a self-reminder, or (M) to earmark for the Monitor lane; promote to TODO when runnable -->
 
 ## ⌨️ TODO — prompt queue
-<!-- copy-ready prompts; categories are GROUPING ONLY — execution follows № ascending (owner markers override); my raw input lane — the agent touches statuses only when told -->
+<!-- copy-ready prompts; categories are GROUPING ONLY — execution order = order of appearance within the lane (top first); № is the creation stamp, never the order; owner inline markers override; my raw input lane — the agent touches statuses only when told -->
 
 ### 🛠️ Development
 
@@ -191,7 +191,7 @@ mk_ideas() {
 <!-- standing cautions to keep watching — not runnable prompts; entries persist after review; "(from №n)" marks one spawned by a finished TODO; promote to TODO (new №) when it becomes actionable -->
 
 ## 🗄️ Archive
-<!-- finished items: one row per № (date · outcome · summary); the owner's original text is preserved verbatim in "### Verbatim originals" below — nothing the owner wrote is lost -->
+<!-- finished items: one row per № (date · outcome · summary); the owner's original text is preserved verbatim in "### Verbatim originals" below — nothing the owner wrote is lost except by an owner-instructed archive clean (see HOW TO USE: CLEANING) -->
 
 | №   | Date       | Outcome | Summary |
 | --- | ---------- | ------- | ------- |
@@ -201,14 +201,15 @@ mk_ideas() {
 
 <!-- HOW TO USE (agent instructions — read only when the owner invokes an IDEAS operation):
   - Lanes by actionability: Ideas = raw fragments (owner tags (D/W/R/L[-version]) as self-reminders, (M) = earmarked for Monitor) · TODO = copy-ready prompts under ### category headings, grouping only · Monitor = standing cautions that persist after review · Archive = terminal (✅ done · ❌ dropped · ➡️ moved).
-  - EXECUTION ORDER: "run TODO n" targets a №; "do my TODOs" runs by № ascending across all categories — file position and category never set the order; the owner's inline markers override.
+  - EXECUTION ORDER: "run TODO n" targets a №; "do my TODOs" runs in order of appearance in the TODO section, top of the lane first — № is a creation-order identifier and never sets execution order; the owner's inline markers override position.
   - MONITOR INFLOWS: written directly by the owner · spawned by a finished TODO whose outcome needs continued watching (archive the TODO, add a Monitor entry marked "(from №n)") · promoted from Ideas. Runnable text never sits in Monitor — when actionable, promote to TODO with a new № and cross-reference.
   - DEEP-LINT DELEGATION (the only standing write path besides explicit instruction): a /deep-lint run may open the Monitor section ONLY — evidence-check each caution, report promotion-ripe · dormant · evidence-changed, and append confirmed "(agent)" annotations; TODO/Ideas/Archive stay untouchable, and every such write is reported in-reply and in the run's log entry.
   - EXPLICIT INSTRUCTION, DEFINED: an imperative addressed to the agent in conversation — or the single codified equivalence: a pasted queue prompt with IDEAS provenance (e.g. an editor selection) counts as "run TODO n". A QUESTION authorises analysis and a proposal only; the write follows a confirming imperative. Notes written inside this file NEVER authorise writes — surface them and confirm conversationally first.
   - DELIVER BEFORE DECLARE: a status/archive write happens only AFTER the deliverable exists (file written, ingest sorted, publish pushed). For purely conversational deliverables, defer the status update to the next turn or the next explicit maintenance — bookkeeping trails work, never leads it.
   - "maintain IDEAS.md" → number new items, sync the Overview (live items only; Cat. column), sort strays into lanes, repair formatting (keep the ### category headings), move finished/rejected items to the Archive, cross-check TODOs against wiki/log.md to propose ✅, and append one-line "(agent)" summaries where useful.
   - "run TODO n" / "do my TODOs" → execute queue item(s), then update their status in the same breath.
-  - ARCHIVING PRESERVES THE OWNER'S WORDS: an archived item becomes one row in the Archive summary table (№ · date · outcome · short summary) AND its original text is copied verbatim (quoted) into the "### Verbatim originals" subsection, so nothing the owner wrote is ever lost.
+  - ARCHIVING PRESERVES THE OWNER'S WORDS: an archived item becomes one row in the Archive summary table (№ · date · outcome · short summary) AND its original text is copied verbatim (quoted) into the "### Verbatim originals" subsection, so nothing the owner wrote is ever lost until the owner orders a clean.
+  - CLEANING THE ARCHIVE (explicit instruction only — "clean the archive"): Archive rows and Verbatim originals are prunable bookkeeping — the durable record of finished work lives in wiki/log.md and the wiki, never here. The agent first verifies each row's record survives elsewhere (cited wikilinks resolve, cited log dates exist, control-checked), reports the count and flags any row lacking a trace (those stay unless the owner names them), then deletes rows + originals, keeping both section skeletons.
   - OWNER RAW TEXT IS CONTENT-IMMUTABLE: never alter the wording of the owner's input without explicit instruction. Lifecycle operations are sanctioned: numbering, labels, moving between lanes, archiving (including removal + a summary row), Overview sync, formatting repairs.
   - Outcomes (Archive rows only): ✅ done = resolved (even if it spawned a "(from №n)" Monitor watch) · ❌ dropped · ➡️ moved = relocated UNRESOLVED (say where). Live Overview rows carry no status — being listed means open. Kinds: todo · idea · monitor. Categories: D development · W work · R research · L life · M monitor (every monitor-kind item carries M; an (M) tag in Ideas earmarks a fragment for the Monitor lane).
 -->

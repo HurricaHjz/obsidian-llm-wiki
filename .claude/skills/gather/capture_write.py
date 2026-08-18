@@ -9,7 +9,7 @@ turns fetched Markdown into a raw/ file. If this script is missing or broken the
 run STOPS and asks — never silently revert to hand-written captures. Verbs:
     write --url U --engine E --ledger-id ID [--title T] [--slug S] [--vault-root .]
         reads Markdown on stdin; writes raw/<slug>.md; appends to the ledger
-    dedup --urls a,b,c --control URL [--vault-root .] [--allow-no-control]
+    dedup --urls a,b,c | --urls a b c  --control URL [--vault-root .] [--allow-no-control]
         greps candidate URLs against source_url/converted_from in raw/ + wiki/;
         the --control URL MUST hit (proof the scan ran — CLAUDE.md §11)
 """
@@ -71,9 +71,11 @@ def write(a):
 
 
 def dedup(a):
-    urls = [u.strip() for u in (a.urls or "").split(",") if u.strip()]
+    # accept comma-joined, space-separated (nargs), or mixed — the 2026-08-18 doc/arg
+    # mismatch showed a single accepted form fails as soon as its restatement drifts
+    urls = [u.strip() for tok in (a.urls or []) for u in tok.split(",") if u.strip()]
     if not urls:
-        raise ValueError("dedup needs --urls a,b,c")
+        raise ValueError("dedup needs --urls a,b,c (or --urls a b c)")
     if not a.control and not a.allow_no_control:
         raise ValueError("dedup needs --control <known-present URL> (proof the scan runs); "
                          "--allow-no-control only for a provably fresh vault, and say so")
@@ -111,7 +113,7 @@ def main():
     ap.add_argument("--url"), ap.add_argument("--title"), ap.add_argument("--slug")
     ap.add_argument("--engine", default="unknown")
     ap.add_argument("--ledger-id", dest="ledger_id")
-    ap.add_argument("--urls"), ap.add_argument("--control")
+    ap.add_argument("--urls", nargs="+"), ap.add_argument("--control")
     ap.add_argument("--allow-no-control", action="store_true")
     ap.add_argument("--vault-root", default=".")
     a = ap.parse_args()
