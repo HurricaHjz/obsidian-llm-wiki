@@ -146,6 +146,7 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
    - **URL — capture the *original*, never a summary.** Route by type:
      - **Raw `.md` / text / code URL** (`raw.githubusercontent.com`, gist raw, `.txt`) → `curl -sL "<url>"` and save the bytes **verbatim**. **Do NOT use WebFetch** — it returns a model *summary*, not the source.
      - **Web page (article / repo / docs)** → `defuddle` (extracts the real main content as clean Markdown, not a summary). Use WebFetch *only* for a throwaway lookup where exact text is irrelevant — never for ingest.
+     - **arXiv HTML / LaTeXML page** (`arxiv.org/html/…`, ar5iv) → do **not** defuddle it (defuddle's Markdown converter crashes on LaTeXML and silently emits raw HTML): `curl -sL` the page to a temp file, then convert with `python3 -m markitdown`.
      - **GitHub repo** → `curl -sL` the raw README/files (`raw.githubusercontent.com/<owner>/<repo>/<branch>/README.md`), or `gh api` / `gh repo view` if authenticated.
      - **YouTube / binary URL** → MarkItDown's Python API (its CLI only accepts file paths):
        `python3 -c "from markitdown import MarkItDown; open('raw/<stem>.md','w').write(MarkItDown().convert('<url>').text_content)"`

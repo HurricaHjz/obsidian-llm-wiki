@@ -329,6 +329,14 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 > blocks — no extra reads), and `deep-lint` reconciles the accumulated flags plus a sampled cold
 > tail rather than re-reading the vault (design: `wiki/developments/deeplint-scalable-maintenance-design.md`).
 
+**Gap-driven gather (propose-only).** When a `query`/`output` run finds the vault demonstrably lacks
+knowledge load-bearing for the live task, the agent may append ONE proposal after the answer — why
+(the evidenced gap) · what (sources sought) · how (the literal `/gather` command, never `--yes`) ·
+cost — surfaced whatever the active style. Only the owner's explicit yes runs it, scoped to that
+echoed run-spec; silence is not consent — propose once, remind once, then quiet; an explicit no ends
+it for the session. Non-interactive runs never propose — they report the gap. Gather's own gates
+apply unchanged. (Design: `wiki/developments/agent-initiated-gather-design.md`.)
+
 **Never answer purely in chat for substantial work — answer in files**, then link them. Queries should compound back into the wiki.
 
 ### Processing modes (depth; orthogonal to pacing — full detail in the `ingest`/`query` skills)

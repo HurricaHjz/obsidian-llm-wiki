@@ -62,6 +62,9 @@ Classify every claim before you write it:
   over paraphrasing when precision matters.
 - If the instruction needs something neither the wiki nor safe general knowledge can support, **say so**
   in the deliverable / report rather than fill the gap with invention.
+- **Load-bearing wiki gap** → the Step-6 report MAY end with one propose-only gather brief (why ·
+  what · how · cost) under the `query` Step-4b bar and consent ledger (CLAUDE.md §6) — the owner's
+  explicit yes runs it; never proposed in non-interactive runs.
 
 ### Step 4 — Produce the deliverable, strictly to spec
 Write exactly what was asked, in the requested **format and length**: a Markdown report/brief/review

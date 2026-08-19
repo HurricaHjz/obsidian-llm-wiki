@@ -1,14 +1,23 @@
 #!/usr/bin/env python3
 """capture_write.py — the sole write path for /gather captures (gather v3.1).
 
-Mechanises the four write-time rules that were behavioural in v3: budget/ceiling
+Mechanises the five write-time rules that were behavioural in v3: budget/ceiling
 enforcement (via the run ledger), raw immutability (refuses any existing path),
-sanitisation (ingest Step-0 rules, tested), and complete provenance frontmatter.
-Fetching stays with the engines (defuddle/curl/markitdown/Jina); this script only
-turns fetched Markdown into a raw/ file. If this script is missing or broken the
-run STOPS and asks — never silently revert to hand-written captures. Verbs:
+sanitisation (ingest Step-0 rules, tested), complete provenance frontmatter, and
+a capture QUALITY GATE — engines can "succeed" while emitting non-content (an
+error stub served as a page, an HTML-dominant body from a crashed converter, a
+near-empty fetch), so the write path refuses those bodies; retry with the next
+engine, and a body you deliberately accept needs --allow-degraded '<why>' (the
+acceptance is stamped into the frontmatter and ledger, and declared in the run
+report). Fetching stays with the engines (defuddle/curl/markitdown/Jina); this
+script only turns fetched Markdown into a raw/ file. If this script is missing
+or broken the run STOPS and asks — never hand-write captures around it. Verbs:
     write --url U --engine E --ledger-id ID [--title T] [--slug S] [--vault-root .]
+          [--allow-degraded REASON]
         reads Markdown on stdin; writes raw/<slug>.md; appends to the ledger
+    check
+        reads Markdown on stdin; runs the quality gate only (no write, no
+        ledger): prints PASS (exit 0) or REJECT + reason (exit 3)
     dedup --urls a,b,c | --urls a b c  --control URL [--vault-root .] [--allow-no-control]
         greps candidate URLs against source_url/converted_from in raw/ + wiki/;
         the --control URL MUST hit (proof the scan ran — CLAUDE.md §11)
@@ -39,10 +48,45 @@ def slug_from(url, title=None):
     return s or "capture"
 
 
+QUALITY_MIN_BYTES = 600
+QUALITY_TAG_COUNT = 100     # both tag thresholds must trip before a body is
+QUALITY_TAG_RATIO = 0.4     # called HTML-dominant (READMEs with badge HTML pass)
+
+
+def quality_check(body):
+    """Return a rejection reason, or None if the body looks like real content.
+
+    Each check behaves sensibly when its own premise fails: an empty or
+    whitespace body is caught by the size floor, a newline-free body gets
+    lines >= 1 so the ratio cannot divide by zero, and no pattern here can
+    raise on arbitrary text. False positives (a legitimately tiny page, a
+    tutorial dense with literal HTML) go through --allow-degraded, declared.
+    """
+    text = body.strip()
+    if len(text) < QUALITY_MIN_BYTES:
+        return f"body too small ({len(text)} bytes < {QUALITY_MIN_BYTES}) — likely a failed fetch"
+    head = text[:800]
+    if re.search(r"Warning: Target URL returned error \d+", head):
+        return "engine error stub ('Target URL returned error') — the page was not captured"
+    if re.search(r"^Title: Page Not Found$", head, re.M):
+        return "engine returned a Page Not Found shell, not the page"
+    tags = len(re.findall(r"<[A-Za-z][^>\n]*>", text))
+    lines = max(1, text.count("\n"))
+    if tags >= QUALITY_TAG_COUNT and tags / lines >= QUALITY_TAG_RATIO:
+        return (f"HTML-dominant body ({tags} tags over {lines} lines) — "
+                "the converter emitted markup, not Markdown")
+    return None
+
+
 def write(a):
     body = sys.stdin.read()
     if not body.strip():
         raise ValueError("empty stdin — nothing fetched, nothing written")
+    reason = quality_check(body)
+    if reason and not a.allow_degraded:
+        raise ValueError(f"quality gate: {reason}; retry with the next engine in the chain — "
+                         "a body you deliberately accept needs --allow-degraded '<why>', "
+                         "declared in the run report")
     ledger_path = run_ledger.path_for(a.ledger_id)
     data = run_ledger.load(ledger_path)              # missing → FileNotFoundError (exit 2)
     captured = len(data["captures"])
@@ -54,20 +98,36 @@ def write(a):
     if os.path.exists(dest):
         raise ValueError(f"{dest} exists — raw files are immutable; pick another --slug")
     title = (a.title or slug).replace('"', "'")
-    front = ("---\n"
-             f'title: "{title}"\n'
-             f"source_url: {a.url}\n"
-             f"converted_from: {a.url}\n"
-             f"converted_by: {a.engine}\n"
-             f"converted_on: {datetime.date.today().isoformat()}\n"
-             "---\n\n")
+    front_lines = ["---",
+                   f'title: "{title}"',
+                   f"source_url: {a.url}",
+                   f"converted_from: {a.url}",
+                   f"converted_by: {a.engine}",
+                   f"converted_on: {datetime.date.today().isoformat()}"]
+    if reason:  # only reachable with --allow-degraded — stamp the acceptance
+        note = a.allow_degraded.replace('"', "'")
+        front_lines.append(f'capture_quality: "degraded — {reason}; accepted: {note}"')
+    front = "\n".join(front_lines) + "\n---\n\n"
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     with open(dest, "w", encoding="utf-8") as fh:
         fh.write(front + sanitise(body))
-    data["captures"].append({"url": a.url, "slug": slug,
-                             "ts": datetime.datetime.now().isoformat(timespec="seconds")})
+    entry = {"url": a.url, "slug": slug,
+             "ts": datetime.datetime.now().isoformat(timespec="seconds")}
+    if reason:
+        entry["degraded"] = reason
+    data["captures"].append(entry)
     run_ledger.save(ledger_path, data)
-    print(f"wrote raw/{slug}.md · ledger {len(data['captures'])}/{data['budget']}")
+    tag = " · DEGRADED (accepted)" if reason else ""
+    print(f"wrote raw/{slug}.md · ledger {len(data['captures'])}/{data['budget']}{tag}")
+
+
+def check_verb(_a):
+    body = sys.stdin.read()
+    reason = quality_check(body)
+    if reason:
+        print(f"REJECT: {reason}")
+        sys.exit(3)
+    print("PASS: body looks like real content")
 
 
 def dedup(a):
@@ -109,19 +169,26 @@ def dedup(a):
 
 def main():
     ap = argparse.ArgumentParser(description="Sole write path for /gather captures (v3.1).")
-    ap.add_argument("verb", choices=["write", "dedup"])
+    ap.add_argument("verb", choices=["write", "dedup", "check"])
     ap.add_argument("--url"), ap.add_argument("--title"), ap.add_argument("--slug")
     ap.add_argument("--engine", default="unknown")
     ap.add_argument("--ledger-id", dest="ledger_id")
     ap.add_argument("--urls", nargs="+"), ap.add_argument("--control")
     ap.add_argument("--allow-no-control", action="store_true")
+    ap.add_argument("--allow-degraded", dest="allow_degraded", metavar="REASON",
+                    help="write despite a quality-gate rejection; REASON is stamped into "
+                         "frontmatter + ledger and must be declared in the run report")
     ap.add_argument("--vault-root", default=".")
     a = ap.parse_args()
     try:
         if a.verb == "write":
             if not (a.url and a.ledger_id):
                 raise ValueError("write needs --url and --ledger-id")
+            if a.allow_degraded is not None and not a.allow_degraded.strip():
+                raise ValueError("--allow-degraded needs a non-empty reason")
             write(a)
+        elif a.verb == "check":
+            check_verb(a)
         else:
             dedup(a)
     except FileNotFoundError as e:

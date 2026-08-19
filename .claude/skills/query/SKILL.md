@@ -74,6 +74,21 @@ Judge only the pages you have ALREADY read for this answer — never read extra 
   > ⚠ Low-confidence: the only sources here are a promo listing and an auto-transcript — treat as provisional.
   Never refuse with a bare "I don't know".
 
+### Step 4b — Gap proposal (propose-only; CLAUDE.md §6)
+When Step 4 declared missing or weak coverage, a gather proposal MAY follow the answer — never
+replace it — if ALL four hold: the gap is **evidenced** by the search just run (the brief cites what
+was searched — a zero-findings claim carries its probe, CLAUDE.md §11); **load-bearing** for the core
+of the task (answerable-but-`low` coverage stays a warning, not a proposal); plausibly **fixable by
+public web sources** (not owner-only knowledge); and **not explicitly declined** this session. At
+most ONE proposal per reply, surfaced whatever the active style, formatted why (gap + evidence) ·
+what (source kinds, rough count) · how (the literal `/gather` command with its page budget — never
+`--yes`) · cost. Only the owner's explicit yes runs it — that run-spec only; gather's own gates
+unchanged. Consent ledger: explicit **no** → dead this session (a one-line gap note at most) ·
+**unaddressed** → one compact reminder while the task is live, then quiet (a later re-fire on a new
+task references the earlier brief in one line, never a full re-brief) · **"later"** → one re-offer at
+the natural point. Non-interactive runs never propose — state the gap in the report.
+(Design: `wiki/developments/agent-initiated-gather-design.md`.)
+
 ### Step 5 — File high-value answers back
 If the answer is more than ~2 paragraphs or is comparative/analytical, ask:
 > This looks worth keeping — save it to `wiki/syntheses/`?

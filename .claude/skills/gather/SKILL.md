@@ -204,7 +204,14 @@ python3 .claude/skills/gather/capture_write.py write --url <url> --engine <engin
 It enforces the budget and the 100 ceiling against the ledger, refuses any existing path (raw
 immutability, mechanical), sanitises (ingest Step-0 rules, tested), writes `raw/<slug>.md` with
 full provenance frontmatter (`converted_from`/`converted_by`/`converted_on` + `source_url` so
-ingest's de-dup keeps working), and appends the capture to the ledger in one step. If the script
+ingest's de-dup keeps working), and appends the capture to the ledger in one step. It also runs a
+**capture quality gate**: a body that is an engine error stub, a Page-Not-Found shell,
+HTML-dominant (a crashed converter emitting markup, not Markdown), or near-empty is REFUSED
+unwritten — treat the refusal as that engine failing and retry with the next engine in the chain
+(a page every engine fails on is a whole-chain failure, handled as above). The `check` verb runs
+the gate alone on stdin (no write, no ledger) for pre-write probes; a body you deliberately accept
+needs `--allow-degraded '<why>'`, which stamps the acceptance into the frontmatter and ledger and
+MUST be declared in the run report. If the script
 is missing or broken, STOP and ask — never hand-write a capture around it. Download body images
 to `assets/` with relative paths. Respect `--max-pages` and the hard **100-page ceiling**
 (cumulative across rounds and hops: each repeat invocation of the classifier is passed the
@@ -231,6 +238,9 @@ total. For a synthesised report on the topic, follow with `/query` (filed into t
 `/output` (a deliverable) — discovery + capture here, reporting there.
 
 ## Hard constraints
+- **Agent-proposed runs**: an agent gap proposal (CLAUDE.md §6 — propose-only) becomes a run ONLY on
+  the owner's explicit yes; the consent covers the echoed run-spec alone, the agent never self-adds
+  `--yes`, and every gate in this skill applies unchanged.
 - **Preview-and-confirm by default.** Only `--yes` skips it. Always show the page count + cost.
 - **Caps are real**: never exceed `--max-pages` or the non-overridable **100-page ceiling**; and
   **no silent caps** — every cap hit, drop, demotion and dedup is reported at a gate.
