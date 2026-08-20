@@ -10,7 +10,7 @@ Read-only. No network. Pure stdlib. Run:
             [--include a,b] [--exclude c,d] [--json]
 """
 import re, sys, argparse, json
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 # --- heuristics (#3): what to expand (real content) vs skip (navigation/noise) ---------
 EXPAND_HOST = re.compile(r'(arxiv\.org|github\.com|[\w.-]+\.github\.io|gitlab\.com|huggingface\.co|'
@@ -24,15 +24,23 @@ SKIP_PATH   = re.compile(r'(/login|/sign[_-]?in|/sign[_-]?up|/register|/subscrib
                          r'/checkout|/privacy|/terms|/cookie|/contact\b|/tags?/|/categor|/author/|'
                          r'/feed\b|/rss\b|/sitemap)', re.I)
 SKIP_SCHEME = re.compile(r'^(mailto:|javascript:|tel:|#)', re.I)
+DOCS_HOST   = re.compile(r'(^docs\.|\.readthedocs\.|[\w.-]+\.github\.io$)', re.I)  # genuinely
+# documentation-shaped hosts only — NOT github.com/gitlab/hf, whose /login is a real auth wall
 ASSET_EXT   = re.compile(r'\.(png|jpe?g|gif|webp|svg|ico|css|js|woff2?|ttf)(\?|$)', re.I)
 SHARE       = re.compile(r'(utm_[a-z]+=|/intent/|sharer|/share\b)', re.I)
 
 
-def extract_links(text):
-    """All http(s) links from Markdown `](url)` and bare URLs, de-duped, order-preserved."""
+def extract_links(text, base_url=""):
+    """All http(s) links from Markdown `](url)` and bare URLs, de-duped, order-preserved.
+    Relative Markdown targets (MkDocs-style docs sites) are resolved against base_url when
+    one is given; anchors and non-http schemes are never resolved."""
     urls = []
-    for m in re.finditer(r'\]\((https?://[^)\s]+)\)', text):
-        urls.append(m.group(1))
+    for m in re.finditer(r'\]\(([^)\s]+)\)', text):
+        u = m.group(1)
+        if u.startswith(('http://', 'https://')):
+            urls.append(u)
+        elif base_url and not u.startswith('#') and not urlparse(u).scheme:
+            urls.append(urljoin(base_url, u).split('#', 1)[0])
     for m in re.finditer(r'(?<![("\w<])(https?://[^\s)\]<>"]+)', text):
         urls.append(m.group(1))
     seen, out = set(), []
@@ -46,7 +54,10 @@ def extract_links(text):
 def classify(url, seed_host=None, same_domain=False, include=None, exclude=None):
     """Return (verdict, reason) where verdict in {expand, maybe, skip}.
     Precedence: scheme < explicit exclude < explicit include < assets/share < nav/social
-    < same-domain filter < content heuristics < default(maybe)."""
+    < same-domain filter < content heuristics < default(maybe).
+    №49 P7-D2: a SKIP_PATH hit on the seed's OWN documentation-shaped host (DOCS_HOST
+    match) demotes to `maybe` instead of `skip` — a docs login GUIDE reaches the owner,
+    a commercial login WALL stays skipped. Social hosts always skip."""
     include = include or []
     exclude = exclude or []
     if SKIP_SCHEME.search(url):
@@ -60,7 +71,12 @@ def classify(url, seed_host=None, same_domain=False, include=None, exclude=None)
     if SHARE.search(url):
         return ("skip", "share/tracking link")
     host = (urlparse(url).hostname or "").lower()
-    if SKIP_HOST.search(host) or SKIP_PATH.search(url):
+    if SKIP_HOST.search(host):
+        return ("skip", "nav/social/boilerplate")
+    if SKIP_PATH.search(url):
+        if (seed_host and (host == seed_host or host.endswith("." + seed_host))
+                and DOCS_HOST.search(host)):
+            return ("maybe", "skip-path on own docs host — confirm with user")
         return ("skip", "nav/social/boilerplate")
     if same_domain and seed_host and host and host != seed_host and not host.endswith("." + seed_host):
         return ("skip", "off-domain (--same-domain)")
@@ -71,14 +87,20 @@ def classify(url, seed_host=None, same_domain=False, include=None, exclude=None)
 
 def build_plan(text, seed_url="", max_pages=10, hard_cap=100, same_domain=False, include=None, exclude=None):
     seed_host = (urlparse(seed_url).hostname or "").lower() or None
+    hard_cap = min(hard_cap, 100)  # the ceiling is non-overridable at every layer
     expand, maybe, skip = [], [], []
-    for u in extract_links(text):
+    for u in extract_links(text, seed_url):
         v, r = classify(u, seed_host, same_domain, include, exclude)
         (expand if v == "expand" else maybe if v == "maybe" else skip).append((u, r))
     cap = max(0, min(max_pages, hard_cap))
-    return {"seed": seed_url, "found": len(expand) + len(maybe) + len(skip), "cap": cap,
+    plan = {"seed": seed_url, "found": len(expand) + len(maybe) + len(skip), "cap": cap,
             "capped": len(expand) > cap, "expand": expand[:cap], "expand_all": expand,
             "maybe": maybe, "skip": skip}
+    if plan["found"] == 0 and re.search(r'\]\([^)]+\)', text):
+        plan["warning"] = ("0 links extracted yet the body contains Markdown link syntax — "
+                           "likely relative targets with no --seed-url base; do not trust this "
+                           "empty plan without checking")
+    return plan
 
 
 def main():
@@ -98,11 +120,15 @@ def main():
     if a.json:
         print(json.dumps(plan, indent=2, ensure_ascii=False)); return
     print(f"CAPTURE PLAN — seed: {plan['seed'] or '(stdin)'}")
+    if plan.get("warning"):
+        print(f"WARNING: {plan['warning']}")
     print(f"found {plan['found']} links | will fetch {len(plan['expand'])} (cap {plan['cap']}) | "
           f"ask {len(plan['maybe'])} | skip {len(plan['skip'])}")
     print("\nWILL FETCH:");  [print(f"  + {u}   [{r}]") for u, r in plan["expand"]]
     if plan["capped"]:
-        print(f"  ... +{len(plan['expand_all']) - plan['cap']} more above the cap (raise --max-pages to include)")
+        hint = ("raise --max-pages to include" if plan["cap"] < 100
+                else "above the 100-page ceiling — cannot be raised")
+        print(f"  ... +{len(plan['expand_all']) - plan['cap']} more above the cap ({hint})")
     print("\nASK FIRST:");   [print(f"  ? {u}   [{r}]") for u, r in plan["maybe"][:25]]
     print("\nSKIPPED:");     [print(f"  - {u}   [{r}]") for u, r in plan["skip"][:25]]
 

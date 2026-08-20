@@ -118,6 +118,19 @@ r = subprocess.run([sys.executable, "funnel_knobs.py", "--max-pages", "10", "--f
                     "--ledger-id", "no-such-run-xyz"], capture_output=True, text=True,
                    cwd=__file__.rsplit("/", 1)[0])
 check("cli ledger-miss declares", r.returncode == 0 and "DECLARE" in r.stderr)
+import run_ledger as _rl, uuid as _uuid, os as _os
+_rid = f"fk-{_uuid.uuid4().hex[:8]}"
+_rl.init(_rid, 10)
+_d = _rl.load(_rl.path_for(_rid))
+_rl.raise_budget(_d, 26, "test raise flows to funnel")
+_rl.save(_rl.path_for(_rid), _d)
+r = subprocess.run([sys.executable, "funnel_knobs.py", "--max-pages", "10", "--facets", "3",
+                    "--ledger-id", _rid, "--json"], capture_output=True, text=True,
+                   cwd=__file__.rsplit("/", 1)[0])
+_j = json.loads(r.stdout)
+check("ledger budget overrides stale --max-pages", r.returncode == 0 and _j["budget"] == 26)
+check("budget override declared on stderr", "overrides --max-pages" in r.stderr)
+_os.remove(_rl.path_for(_rid))
 
 print(f"\n{P} passed, {F} failed")
 sys.exit(1 if F else 0)

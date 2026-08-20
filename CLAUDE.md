@@ -314,7 +314,7 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 | `/gather <url…>` · `/gather --search "<topic>"` or "gather sources on X" | **gather** | *(opt-in)* Web capture into `raw/` — seed mode (given URLs ± the links they cite) or search mode (topic → web search → approved shortlist; `--rounds` deepening); preview-and-approve, capped; then hand to `ingest`. |
 | `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → synthesise a cited answer; offer to file high-value answers into `syntheses/`. |
 | `/lint` or "health-check the wiki" | **lint** | Cheap, frequent scan: dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. (No confidence/online checks — those are `deep-lint`'s.) |
-| `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy periodic pass (~monthly, or when flags accumulate): reconciles query-time `flagged:` freshness flags, audits confidence/staleness on changed + flagged + sampled cold pages (never a full-vault LLM re-read), capped online-freshness probes, deep structural checks, the IDEAS.md Monitor review (its sole standing delegation), qmd refresh; updates the vault, confirming large changes. |
+| `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy periodic pass (~monthly, or when flags accumulate): reconciles query-time `flagged:` freshness flags and the `known-issues` defect register, audits confidence/staleness on changed + flagged + sampled cold pages (never a full-vault LLM re-read), capped online-freshness probes, deep structural checks, the IDEAS.md Monitor review (its sole standing delegation), qmd refresh; updates the vault, confirming large changes. |
 | `/attic archive <files>` · `/attic restore <item>` or "archive X to the attic" | **attic** | *(explicit-only, never automatic)* The §2.1 runbook: inbound-reference census, harvest into surviving pages, owner-approved preview, move + manifest, plain-text link sweep, control-verified check. Deep-lint only suggests candidates; this skill moves them on the owner's word. |
 | `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search over the wiki via qmd — **dormant** unless qmd is installed + enabled; the `query`/`output` fallback and the refresh-on-write hook. |
 | `/output <instruction>` or "write me a …" | **output** | Generate a deliverable (report/brief/deck/table/…) into `output/`, grounded in the wiki + cited; strictly follows the instruction, labels general knowledge, never fabricates. |
@@ -473,6 +473,16 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   Write each doc **forward-facing**: the current design plus the rationale future work needs; record
   decision changes as dated status facts, and keep drafting corrections in `log.md` or chat — a
   contract must never read as a rebuttal of its own earlier wording.
+- **Log defects the moment you find them.** When any run surfaces a defect in an existing framework
+  surface (this schema, a skill or its scripts, `setup.sh`) that is out of scope to fix there and
+  then, append an entry to `wiki/developments/known-issues.md` in the same pass — date · surface ·
+  symptom · suspected cause · severity · status — and say so in the reply. A finding that warrants
+  its own design doc gets one, with a register line pointing to it. Recording is bookkeeping, never
+  a licence to fix: changes stay gated as above. Before changing a framework surface, check its open
+  entries; a fix closes the entry as a dated status fact. Register appends are not logged to
+  `log.md` — the closing fix's `framework` entry names the entries it closes, the same carve-out as
+  query-time `flagged:` writes — and `/deep-lint` reviews open entries each run. A missing register
+  is not an error: recreate it (frontmatter + `## Open` / `## Closed`) and continue.
 - **Prose quality for human-facing docs.** When writing or editing `README.md`, `MANUAL.md`, `CLAUDE.md`,
   or anything a person reads, make it **clear, concise, fluent and genuinely human** — British English,
   active voice, short sentences, scannable structure; cut filler and redundancy. It must never read like

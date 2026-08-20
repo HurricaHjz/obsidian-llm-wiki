@@ -7,7 +7,8 @@ display — clamps out-of-range values, and reports every clamp. The rendered bl
 VERBATIM at the Discover gate, so the knobs a run actually used are always auditable (the
 2026-08-13 pilot showed prose-only bands drift). v3.1: --advice N (the agent's judged
 worth-capturing count) widens the one-liner display, never what a rule may buy; --ledger-id
-reads pages-captured from the run ledger instead of trusting a supplied number. Pure stdlib,
+reads pages-captured AND the audited budget from the run ledger instead of trusting supplied
+numbers (a raise-budget amendment flows through automatically; an override is declared). Pure stdlib,
 read-only, no network. Run:
     python3 funnel_knobs.py --max-pages N --facets F [--shortlist N] [--queries N]
             [--pages-captured N] [--advice N] [--ledger-id ID] [--date-window] [--json]
@@ -147,7 +148,13 @@ def main():
     if a.ledger_id:
         import run_ledger
         try:
-            pages = len(run_ledger.load(run_ledger.path_for(a.ledger_id))["captures"])
+            data = run_ledger.load(run_ledger.path_for(a.ledger_id))
+            pages = len(data["captures"])
+            if data["budget"] != a.max_pages:
+                print(f"funnel_knobs: ledger budget {data['budget']} overrides --max-pages "
+                      f"{a.max_pages} (raises are audited in the ledger) — DECLARE this at "
+                      f"the gate", file=sys.stderr)
+                a.max_pages = data["budget"]
         except (FileNotFoundError, ValueError) as e:
             print(f"funnel_knobs: ledger unreadable ({e}) — falling back to "
                   f"--pages-captured {pages}; DECLARE this fallback at the gate",

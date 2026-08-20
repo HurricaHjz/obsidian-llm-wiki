@@ -4,7 +4,7 @@ description: >
   The heavy, infrequent (~monthly) maintenance pass for the wiki — a superset of `lint`. Use on
   /deep-lint, "monthly maintenance", "deep clean the wiki", "audit confidence", or "check my sources
   are up to date". Does everything `lint` does (dead links, orphans, unindexed pages, conflicts) PLUS
-  reconciling query-time `flagged:` freshness flags, confidence coverage & correctness (changed +
+  reconciling query-time `flagged:` freshness flags and the known-issues defect register, confidence coverage & correctness (changed +
   flagged + a sampled cold tail — never a full-vault LLM re-read), staleness scoring, capped
   freshness probes against the original ONLINE sources, the IDEAS.md Monitor review (its sole
   standing delegation), and a qmd refresh if enabled. Token-bounded by design; run ~monthly or when
@@ -67,6 +67,14 @@ the probe against a known positive before trusting an empty result**, per CLAUDE
 suspicion (update the page · re-grade its `confidence` · re-ingest its source via §3.1 tools ·
 or clear a false alarm), **remove the `flagged:` line**, and list the resolution in the report.
 The ledger is the run's first LLM-read priority.
+- **Known-issues register (framework defects):** read `wiki/developments/known-issues.md` — a missing
+  file means nothing has been captured yet (the register is recreated at capture time, not here). For
+  each `## Open` entry: verify it is still live against the affected surface (a fix may have shipped
+  unrecorded), move shipped ones to `## Closed` as dated one-liners, flag entries older than ~90 days,
+  and list fix candidates in the report **ranked by severity × age**, each presented as a
+  ready-to-issue instruction naming its design doc where one exists (e.g. "fix the X defects per
+  their design doc under `wiki/developments/`") — mirroring the ready-to-issue `/attic` suggestions
+  in Step 4. Fixes themselves stay propose-only under CLAUDE.md §12.
 
 ### 3 — Confidence coverage & correctness (per CLAUDE.md §4.6)
 - **Coverage:** every non-`map` page must carry a valid `confidence`. Cheap check:
@@ -129,6 +137,7 @@ refreshed/skipped, qmd status.
 ## 🧹 Deep-Lint Report — YYYY-MM-DD
 ### Flags
 - N `flagged:` pages reconciled (fixed · re-graded · re-ingested · cleared) — probe control-verified
+- known-issues register: N open · M closed this run · fix candidates ranked severity × age, each ready-to-issue (or: register empty)
 ### Structural
 - N dead links · N orphans · N unindexed · N unresolved conflicts (fixed: …)
 - prefix budget: CLAUDE.md N B (Δ vs last audit) · skill frontmatter M B (Δ) · always-on MCP k (>10% growth flagged)

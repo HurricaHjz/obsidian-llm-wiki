@@ -11,7 +11,9 @@ description: >
   --expand, --focus, --rounds, --max-pages, --include/--exclude, --same-domain, --yes, --ingest).
   Big budgets flow through a ranked policy gate (--shortlist, --queries tune the funnel); a
   per-run ledger plus a scripted sole write path harden caps, raw immutability and provenance
-  (v3.1). Opt-in; does nothing until invoked. It only CAPTURES into raw/ — /ingest compiles.
+  (v3.1). №49 bundle: query-craft rules, thin-brief clarify, survey probe, declared ranking
+  signals, coverage table, round anti-repeat, seed sitemap inventory. Opt-in; does nothing
+  until invoked. It only CAPTURES into raw/ — /ingest compiles.
   Writes only new
   raw files, their asset images and its own log entry (never edits existing raw content).
 user-invocable: true
@@ -41,10 +43,16 @@ then compiles. Capture is document-granular — whole pages, verbatim; salience 
   with no URL — → **ask**. Out-of-range flag values are clamped to their bounds and the clamp is
   reported at the gate.
 - Every run echoes its parsed **run-spec** (mode · seeds/brief · focus · expand · rounds · caps;
-  search mode adds the brief's facet list and the `funnel_knobs.py` block) at the first gate, so a
+  search mode adds the brief's facet list, the provenance ranking frame and the `funnel_knobs.py`
+  block) at the first gate, so a
   misroute dies at the preview, never at capture. A mid-run constraint change (caps, date window,
   focus, mode — at an open gate or between rounds) re-echoes the FULL updated run-spec, never just
   the changed value.
+- **Thin-brief clarify (search mode)**: a brief too thin to plan from — fewer than two derivable
+  sub-questions, or scope/recency/depth genuinely ambiguous — gets up to THREE pointed questions
+  ONCE, before any discovery spend; otherwise unstated choices become assumptions stated in the
+  run-spec echo, and the gate stays the correction point. Never re-interrogate a brief that
+  already answers them.
 
 | | Non-expert (defaults) | Expert (override) |
 |---|---|---|
@@ -64,9 +72,12 @@ full-detail rows at the Discover gate (search mode; default min(12, remaining bu
 clamp ≤12) · `--same-domain` ·
 `--include a,b` / `--exclude c,d` (seed mode: URL substring patterns for the classifier · search
 mode: domain names for the search engine, with non-domain patterns applied as substring
-post-filters on the results) · `--yes` (skip Step-4 previews — the Discover gate always waits) ·
-`--ingest` (compile after capturing) · `--no-ledger` (limit the run ledger to write-path
-bookkeeping; its cross-round authority is otherwise auto-on when `--rounds > 1` or budget ≥ 30).
+post-filters on the results) · `--yes` (skip the Step-4 previews and the seed `--expand 0` batch preview — the Discover gate
+always waits) ·
+`--ingest` (compile after capturing) · `--no-ledger` (the ledger still keeps ALL its
+bookkeeping — write path, gates, rounds, so Step 6's anti-repeat always has its data; only its
+cross-round AUTHORITY is off, numbers quoted from the transcript instead; authority is
+otherwise auto-on when `--rounds > 1` or budget ≥ 30).
 
 ## Pipeline
 ### 0 — Scope (both modes)
@@ -82,7 +93,9 @@ declared in the run-spec echo:
   `funnel_knobs.py --ledger-id`, the mismatch rule, resume) engages when `--rounds > 1` or the
   budget ≥ 30, unless `--no-ledger`. The ledger is evidence, never authority over the owner: on
   any ledger-versus-memory mismatch STOP and ask; if the file goes missing mid-run, fall back to
-  model memory and DECLARE the fallback at the next gate.
+  model memory for DISCOVERY accounting only and DECLARE the fallback at the next gate — the
+  write path still requires a ledger (a capture with a missing one is STOP-and-ask; the declared
+  repair is a fresh `init` carrying the known state).
 
 ### 1 — Discover (search mode only)
 1. State the brief's **facets** (its distinct sub-questions — the list is printed in the run-spec
@@ -96,15 +109,32 @@ declared in the run-spec echo:
    pool = min(60, max(3×menu, ⌈1.5×remaining⌉)) · date-check policy · a "reachable this round
    ≤pool — consider --rounds" warning when the remaining budget exceeds the pool. Every clamp is
    reported and the block is echoed VERBATIM at the gate; the gate echo re-runs it with
-   `--advice <N>` once triage has produced the worth-capturing count.) Derive that many query
-   angles (distinct
-   phrasings/aspects; recency terms where freshness matters) and run WebSearch per query, with
+   `--advice <N>` once triage has produced the worth-capturing count.) When topic familiarity is
+   weak or the brief is thin, ONE declared **survey probe** may run first — a single
+   overview/survey-shaped query whose result structure informs the sub-question list itself
+   (perspective discovery; ≤1 per run, discovery-only, declared in the run-spec echo like the
+   locate probe; the thin-brief clarify OUTRANKS it — owner questions resolve ambiguity first,
+   and the probe serves residual unfamiliarity, never an unanswered clarify). State the **provenance ranking frame** chosen for this brief — which source
+   classes outrank which and why ("operational how-to → official docs first"; "landscape scan →
+   engineering blogs first") — in the run-spec echo; source trust is objective-relative, so the
+   frame is declared, never implicit. Then derive the queries under the **query-craft rules**:
+   per sub-question one WIDE and one NARROW phrasing by default (unguided agents over-narrow —
+   start wide, then narrow); across the set cover the applicable expansion axes — terminology
+   shift · entity-anchored (named systems/people/orgs) · temporal (recency terms where freshness
+   matters) · provenance-targeted (phrasing that surfaces the source class sought); add
+   native-language queries when the topic's primary literature is non-English (capture translates,
+   §3.1); round ≥2 queries narrow onto the open gaps. When the scripted band overrides
+   two-per-facet (floor 3 · cap 12), the band wins: keep every sub-question represented first,
+   then trim narrow variants. Run WebSearch per query, with
    `--include`/`--exclude` mapped to allowed/blocked domains. The pool holds the top candidates
    by triage score, up to the pool value — a cap, not a quota: underfill is reported, with
    `--queries`/`--rounds` suggested.
-2. Triage on result metadata — no capture fetches at this stage. Dedupe by URL; classify provenance
+2. Triage on result metadata — no capture fetches at this stage. Dedupe by URL, recording
+   **multiplicity** (a URL surfaced by k>1 distinct queries carries ×k in its row — a declared
+   centrality signal, not a verdict); classify provenance
    (official docs / paper / repo / engineering blog / news / aggregator); score relevance against
-   the brief; run ≤6 throwaway WebFetch date checks per round on unclear finalists (never a
+   the brief under the declared frame; run ≤6 throwaway WebFetch date checks per round on unclear
+   finalists (never a
    capture path; unknown → mark "date unverified"). From the scored pool, state the **advice
    count** — how many look genuinely worth capturing — for the gate's `--advice` echo. A **hard
    date window** — an explicit
@@ -113,7 +143,12 @@ declared in the run-spec echo:
    past the ≤6 baseline declared at the gate, and rule-selected below-menu rows are date-checked
    at capture: out-of-window pages are discarded unwritten, the spent fetch reported, and the
    shortfall NOT auto-backfilled — offer a follow-up rule or round instead. Drop junk (listicles,
-   undated marketing, off-topic) — every drop listed with its reason.
+   undated marketing, off-topic) — every drop listed with its reason. **Backend-pain warn**: when
+   a hard date window forces ≥8 in-window verifications in a single run, or the run's own
+   row/drop reasons record region- or language-skew for the topic, SAY SO at the gate and note that an opt-in
+   agent-grade search backend (API-side date/domain filters: Exa/Tavily/Brave) is the designed,
+   deliberately deferred remedy — surfacing the option is the duty; adopting it is the owner's
+   call, never the run's.
 3. Vault de-dup pre-check — mechanised: `python3 .claude/skills/gather/capture_write.py dedup
    --urls url1,url2,url3 --control <known-present URL>` (comma-joined or space-separated — the
    script accepts both) scans `source_url`/`converted_from` across
@@ -122,8 +157,12 @@ declared in the run-spec echo:
    "already in vault", not proposed.
 4. Present the **Discover gate**, headed by the run-spec + funnel block + the LITERAL queries run:
    - **Menu** (the shortlist: full-detail rows — a menu, not a promise): numbered — title ·
-     provenance class · date (✓ = page-verified) · one-line relevance · likely raw/ category
+     provenance class (·×k multiplicity where >1) · date (✓ = page-verified) · one-line
+     relevance · likely raw/ category
      subfolder (informational; capture writes to the raw/ root, ingest sorts later).
+   - **Coverage table**: one compact line per sub-question — covered by which rows · still
+     open — so approval is informed by what it buys AND what it leaves uncovered (the final
+     state is re-reported at Step 7).
    - **Advice line**: "of the <pool> ranked, ~N look genuinely worth capturing" — the agent's
      judged count from the triage scores, echoed via `--advice` in the funnel block. Advice
      widens what is SHOWN below, never what a rule may buy.
@@ -132,7 +171,11 @@ declared in the run-spec echo:
      rule-selectable. Rows beyond the remaining budget carry the block's marker ("rows beyond №R
      need an explicit budget raise"): rules always cap at the remaining budget, and capturing a
      marked row needs an explicit raise — a mid-run constraint change that re-echoes the FULL
-     run-spec, the 100-page ceiling binding as ever. When neither budget nor advice exceeds the
+     run-spec, the 100-page ceiling binding as ever. The raise itself runs `run_ledger.py
+     raise-budget --id <run-id> --to N --reason '<why>'` (audited in the ledger's gate
+     record; next round's funnel reads the raised budget from the ledger) — NEVER
+     `init --force`, which is for genuine restarts only and refuses once the ledger records
+     any state. When neither budget nor advice exceeds the
      menu, candidates below the cutoff are summarised in one line ("+K ranked below — say 'show
      all'"), never silently dropped.
    - Everything dropped or deduped, with reasons; a cost estimate for the menu and, when the
@@ -144,7 +187,9 @@ declared in the run-spec echo:
    rule ("top N by relevance"; N > remaining budget
    is clamped and reported), a rule plus curation ("top 25, drop 9, add 31"), or row-by-row
    choices. Before capturing, echo the RESOLVED set in one line (rows · count · cost) and record
-   it in the ledger (`run_ledger.py add-gate`; every explicit drop → `add-drop`); an
+   it in the ledger (`run_ledger.py add-gate`; every explicit drop → `add-drop`; the round's
+   literal queries + shown rows → `add-round`, "shown" = every row printed at this gate, menu
+   and displayed remainder alike, feeding Step 6's anti-repeat rule); an
    ambiguous rule is asked back, never guessed. A rule NEVER carries across rounds — each round's
    gate is fresh ("same rule" must be said); an explicit DROP does persist — a row the user
    dropped at an earlier gate this run stays out of every later menu and rule resolution,
@@ -164,7 +209,18 @@ capture path, reported at the gate like every other pre-consent spend.
 ### 2 — Fetch the seed(s)
 Capture each seed with the `ingest` Step-0 chain (`defuddle` for pages, `curl` for raw/`.md`,
 `markitdown` for binaries, **Jina Reader fallback** if those fail). Save the seed Markdown to a
-temp file for Step 3 (outside the vault, e.g. `/tmp` — not a vault write). Base pages (seeds, or
+temp file for Step 3 (outside the vault, e.g. `/tmp` — not a vault write). **Host inventory
+probe (seed mode)**: extraction strips site navigation, so a documentation site's structure
+never reaches the classifier through body links alone. When the seed host serves `sitemap.xml`,
+fetch it as a declared discovery-only probe (one `curl`, never a capture path) and put both
+counts in the run-spec echo ("13 linked from the seed body · 97 on the host sitemap"); the
+sitemap's focus-relevant pages are then presented at the Step-4 preview alongside the classifier
+plan, owner-curated like any `maybe` (promotions count against the caps as ever). A missing,
+redirected, index-style or HTML-serving sitemap degrades to link-only discovery with the
+degradation STATED at the preview — it never aborts the run and never fabricates an inventory.
+Under seed `--expand 0` the probe still runs (a discovery read, not a capture) and its counts
+join the single batch preview, where sitemap pages are promotable like any `maybe`; that batch
+preview stays the one gate. Base pages (seeds, or
 search-mode approved results) are themselves captures: they are written to `raw/` at Step 5 and
 count against the page caps. Seed mode with `--expand 0` skips Steps 3–4 entirely — the given
 URLs are the whole capture set (batch-capture shorthand), previewed once with the cost estimate
@@ -178,7 +234,9 @@ python3 .claude/skills/gather/gather_links.py <seed.md> --seed-url "<url>" \
 ```
 It returns `expand` (will fetch), `maybe` (ask) and `skip` (won't), with the page caps already
 applied. (Heuristics live in that script — expand docs/papers/repos/READMEs/benchmarks; skip
-nav/ads/login/social/logos.) With `--focus`, a labelled semantic pass runs AFTER the classifier:
+nav/ads/login/social/logos; a skip-path hit on the seed's OWN documentation-shaped host demotes
+to `maybe` instead, so a docs login *guide* reaches the owner while a commercial login *wall*
+stays skipped.) With `--focus`, a labelled semantic pass runs AFTER the classifier:
 each `expand`/`maybe` link is annotated for topical fit and demotions are proposed — both verdicts
 shown side by side in the preview. The script's output is never altered; nothing is silently
 dropped.
@@ -226,15 +284,20 @@ re-enter Step 1, re-running `funnel_knobs.py` with `--ledger-id <run-id>` (the l
 pages-captured; a ledger-versus-memory mismatch → STOP and ask; ledger authority off → the
 `--pages-captured` flag, stated) AND `--facets` = the number
 of open gaps: the gap list IS that round's facet list (printed at its gate), and the gap-derived
-queries ARE that round's Step-1.1 derivation (2 per gap, within the band). Every knob recomputes
+queries ARE that round's Step-1.1 derivation (2 per gap, within the band). **Anti-repeat
+(ledgered)**: previously-issued queries are excluded from the new derivation ("excluded k repeat
+queries" reported at the gate), and a candidate already shown at an earlier gate this run is
+annotated in the new pool ("shown round n — not selected"), never presented as new — the
+dropped-row rule's softer sibling: drops stay OUT, passed-over rows return labelled. Every knob recomputes
 from the REMAINING budget, so later rounds shrink naturally. Every round gets the same gate under
 the same semantics and shares the cumulative caps; no approval rule carries over from an earlier
 round (explicit drops DO persist — Step 1.4).
 
 ### 7 — Hand off to ingest
 The captures now sit in the `raw/` inbox. Offer to run `/ingest` to compile them (or chain
-automatically with `--ingest`). Report what was captured, skipped, and the running page/cost
-total. For a synthesised report on the topic, follow with `/query` (filed into the wiki) or
+automatically with `--ingest`). Report what was captured, skipped, the running page/cost
+total, and — in search mode — the final coverage table (sub-questions covered · still open);
+a facetless seed run reports plan-versus-captured instead. For a synthesised report on the topic, follow with `/query` (filed into the wiki) or
 `/output` (a deliverable) — discovery + capture here, reporting there.
 
 ## Hard constraints
@@ -242,6 +305,10 @@ total. For a synthesised report on the topic, follow with `/query` (filed into t
   the owner's explicit yes; the consent covers the echoed run-spec alone, the agent never self-adds
   `--yes`, and every gate in this skill applies unchanged.
 - **Preview-and-confirm by default.** Only `--yes` skips it. Always show the page count + cost.
+- **Close with a recommendation**: every gate/preview and the final Step-7 run report ends with ONE
+  short line of proactive advice — at a gate, which option the agent judges best and the trim it
+  would make ("Recommend: approve all 20; drop rows 4/7 if trimming"); at hand-off, the next step
+  (ingest now, a follow-up round, an open opt-in). Advisory only — it never self-executes.
 - **Caps are real**: never exceed `--max-pages` or the non-overridable **100-page ceiling**; and
   **no silent caps** — every cap hit, drop, demotion and dedup is reported at a gate.
 - **Raw immutability**: only *add* new captures to `raw/` (CLAUDE.md §3.1's "converted `.md`" provision);
@@ -252,8 +319,10 @@ total. For a synthesised report on the topic, follow with `/query` (filed into t
   invented content; mark anything uncertain `unverified`.
 - **Privacy/safety**: skip anything behind a login or obviously private; the Jina fallback routes
   URLs through a third party, so don't use it for sensitive links.
-- **British/UK English**; translate non-English captures, noting the translation in the provenance
-  frontmatter. Don't compile here — that's `/ingest`'s job.
+- **British/UK English at COMPILE time, not capture time**: non-English pages are captured
+  VERBATIM in their source language (raw/ is immutable evidence — CLAUDE.md §3.1); `/ingest`
+  translates into UK English when it compiles. Note the source language in the gate row when
+  known. Don't compile here — that's `/ingest`'s job.
 
 ## Logging
 After a completed capture run, append one `gather` entry to `wiki/log.md` via shell (`cat >>`):

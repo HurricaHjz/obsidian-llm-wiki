@@ -17,6 +17,28 @@ check("finds bare link", "https://github.com/a/b" in links)
 check("de-dupes", links.count("https://github.com/a/b") == 1)
 check("ignores non-url email", not any("x@y.com" in u for u in links))
 
+print("== extract_links: relative resolution ==")
+rel_txt = ("go to [setup](../tutorials/setup/) and [login](../guides/login/#ssh), "
+           "see [anchor](#section), [mail](mailto:a@b.com), [abs](https://arxiv.org/abs/9)")
+rel = g.extract_links(rel_txt, base_url="https://docs.example.ac.uk/user-documentation/getting_started/")
+check("resolves ../ against base", "https://docs.example.ac.uk/user-documentation/tutorials/setup/" in rel)
+check("strips fragment on relative", "https://docs.example.ac.uk/user-documentation/guides/login/" in rel
+      and not any("#ssh" in u for u in rel))
+check("never resolves pure anchor", not any(u.endswith("#section") or "getting_started/#" in u for u in rel))
+check("never resolves mailto", not any("a@b.com" in u for u in rel))
+check("absolute still found alongside", "https://arxiv.org/abs/9" in rel)
+check("no base -> relatives ignored", g.extract_links(rel_txt) == ["https://arxiv.org/abs/9"])
+
+print("== build_plan: zero-links guard ==")
+plan_w = g.build_plan("only [relative](../x/) links here")          # links present, no base
+check("warning fires on 0-found with links", "warning" in plan_w and plan_w["found"] == 0)
+plan_ok = g.build_plan("[p](https://arxiv.org/abs/1)")
+check("no warning when links extracted", "warning" not in plan_ok)
+plan_empty = g.build_plan("plain prose, no links at all")
+check("no warning on genuinely linkless text", "warning" not in plan_empty)
+plan_rel = g.build_plan("[setup](../tutorials/setup/)", seed_url="https://docs.example.ac.uk/a/b/")
+check("relative resolved via seed_url in plan", plan_rel["found"] == 1 and "warning" not in plan_rel)
+
 print("== classify: expand ==")
 check("arxiv -> expand",       g.classify("https://arxiv.org/abs/1")[0] == "expand")
 check("github -> expand",      g.classify("https://github.com/x/y")[0] == "expand")
@@ -32,6 +54,24 @@ check("mailto -> skip",        g.classify("mailto:a@b.com")[0] == "skip")
 check("anchor -> skip",        g.classify("#section")[0] == "skip")
 check("image asset -> skip",   g.classify("https://site.com/logo.png")[0] == "skip")
 check("share/utm -> skip",     g.classify("https://site.com/x?utm_source=tw")[0] == "skip")
+
+print("== classify: docs-host skip-path demotion (№49 P7-D2) ==")
+check("commercial /login stays skip",
+      g.classify("https://site.com/login", seed_host="site.com")[0] == "skip")
+check("own docs-host login guide -> maybe",
+      g.classify("https://docs.site.com/guides/login/", seed_host="docs.site.com")[0] == "maybe")
+check("docs subdomain of seed -> maybe",
+      g.classify("https://docs.seed.io/terms/", seed_host="seed.io")[0] == "maybe")
+check("foreign docs host /login stays skip",
+      g.classify("https://docs.other.com/login", seed_host="docs.site.com")[0] == "skip")
+check("no seed context -> /login stays skip",
+      g.classify("https://docs.site.com/guides/login/")[0] == "skip")
+check("social host never demoted",
+      g.classify("https://twitter.com/login", seed_host="twitter.com")[0] == "skip")
+check("github.com own /login stays skip (auth wall, not docs)",
+      g.classify("https://github.com/login", seed_host="github.com")[0] == "skip")
+check("readthedocs own skip-path -> maybe",
+      g.classify("https://proj.readthedocs.io/en/latest/tags/", seed_host="proj.readthedocs.io")[0] == "maybe")
 
 print("== classify: maybe / overrides ==")
 check("unknown -> maybe",      g.classify("https://randomblog.example/post/123")[0] == "maybe")
@@ -54,6 +94,8 @@ plan2 = g.build_plan(txt, max_pages=999, hard_cap=10)
 check("hard-cap ceiling = 10",  plan2["cap"] == 10 and len(plan2["expand"]) == 10)
 plan3 = g.build_plan(txt, max_pages=50)
 check("under cap -> not capped", plan3["capped"] is False and len(plan3["expand"]) == 20)
+plan4 = g.build_plan(txt, max_pages=500, hard_cap=500)
+check("hard-cap cannot be raised past 100", plan4["cap"] == 100)
 
 print(f"\nRESULT: {P} passed, {F} failed -> {'ALL PASS' if F == 0 else 'FAILURES'}")
 sys.exit(0 if F == 0 else 1)
