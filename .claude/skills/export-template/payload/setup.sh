@@ -101,7 +101,7 @@ The active role is the `role` value in `## Settings` (default `generalist`). Say
 |---|---|---|
 | style | `style` in `## Settings` | delivery: how much of the answer reaches the reply |
 | role | `role` in `## Settings` | task-context behaviours and emphasis |
-| mode | per request | ingest/query depth: standard · concise · research |
+| mode | per request; ingest picks per source | ingest/query depth: concise · standard · research |
 
 ### generalist
 <!-- Empty by design: Identity + the global rules, unchanged. Add your own specialist roles like:

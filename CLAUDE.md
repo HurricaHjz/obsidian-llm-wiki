@@ -185,7 +185,7 @@ and is written ONLY during the two operations below.
 **Sort each processed file by content + `source:` URL** into the matching `raw/` subfolder (the §2 map names them; the full type→folder table lives in the `ingest` skill, Step 6). Non-obvious lanes: `7-reviews/` (peer reviews / OpenReview), `9-originals/` (the owner's own works), `archives/` (catch-all), `duplicates/` (confirmed dups).
 
 **Duplicate handling:** a detected duplicate is **not auto-discarded**. *Process it as an update* —
-merging new findings into the **existing** pages — when a deeper mode (`--research`), extra
+merging new findings into the **existing** pages — when a deeper depth is asked for (`--research`), extra
 instructions, a newer version, or genuinely new content (e.g. an **OpenReview / review** page)
 warrant it. Only when it adds nothing, or the user says *"ignore duplicates"*, move it to
 `raw/duplicates/`. Reviews are their own category (`raw/7-reviews/`), not duplicates. (See the `ingest` skill.)
@@ -219,8 +219,10 @@ updated: YYYY-MM-DD
 ---
 ```
 
-**Research mode only:** also add `mode: research` plus academic fields (`authors`, `year`, `venue`,
-`doi`). Standard/concise pages omit these to stay lean. (See §6 → Processing modes.)
+**Source pages carry `mode:` always** (`concise | standard | research`) — the depth they were compiled
+at, so it stays auditable; an absent value means "compiled before this rule" and is never backfilled.
+**Research mode only:** also add the academic fields (`authors`, `year`, `venue`, `doi`); other pages
+omit those to stay lean. (See §6 → Processing modes.)
 
 **De-dup (optional, on source pages):** `source_url` (a clip's original URL) and `source_hash` (hash of
 the raw file) let `ingest` detect a re-added document — see the `ingest` skill's de-dup pre-flight.
@@ -340,10 +342,16 @@ apply unchanged. (Design: `wiki/developments/agent-initiated-gather-design.md`.)
 **Never answer purely in chat for substantial work — answer in files**, then link them. Queries should compound back into the wiki.
 
 ### Processing modes (depth; orthogonal to pacing — full detail in the `ingest`/`query` skills)
-**standard** (default) · **concise** (auto for short/low-density sources) · **research**
-(important papers — **opt-in or ask-first, never silent**; raises *accuracy & structure* + adds academic
-frontmatter, **not** verbosity). Every mode stays token-efficient; `research` permits depth only where
-the material justifies it.
+**concise** · **standard** · **research** (raises *accuracy & structure* + adds academic frontmatter,
+**not** verbosity). Every mode stays token-efficient; `research` permits depth only where the material
+justifies it. **In `ingest`, depth is chosen per source *after* reading it** — never from filename,
+folder or length — within the run's **authorised range** (default: all three; the user narrows with
+`--modes …` or pins with `--research`/`--standard`/`--concise`; a need outside the range stops and asks).
+Consent lives in the range, notice lives in the record: **never silent → never unrecorded.** Every source
+page carries `mode:`, and every run reports each source's depth *with the evidence that decided it* and
+logs the tally — a completion gate, never a step (design + measurements:
+`wiki/developments/ingest-auto-mode-design.md`). In `query`, where one question replaces a batch,
+`research` stays **opt-in or ask-first, never silent**.
 
 ---
 

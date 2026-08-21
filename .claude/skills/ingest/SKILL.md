@@ -5,9 +5,10 @@ description: >
   index + log, then sort the raw file into its category subfolder. Use on /ingest, when files are
   dropped into raw/, or "add this to my wiki / ingest this / file this source / process my inbox".
   Non-.md sources (PDF, PPTX, DOCX, XLSX, image, audio, HTML, CSV, EPUB, YouTube/web URL) are
-  converted to Markdown first; runs a cheap de-dup check; supports standard/concise/research modes
-  (research is opt-in or ask-first). Scans the raw/ ROOT only (or one given path); never edits raw
-  file contents — only relocates them.
+  converted to Markdown first; runs a cheap de-dup check; picks each source's depth
+  (concise/standard/research) after reading it, within the run's authorised range, and records the
+  choice with its evidence in the report and log. Scans the raw/ ROOT only (or one given path);
+  never edits raw file contents — only relocates them.
 user-invocable: true
 ---
 
@@ -23,8 +24,10 @@ You maintain a **persistent, compounding wiki** (see `CLAUDE.md`). `raw/` root i
 3. **Implicit** → user says "add this to my wiki" / "ingest this" / "file this source".
 
 ## Pacing: auto (default), one-by-one, or batch
-Read the mode from the user's words; **if they don't specify, default to `auto` and decide yourself.**
-Do not ask which mode to use unless the choice is genuinely risky.
+Read the **pacing** from the user's words; **if they don't specify, default to `auto` and decide yourself.**
+Do not ask which *pacing* to use unless the choice is genuinely risky. (This is pacing only — **depth**
+is a separate axis with its own rules; see Modes. `auto` names a default on both, so never read a
+pacing sentence as licence on depth, or a depth rule as licence on pacing.)
 
 - **`auto` (DEFAULT)** — pick the cheapest path that preserves quality:
   - **Batch** in a single pass when the inbox is small (≲5 files), the sources overlap the existing
@@ -42,24 +45,56 @@ Do not ask which mode to use unless the choice is genuinely risky.
 - Update `index.md` and `log.md` **once** at the end of the batch (a single batch `log` entry is fine).
 - Skip irrelevant/off-topic source material instead of compiling noise. Don't re-read pages you just wrote.
 
-## Modes: depth & style (auto standard/concise; research is opt-in)
-Modes set how deep/academic the output is (orthogonal to Pacing).
+## Modes: depth (chosen per source AFTER the read, recorded always)
+Modes set how deep/academic the output is (orthogonal to Pacing). **Decide each source's depth once you
+have read it — never from its filename, folder, length or markers**, none of which separate a
+research-worthy source from an ordinary one in practice.
 
-- **standard (DEFAULT)** — articles, blogs, posts, docs. Run Steps 2–4 as written.
-- **concise** — auto-pick for short/low-density sources (brief tweet, link dump, thin page): 1–3-sentence
+### The authorised range (consent)
+Every run has a range of depths you may use. **Default: all three.** The user narrows it
+(`--modes concise,standard`, "no research this time") or pins one (`--research` / `--standard` /
+`--concise` — unchanged, each forces that depth for the whole run). **Never choose outside the range.**
+If a source genuinely needs a depth the range excludes, **stop and ask** — that is the one surviving
+pause, and it should fire rarely. Echo the resolved range in words before compiling when the user gave
+anything other than the default, and resolve an ambiguous phrase to the **narrower** reading.
+
+### The decision (three triggers, judged on the source you just read)
+- **T1 · Reuse** — does it carry original figures, a reimplementable method, or wording where a
+  paraphrase would falsify the claim?
+- **T2 · Proximity** — does it bear on a topic named in `wiki/user/`, or on an open question already in
+  the wiki (a `## Conflicts / Open Questions` block, a `flagged:` page)? *Fresh-vault fallback*: if
+  `wiki/user/` is absent or empty, read T2 as "a topic with ≥3 source pages in `index.md`"; if the wiki
+  is too small for even that, say so once and work in concise/standard only.
+- **T3 · Novelty** — does it add anything not already on an existing page?
+
+**`research` = T1 ∧ T2 · `concise` = ¬T3 · `standard` = everything else.**
+
+**Overrides (fire regardless of the triggers):**
+- A source in `raw/9-originals/` (the owner's own work) is **never below standard**.
+- A source that **corrects an existing wiki page is always research** — a correction has to be exact.
+- A source whose Step 0 check found **collapsed word boundaries can never be research** (verbatim
+  quoting is impossible on it): compile at standard and say so in the report.
+
+**Name the evidence, or drop a rung.** Every depth you record carries a locator — `research — T1 (Table 3
+ablation) · T2 (calibration, About Me)`, `concise — ¬T3 (link post, all three tools already have pages)`.
+A trigger letter with empty parentheses is a defect, not a record. **If you cannot name the evidence,
+take the lower rung** (the §4.6 tie-goes-lower principle, applied to depth).
+
+- **standard (the usual outcome)** — articles, blogs, posts, docs. Run Steps 2–4 as written.
+- **concise** — thin or fully-redundant sources (brief tweet, link dump, thin page): 1–3-sentence
   summary, create pages only for genuinely new entities/concepts, minimal bullets.
-- **research** — important papers / primary publications, for accurate reuse in the user's own future
-  work. **Opt-in only**: trigger via `/ingest --research <path>`, "research mode", or "this is an
-  important paper". If you judge a source is a serious paper that warrants it, **ASK first**
-  ("This looks like a key paper — process in research mode? It's deeper and longer.") and never enter
-  it silently. In research mode:
+- **research** — primary material the owner will need to reuse exactly. In research mode:
   - Preserve exact figures (no rounding); quote critical claims verbatim with §/page refs; mark
     anything not directly stated as `unverified`; never infer numbers.
   - Replace the Step 3 source page with the **literature-note template** below.
   - Add academic frontmatter (`authors`, `year`, `venue`, `doi`, `mode: research`).
   - Cross-check findings against existing pages and flag confirmations/contradictions explicitly.
 
-Overrides: `--research` / `--concise` / `--standard` force a mode; otherwise auto (standard, dropping to concise).
+**Record it, always.** Every source page carries `mode: concise|standard|research` (Step 3); every run
+reports each source's depth + locator (Step 8) and logs the tally (Step 5). *Never silent* is now
+**never unrecorded**: consent lives in the range, notice lives in the record. Do **not** backfill `mode:`
+onto pages compiled before this contract — an absent value means "unknown", and inventing one would be
+fabrication.
 
 ### Research-mode source page (replaces the Step 3 template)
 ```markdown
@@ -121,6 +156,11 @@ f="<filename>"; u="<source: URL, or empty>"
   decisions). Read it and **merge new findings into the EXISTING wiki pages** (don't create a redundant
   second source page). A genuinely different artifact — notably a **review** — gets its own page and is
   filed to `raw/7-reviews/` (Step 6).
+  - **Depth upgrade (merge vs replace).** When the update is a *deeper depth* for an already-compiled
+    source, **replace that one source page** with the deeper template (research → the literature-note
+    template) and update its `mode:`; **merge** everywhere else — entity/concept/model/benchmark pages
+    take the new detail incrementally, never a rewrite. Never downgrade: a re-ingest at a shallower
+    depth leaves an existing deeper source page alone unless the user explicitly pins the shallower one.
 - **Quarantine** to `raw/duplicates/` when it's **not useful** (truly redundant) OR the user says
   **"ignore duplicates"**. Move the file there — never leave dups in the inbox or delete them.
 - No match (genuinely new) → proceed to Step 0. Record `source_url`/`source_hash` (Step 3) for next time.
@@ -167,6 +207,21 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
    perl -i -pe 's/[\x00-\x08\x0b\x0c\x0e-\x1f]//g; s{\[([^\]\n]*)\]\(([^)\n]*)\)}{ $2 =~ m{://|^#|mailto} ? "[$1]($2)" : "$1 ($2)" }ge; s/\[\[/[ [/g; s/\]\]/] ]/g' "raw/<stem>.md"
    ```
    (Strips control bytes; defangs `[a,b](z)`→`a,b (z)` and `[[x]]`→`[ [x] ]`; keeps real `https://` links. `raw/` is also graph-excluded — see CLAUDE.md §12.)
+3b. **Conversion-quality check (converted files only).** Some PDFs convert with the inter-word spaces
+   stripped, so the body reads `ProximalPolicyOptimizationAlgorithms…`. The text is still readable but
+   has **no word boundaries to quote**, which silently defeats research mode's verbatim-quote contract
+   and makes every word-count metric wrong. One arithmetic check, no LLM read:
+   ```bash
+   python3 -c "
+   t=open('raw/<stem>.md',encoding='utf-8',errors='replace').read()
+   w=len(t.split()) or 1; c=len(t); cjk=sum(1 for ch in t if '一'<=ch<='鿿')
+   print(('COLLAPSED' if c/w>50 and cjk/max(c,1)<0.10 else 'ok'), round(c/w), 'chars/word')"
+   ```
+   `COLLAPSED` → the source **cannot be research** (Modes override): compile at standard, say so in the
+   Step 8 report, and offer `--agent-convert` or a different capture route if the owner wants it quotable.
+   A high ratio with ≥10% CJK is **not** a collapse — Chinese and Japanese have no inter-word spaces, so
+   word counts are meaningless there while quoting works fine. (Threshold calibrated on this vault: real
+   collapses sit near 300–400 chars/word, ordinary English clips with long URLs reach 25.)
 4. **Keep the original untouched.** The original and the converted `.md` are now a **pair**. For a
    URL source there is no local original — the converted `.md` is the only file; keep the URL in
    `converted_from`.
@@ -200,6 +255,7 @@ Pull out: **core thesis** (1–2 sentences), **entities** (people/companies), **
 ---
 title: "Source: <Human Title>"
 type: source
+mode: concise | standard | research   # the depth you chose (Modes) — required on every source page
 confidence: medium   # per CLAUDE.md §4.6 — reflects the source: peer-reviewed/expert→authoritative · preprint/official-doc/owner-work(default)→high · secondary→medium · promo/social/transcript→low (a user instruction can override the tier)
 tags: [topic]
 sources: [raw/2-papers/report.md, raw/2-papers/report.pdf]   # converted .md AND original; one entry if native .md or URL
@@ -259,6 +315,7 @@ gets a `## Related` section.
   ## [YYYY-MM-DD] ingest | <short title>
   - **Changed**: created [[..]], [[..]]; updated [[index.md]]
   - **Converted**: <original> → <stem>.md via markitdown   (omit if source was native .md)
+  - **Mode**: <tally, e.g. research 2 · standard 9 · concise 1>   (note the range if it was narrowed or pinned)
   - **Confidence**: <level(s) assigned, e.g. high>   (note any override of the §4.6 default)
   - **Conflicts**: none (or: conflict [[Page]], flagged/paused)
   ```
@@ -296,21 +353,32 @@ Before reporting done, verify your own output so a later `/lint` would find noth
 
 Fix any gap immediately. Scope this to the pages you touched — don't re-scan the whole wiki (efficiency).
 
-### Step 8 — Report the new pages + confidence (for the user to check)
-After the self-check, surface a short summary so the human can review the agent's trust assignments: list
-each page **created or updated** with its assigned `confidence` (add a word of basis for any non-obvious
-one — an `authoritative`, or a `low`/`very-low`). Invite the user to flag any to re-grade; confidence is a
-one-line change. Example:
+### Step 8 — Report the new pages + depth + confidence (for the user to check)
+After the self-check, surface a short summary so the human can review the agent's two judgement calls —
+**how deep** each source was compiled and **how far** each page is to be trusted. List each page **created
+or updated** with its `confidence` (add a word of basis for any non-obvious one — an `authoritative`, or a
+`low`/`very-low`), and give every **source** its depth with the locator that justified it (Modes). Invite
+the user to re-grade either; both are one-line changes. Example:
 
 ```
-Ingested 1 source → 6 pages (review confidence):
-- [[some-source-slug]] — high  (peer-reviewed paper)
+Ingested 3 sources → 11 pages (range: all three)
+Depth:
+- [[some-paper-slug]]    — research  T1 (Table 3 ablations) · T2 (calibration, About Me)
+- [[some-docs-slug]]     — standard  T1 no (no original results)
+- [[some-tweet-slug]]    — concise   ¬T3 (both tools already have pages)
+Confidence:
+- [[some-paper-slug]] — authoritative  (peer-reviewed)
 - [[Some Concept]] — medium
 - [[Some Entity]] — low  (single promo source)
-Flag any you'd like re-graded.
+Re-grade a depth or a confidence and I'll fix it.
 ```
 
-**Completion gate:** an ingest is not done until this report has appeared in the reply. Deliver it in
+A depth cell with an empty locator is a defect — go back and name the evidence, or drop a rung. To
+**re-grade a depth upward** later, re-run `/ingest --research <sorted path>`: the de-dup pre-flight
+recognises it as a deeper-mode request and takes the UPDATE path.
+
+**Completion gate:** an ingest is not done until this report — **both** the depth lines and the
+confidence lines — has appeared in the reply. Deliver it in
 the same reply that declares the run complete — never deferred to a later turn, and never displaced by
 the self-check or other verification running long. A batch run reports every page of the batch in one
 table; an interrupted run reports the pages compiled so far at the point it stops. If zero pages were
@@ -324,7 +392,8 @@ created, one line saying so satisfies the gate.
 - Convert every non-`.md` source with `markitdown` before reading it; never guess a binary file's contents.
 - Every wiki page must have a `## Related` section (no orphans).
 - Every wiki page (except `map`) carries a `confidence` — assign it per CLAUDE.md §4.6 (free, since you've already read the source).
-- After ingesting, **report the created/updated pages with their `confidence`** so the user can review and re-grade — a completion gate: no done-declaration without it (Step 8).
+- **Every source page carries a `mode`** — decided *after* the read, inside the run's authorised range, never from filename/folder/length/markers (Modes). Never backfill it onto older pages.
+- After ingesting, **report the created/updated pages with their depth + locator and their `confidence`** so the user can review and re-grade — a completion gate: no done-declaration without it (Step 8).
 - **Refresh on write:** if qmd is active, refresh its index for the pages you created/updated (`qmd update && qmd embed`, incremental — the `qmd-search` hook); a no-op when qmd is dormant.
 - Entities/Concepts = Title Case filenames; Sources/Syntheses = kebab-case.
 - Write everything in **British/UK English** (US spelling only inside verbatim quotes, proper nouns, or code).

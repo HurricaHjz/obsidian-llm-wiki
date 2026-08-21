@@ -22,7 +22,10 @@ When the answer is valuable, **file it back** into the wiki so knowledge compoun
 - Mentions of: my wiki / my notes / my knowledge base / what I've researched.
 
 ## Modes: depth & style (see CLAUDE.md → Processing modes)
-Match answer depth to the mode (auto standard/concise; `research` is opt-in or ask-first).
+Match answer depth to the mode (auto standard/concise; `research` is **opt-in or ask-first, never
+silent** — this is query's rule and it is unchanged. `ingest` differs deliberately: it picks each
+source's depth after reading and records it, because a batch of forty sources cannot carry forty asks.
+One question can.)
 **All modes stay token-efficient — `research` permits more depth, never filler.**
 - **standard (DEFAULT)** — balanced, cited synthesis.
 - **concise** — a tight, direct answer citing only the few key pages.
