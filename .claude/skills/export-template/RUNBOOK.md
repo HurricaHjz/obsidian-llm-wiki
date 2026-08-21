@@ -10,7 +10,7 @@ bash .claude/skills/export-template/export_template.sh template-export
 Produces `template-export/` per `SPEC.md`.
 
 ## B. Verify (script prints most of this — confirm)
-- Skills = all of `ingest gather query lint deep-lint qmd-search output export-template` (export-template ships too, for contributors).
+- Skills = all of `ingest gather query reflect lint deep-lint qmd-search output export-template` (export-template ships too, for contributors).
 - `template-export/wiki` & `/raw` hold only `.gitkeep` (no seed, no `index.md`/`log.md`); the demo is in
   `template-export/examples/seed/`.
 - No personal leak: grep the build for **your own** name / handle / affiliation

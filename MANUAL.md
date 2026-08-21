@@ -17,7 +17,7 @@
 | `attic/` | **Your cold storage** — retired files kept "just in case", each listed in `attic/MANIFEST.md`. The agent never opens it unless you explicitly ask; archived notes show **grey** in the graph. |
 | `CUSTOMISATION.md` | **How your agent behaves** (vault root, seeded on first setup) — its name, output styles, task roles, and any standing preferences you add. Edit it, or just ask the agent. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
-| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `lint`, `deep-lint`, `attic`, and `qmd-search` (plus `export-template` for contributors). |
+| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `reflect`, `lint`, `deep-lint`, `attic`, and `qmd-search` (plus `export-template` for contributors). |
 
 Every note in `wiki/` (except the navigational maps) also carries a **confidence level**, so you can see at a glance how far to trust it:
 
@@ -41,13 +41,19 @@ Type these to the agent, in the Claudian panel or Claude Code.
 **`/ingest` — turn sources into wiki notes**
 - `/ingest` — process everything new in `raw/`.
 - `/ingest <file or https://…>` — a single file or web link; PDFs, documents, web pages, and YouTube are all handled.
-- `ingest this in research mode` — pin the thorough, academic treatment for an important paper: exact figures, verbatim quotes, methods, and limitations. Left unpinned, the agent decides per source after reading and shows you what it chose.
+- `ingest this at research depth` — pin the thorough, academic treatment for an important paper: exact figures, verbatim quotes, methods, and limitations. Left unpinned, the agent decides per source after reading and shows you what it chose.
 - Plain language works too: *"add this to my wiki."*
 - After each ingest, the agent lists the new notes with their **confidence level**, so you can check the trust ratings and ask to re-grade any.
 
 **`/query` — ask your knowledge base**
 - `/query <question>` — for example, *"/query what do my notes say about calibration?"*
 - Answers come **from your wiki**, with clickable `[[links]]` to the pages used, and can be filed back when worth keeping.
+
+**`/reflect` — keep what a session taught you**
+- `/reflect` — at the end of a working session, the agent sweeps the conversation for research insight, method lessons and any faults it found, then shows you a table of what it proposes to record and where. Nothing is written until you approve it.
+- It only ever runs when you ask. The agent already files findings as it works, and that carries on unchanged; this is your own trigger for the times it didn't.
+- It tells you how far back it can still see, since a long session may have dropped its earliest turns, and it never claims to have swept the whole thing.
+- Add `--yes` to let it write without waiting. It still shows you everything it wrote, and it may only add new pages or append to existing ones inside `wiki/` — never your own pages in `wiki/user/`, and never the rule-book.
 
 **`/output` — produce a polished deliverable**
 - `/output <what you want>` — for example, *"/output a one-page brief on X for a non-expert."*
@@ -69,7 +75,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - `/ingest --verbatim <url>` — save the **exact** page rather than a cleaned version, for precise quoting.
 - `/ingest --no-dedup` — skip the automatic "already ingested?" check when loading material you know is new.
 - `/ingest --agent-convert <file>` — the agent itself transcribes a PDF or image to Markdown instead of the automatic converter, for precision on complex layouts (heavier on tokens, so opt-in). If an automatic conversion comes back empty or garbled, the agent offers this route with a cost estimate before anything else.
-- `/ingest --modes concise,standard` — narrow the depths the agent may choose from for this run. It may use all three unless you narrow or pin.
+- `/ingest --depth concise,standard` — narrow the depths the agent may choose from for this run. It may use all three unless you narrow or pin.
 - Capture is automatic by type: web pages via `defuddle`, Markdown and text via `curl`, audio/video/binary via MarkItDown, with **Jina Reader** as a fallback for awkward or JavaScript-heavy pages.
 
 **`/gather` — capture from the web: links, or a whole topic**
@@ -105,7 +111,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - A plain `git push` only syncs a single repository with its own remote. This skill instead carries framework changes between two separate repositories, your private vault and the public framework repo, and assembles the shareable demo. Your knowledge therefore stays in its own private, independently backed-up vault, while your framework improvements still reach the public repo.
 
 **Modes and pacing**
-- **Modes** (depth): `concise` · `standard` · `research`. When ingesting, the agent picks a depth for each source **after reading it** and tells you which it chose and why, in the same report that lists confidence — so you can re-grade either with one word. Narrow what it may use with `/ingest --modes concise,standard`, or pin one for the whole run with `--research`, `--standard` or `--concise`. Asking a question is different: there `research` is opt-in or the agent asks first. All modes stay token-efficient.
+- **Depth**: `concise` · `standard` · `research`. When ingesting, the agent picks a depth for each source **after reading it** and tells you which it chose and why, in the same report that lists confidence — so you can re-grade either with one word. Narrow what it may use with `/ingest --depth concise,standard`, or pin one for the whole run with `--research`, `--standard` or `--concise`. Asking a question is different: there `research` is opt-in or the agent asks first. All modes stay token-efficient.
 - **Pacing** (how many at once): `auto` (default) · one at a time · in batches.
 
 **Customisation — make the agent yours**
@@ -140,7 +146,7 @@ graph view after any setup change to load new colours. **A fresh vault's graph i
 | 🔴 Red         | Models          | LLMs (Qwen, GPT, …)                            |
 | 🟣 Purple      | Benchmarks      | evaluation datasets (AIME, GSM8K, …)           |
 | ⚫ Charcoal     | Sources         | one summary per raw source (the bulk of nodes) |
-| 🩷 Pink        | Syntheses       | answers filed back from your queries           |
+| 🩷 Pink        | Syntheses       | knowledge the agent wrote itself, from a query, a reflect run, or its own reading |
 | 🟤 Brown       | Developments    | this vault's own self-upgrade docs (design · plans · rollouts) |
 | 🩶 Grey        | Attic           | retired files kept "just in case" (cold storage) |
 

@@ -1,7 +1,7 @@
 ---
 title: "Source: (EXAMPLE) GPT-4 and the MMLU benchmark"
 type: source
-mode: standard
+depth: standard
 confidence: high
 tags: [example, llm, benchmark]
 sources: ["raw/2-papers/example-gpt4-and-mmlu.md"]

@@ -63,7 +63,7 @@ then compiles. Capture is document-granular — whole pages, verbatim; salience 
 
 ## Flags
 `--search "<brief>"` · `--seed` · `--expand N` — citation hops beyond the fetched base (default:
-seed 1 · search 0; no fixed clamp — the page caps bound it; `--max-depth` accepted as a legacy
+seed 1 · search 0; no fixed clamp — the page caps bound it; `--max-depth` accepted as a legacy alias (link **hops**, unrelated to ingest's compile depth)
 alias) · `--focus "<topic>"` — semantic
 relevance filter (implied by the brief in search mode) · `--rounds N` — search-mode iterative
 deepening (default 1, max 3) · `--max-pages N` (default 10; hard ceiling 100) · `--shortlist N` —

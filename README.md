@@ -85,6 +85,7 @@ Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with 
 | `lint` | Check the wiki for broken links, orphans, and gaps (cheap, frequent). |
 | `deep-lint` | Heavier ~monthly pass, token-bounded: audit confidence levels, flag stale claims, and re-check a capped set of sources against their live online versions. |
 | `attic` | Retire notes into cold storage, or restore them — only ever on your explicit instruction. |
+| `reflect` | Capture what a working session taught — insight, method lessons, defects — and file what you approve. Only on your explicit instruction. |
 | `qmd-search` | *(optional)* Local semantic search over the wiki via qmd; dormant unless installed. |
 | `export-template` | Publish framework changes to GitHub. Contributors only; see the [Manual](MANUAL.md) and [CONTRIBUTING](CONTRIBUTING.md). |
 

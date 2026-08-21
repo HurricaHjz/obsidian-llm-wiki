@@ -21,17 +21,17 @@ When the answer is valuable, **file it back** into the wiki so knowledge compoun
 - Natural language: "what do my notes say about X", "what was my past decision on Y", "search my wiki for Z"
 - Mentions of: my wiki / my notes / my knowledge base / what I've researched.
 
-## Modes: depth & style (see CLAUDE.md → Processing modes)
-Match answer depth to the mode (auto standard/concise; `research` is **opt-in or ask-first, never
+## Depth (see CLAUDE.md → Processing depth)
+Match answer depth to the question (auto standard/concise; `research` is **opt-in or ask-first, never
 silent** — this is query's rule and it is unchanged. `ingest` differs deliberately: it picks each
 source's depth after reading and records it, because a batch of forty sources cannot carry forty asks.
 One question can.)
-**All modes stay token-efficient — `research` permits more depth, never filler.**
+**All depths stay token-efficient — `research` permits more depth, never filler.**
 - **standard (DEFAULT)** — balanced, cited synthesis.
 - **concise** — a tight, direct answer citing only the few key pages.
 - **research** — rigorous and exhaustive: exact figures, verbatim quotes with refs, explicit treatment
   of agreements/contradictions across sources, and a short "limitations / gaps" note. Higher accuracy
-  bar, still no filler. A filed synthesis uses academic structure + `mode: research`.
+  bar, still no filler. A filed synthesis uses academic structure + `depth: research`.
 
 ## Pipeline
 

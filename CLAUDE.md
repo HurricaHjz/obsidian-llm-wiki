@@ -43,10 +43,11 @@ it and carries the load check that proves it arrived. Never act on a partial or 
   permissions, raw immutability, the §4.6 confidence rubric, the logging contracts, or the wiki's
   UK-English rule.
 - **Styles** shape *conversational prose only* (chat replies, inline `query` answers, explanations)
-  and change only what the user reads — never internal reasoning, planning, tool use, or processing
-  depth. Wiki pages, frontmatter, confidence assignment and its reporting, `index`/`log` entries,
-  ingest/lint reports, conflict surfacing and `output/` deliverables stay **style-invariant**. Style
-  (delivery) is orthogonal to the §6 processing modes (depth).
+  and change only what the user reads — its **length and plainness** — never internal reasoning,
+  planning, tool use, or how thoroughly the work is done. Wiki pages, frontmatter, confidence
+  assignment and its reporting, `index`/`log` entries, ingest/lint reports, conflict surfacing and
+  `output/` deliverables stay **style-invariant**. Style (delivery) is orthogonal to the §6
+  **processing depth**.
 - **Roles** do shape how the agent works — task emphasis, approach and rigour, sometimes trading a
   little efficiency for quality — while never touching the governance floor or the style-invariant
   surfaces above.
@@ -132,7 +133,7 @@ unknown tags are silently stripped from view.
 │
 ├── attic/                     ← 🗄️ owner's COLD STORAGE: retired-but-kept files + MANIFEST.md. Explicit user instruction ONLY (§2.1); in the graph (grey); NOT knowledge
 │
-└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, attic, qmd-search, output, export-template
+└── .claude/skills/            ← custom workflow skills: ingest, gather, query, lint, deep-lint, attic, reflect, qmd-search, output, export-template
 ```
 
 ### Permission rules (non-negotiable)
@@ -219,10 +220,10 @@ updated: YYYY-MM-DD
 ---
 ```
 
-**Source pages carry `mode:` always** (`concise | standard | research`) — the depth they were compiled
+**Source pages carry `depth:` always** (`concise | standard | research`) — the depth they were compiled
 at, so it stays auditable; an absent value means "compiled before this rule" and is never backfilled.
-**Research mode only:** also add the academic fields (`authors`, `year`, `venue`, `doi`); other pages
-omit those to stay lean. (See §6 → Processing modes.)
+**Research depth only:** also add the academic fields (`authors`, `year`, `venue`, `doi`); other pages
+omit those to stay lean. (See §6 → Processing depth.)
 
 **De-dup (optional, on source pages):** `source_url` (a clip's original URL) and `source_hash` (hash of
 the raw file) let `ingest` detect a re-added document — see the `ingest` skill's de-dup pre-flight.
@@ -299,8 +300,9 @@ On a query, **read this first** to locate relevant pages, then drill in. This re
 ```
 Actions: `ingest` · `gather` · `synthesis` · `lint` · `deep-lint` · `framework` · `setup` · `maps` · `attic` · `export`.
 
-**Log only operations that change the brain:** `ingest`, a `synthesis` (a query answer filed into
-`syntheses/`), a `lint`/`deep-lint` *that applies fixes*, `maps` (creating or updating a Map of Content), `attic`
+**Log only operations that change the brain:** `ingest` (compiled from a raw source), a `synthesis`
+(**agent-derived knowledge written into the wiki** — a filed query answer, a `reflect` capture, or a
+proactive correction to an existing page), a `lint`/`deep-lint` *that applies fixes*, `maps` (creating or updating a Map of Content), `attic`
 (an archive/restore, §2.1), `framework` (a change to the system itself), and `setup` — plus two vault-event actions beside the brain: `gather`
 (a Raw-layer capture run) and `export` (a template publish; the publish itself logs `export`, while the
 framework edits it ships were already logged as `framework` when made; a confirmed `--pull --apply` is a framework change → `framework`).
@@ -318,6 +320,7 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 | `/lint` or "health-check the wiki" | **lint** | Cheap, frequent scan: dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. (No confidence/online checks — those are `deep-lint`'s.) |
 | `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy periodic pass (~monthly, or when flags accumulate): reconciles query-time `flagged:` freshness flags and the `known-issues` defect register, audits confidence/staleness on changed + flagged + sampled cold pages (never a full-vault LLM re-read), capped online-freshness probes, deep structural checks, the IDEAS.md Monitor review (its sole standing delegation), qmd refresh; updates the vault, confirming large changes. |
 | `/attic archive <files>` · `/attic restore <item>` or "archive X to the attic" | **attic** | *(explicit-only, never automatic)* The §2.1 runbook: inbound-reference census, harvest into surviving pages, owner-approved preview, move + manifest, plain-text link sweep, control-verified check. Deep-lint only suggests candidates; this skill moves them on the owner's word. |
+| `/reflect` or "capture what we learned" | **reflect** | *(explicit-only, never automatic)* Sweep the current conversation for research insight, method lessons and framework defects; check the register, apply an evidence bar, route each to a rule / wiki page / note / register / discard, and write only what the owner approves. A **second lane** beside the agent's unchanged in-flight filing — the owner's own trigger for what that lane missed. Bounded by what is still visible, and it says so. |
 | `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search over the wiki via qmd — **dormant** unless qmd is installed + enabled; the `query`/`output` fallback and the refresh-on-write hook. |
 | `/output <instruction>` or "write me a …" | **output** | Generate a deliverable (report/brief/deck/table/…) into `output/`, grounded in the wiki + cited; strictly follows the instruction, labels general knowledge, never fabricates. |
 
@@ -341,14 +344,14 @@ apply unchanged. (Design: `wiki/developments/agent-initiated-gather-design.md`.)
 
 **Never answer purely in chat for substantial work — answer in files**, then link them. Queries should compound back into the wiki.
 
-### Processing modes (depth; orthogonal to pacing — full detail in the `ingest`/`query` skills)
+### Processing depth (orthogonal to pacing — full detail in the `ingest`/`query` skills)
 **concise** · **standard** · **research** (raises *accuracy & structure* + adds academic frontmatter,
-**not** verbosity). Every mode stays token-efficient; `research` permits depth only where the material
+**not** verbosity). Every depth stays token-efficient; `research` permits depth only where the material
 justifies it. **In `ingest`, depth is chosen per source *after* reading it** — never from filename,
 folder or length — within the run's **authorised range** (default: all three; the user narrows with
-`--modes …` or pins with `--research`/`--standard`/`--concise`; a need outside the range stops and asks).
+`--depth …` or pins with `--research`/`--standard`/`--concise`; a need outside the range stops and asks).
 Consent lives in the range, notice lives in the record: **never silent → never unrecorded.** Every source
-page carries `mode:`, and every run reports each source's depth *with the evidence that decided it* and
+page carries `depth:`, and every run reports each source's depth *with the evidence that decided it* and
 logs the tally — a completion gate, never a step (design + measurements:
 `wiki/developments/ingest-auto-mode-design.md`). In `query`, where one question replaces a batch,
 `research` stays **opt-in or ask-first, never silent**.
@@ -360,7 +363,7 @@ logs the tally — a completion gate, never a step (design + measurements:
 Each skill's own description surfaces automatically — below is just *when to reach for which*:
 - **Capture / convert**: `defuddle` for a web page → Markdown (WebFetch only for throwaway lookups — **never to capture a source**, §3.1); **`markitdown`** to convert any non-`.md` source (PDF/PPTX/DOCX/XLSX/image/audio/HTML/CSV/EPUB/URL) before ingest (§3.1).
 - **Vault I/O**: prefer **`obsidian-cli`** (cheaper/safer than raw file ops); `obsidian-markdown` for Obsidian-flavoured syntax; `obsidian-bases` (`.base` views) · `json-canvas` (`.canvas` maps).
-- **Custom (this vault)**: `ingest` · `gather` (opt-in web capture: seed or search mode) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `attic` (explicit-only cold-storage archive/restore) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `output` · `export-template` (publish/update the public framework repo) — see §6.
+- **Custom (this vault)**: `ingest` · `gather` (opt-in web capture: seed or search mode) · `reflect` (explicit-only session capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `attic` (explicit-only cold-storage archive/restore) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `output` · `export-template` (publish/update the public framework repo) — see §6.
 - **Version control / backup**: the **Obsidian Git** plugin backs up the *whole vault* (knowledge included) to a *private* remote (history + multi-device sync); `export-template` publishes the *framework only* to the *public* repo. Two repos, never crossed (§11).
 
 ---
