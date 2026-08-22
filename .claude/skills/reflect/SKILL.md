@@ -16,8 +16,8 @@ user-invocable: true
 
 # reflect — capture what this session learned, on the owner's word
 
-The agent already files findings as it works (49 `synthesis` log entries and counting). **That lane is
-unchanged and ungated.** This skill is the *second* lane: an explicit trigger the owner owns, for the
+The agent already files findings as it works — the in-flight lane is real and measured (see
+`wiki/developments/reflect-skill-design.md`). **That lane is unchanged and ungated.** This skill is the *second* lane: an explicit trigger the owner owns, for the
 times the first one did not fire. It removes model-dependence from the **trigger**, not from the quality
 of the harvest — a weaker model still finds less; it just no longer has to think of looking.
 
@@ -53,10 +53,18 @@ Collect candidates of four kinds. The first two matter most often; the last is t
 - **Method / process lesson** — something about how to work that would change a future session.
 - **Defect** — a fault in a framework surface (the schema, a skill, a script).
 
-**Horizon, stated every run.** Earlier turns may have been compacted out of context. Name the earliest
-turn still visible and scope the claim to it. **Never report "nothing to capture this session"** — only
-"nothing in the visible span". This is a limitation, not a guarantee: the boundary is reported by the same
-instrument it bounds, so it cannot carry a positive control the way a file scan can (CLAUDE.md §11).
+**Horizon, measured every run.** Earlier turns may have been compacted out of context, so measure the
+boundary against the on-disk session transcript instead of asserting it: `echo` a fresh nonce in shell,
+then grep for it under the harness transcript directory (Claude Code: `~/.claude/projects/<vault path,
+separators as dashes>/*.jsonl`). The single file containing the nonce IS this session's record — the
+transcript logs the probe itself, which is the positive control (CLAUDE.md §11). Count its human turns
+with a filter **verified against the visible span** (every visible human turn must be matched; beware:
+tool results also carry `"type":"user"` and must be excluded), and report `visible k of N recorded
+turns`. **Fallback** — no transcript, no unique nonce match, or a filter that fails its own check →
+the unmeasured form: name the earliest visible turn and state that the boundary carries no control
+this run. **Never report "nothing to capture this session"** — only "nothing in the visible span".
+On `--full` (explicit request only), read the compacted-out remainder from the transcript file itself,
+declaring the token cost before reading.
 
 ### Step 3 — Apply the bar, then keep only what matters
 **The default is deliberately narrow: the unrecorded essentials, not everything noticed.** A long
@@ -117,6 +125,16 @@ legitimate page — say so plainly and let §4.6 grade it.
 own work is `high` by default and drops if they state uncertainty; an inference from an `authoritative`
 page inherits that standing; an extrapolation beyond the evidence is `very-low`. Record **provenance** in
 the page — what the claim rests on — so a later reader can tell.
+
+### Step 5b — Independent critique (default-on)
+Before the preview, brief a subagent to **refute** the candidate table: per candidate — is the evidence
+a real event in the recorded span, is it genuinely unrecorded (re-run the Step 3 destination checks),
+is it load-bearing, and does a self-conduct item name a true external witness? A refuted candidate
+moves to "seen, not proposed" with the refutation as its reason; an arguable refutation stays proposed
+with the objection attached. This is the bounded per-run witness self-reflection lacks (IDEAS №61 is
+the cross-session form). `--no-critic` skips it and the preview says "critic: skipped"; where the
+harness offers no subagent mechanism, say "critic: unavailable". **The critic filters proposals; it
+never approves writes — approval still terminates at the owner.**
 
 ### Step 6 — Preview, and get approval
 One table, always, before any write:

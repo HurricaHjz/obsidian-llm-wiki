@@ -67,6 +67,14 @@ Judge only the pages you have ALREADY read for this answer — never read extra 
   frontmatter `flagged: YYYY-MM-DD <one-phrase reason>` so `/deep-lint` reconciles it later.
 - Flags are annotations, not logged ops — the reconciling `deep-lint` run logs their resolution.
   (Design: `wiki/developments/deeplint-scalable-maintenance-design.md`.)
+- **The freshness line — a completion gate.** Every reply that read wiki pages ends with one line,
+  whatever the active style:
+  `Freshness: <N> pages read · oldest [[page]] (updated YYYY-MM-DD) · <k> flagged`
+  (`k` = flags placed or staleness fixes made this run; usually 0). The answer is **not done** until
+  the line has appeared — duties fire when they gate the done-declaration (measured 88% gated vs 4%
+  ungated: `wiki/developments/ingest-auto-mode-design.md`). Naming the oldest page is the locator —
+  the line cannot be written without looking at the `updated:` dates already in hand. A reply that
+  read no wiki pages (general-knowledge fallback) skips the line and says so.
 
 ### Step 4 — Degrade gracefully (two cases, never a bare refusal)
 - **No coverage** — if `index.md` has nothing relevant and the question is general knowledge, say so first:
@@ -118,4 +126,5 @@ Log a no-synthesis (inline-only) query **only if the user explicitly asks**.
 - **Never answer substantive questions from memory** — read the wiki first.
 - **Never** silently answer when the wiki lacks coverage — declare it.
 - **Use `confidence`** to triage, weight and hedge; on only-`low` coverage, answer *with a warning*, never a bare refusal.
+- **The freshness line is a completion gate** (Step 3b) — every reply that read wiki pages carries it; no done-declaration without it.
 - Output in **British/UK English** with real `[[wikilink]]` citations.

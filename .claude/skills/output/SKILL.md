@@ -86,7 +86,11 @@ propagate.
 
 ### Step 6 — Report + grounding note
 State the path written, then a 2–3-line **grounding note**: which wiki pages it draws on, what (if
-anything) is labelled general-knowledge, and any gaps flagged or questions still open.
+anything) is labelled general-knowledge, and any gaps flagged or questions still open — closing with
+the freshness line (`query` Step 3b's gate, style-invariant):
+`Freshness: <N> pages read · oldest [[page]] (updated YYYY-MM-DD) · <k> flagged`
+**A completion gate: the report is not done without it** (duties fire when they gate done — measured
+88% vs 4%, `wiki/developments/ingest-auto-mode-design.md`). A run that read no wiki pages says so instead.
 
 ## Hard constraints
 - **Follow the instruction exactly** — format, length, scope, inclusions/exclusions. Use defaults only

@@ -50,7 +50,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - Answers come **from your wiki**, with clickable `[[links]]` to the pages used, and can be filed back when worth keeping.
 
 **`/reflect` — keep what a session taught you**
-- `/reflect` — at the end of a working session, the agent sweeps the conversation for research insight, method lessons and any faults it found, then shows you a table of what it proposes to record and where. Nothing is written until you approve it.
+- `/reflect` — at the end of a working session, the agent sweeps the conversation for research insight, method lessons and any faults it found, then shows you a table of what it proposes to record and where. Nothing is written until you approve it. A critic subagent tries to knock down each proposal before you see it (`--no-critic` skips), and the report names how much of the session's record it could still see.
 - It only ever runs when you ask. The agent already files findings as it works, and that carries on unchanged; this is your own trigger for the times it didn't.
 - It tells you how far back it can still see, since a long session may have dropped its earliest turns, and it never claims to have swept the whole thing.
 - Add `--yes` to let it write without waiting. It still shows you everything it wrote, and it may only add new pages or append to existing ones inside `wiki/` — never your own pages in `wiki/user/`, and never the rule-book.
@@ -97,7 +97,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - Archived notes stay in the graph in **grey**, so retired material remains visible without cluttering your live knowledge. The agent never opens the attic on its own — only when you ask. The monthly `/deep-lint` may *suggest* archive candidates (stale or superseded notes) as ready-to-run `/attic` commands but never moves anything itself, and the routine `/lint` guards the boundary by flagging any live note that still links into the attic.
 
 **qmd — optional local semantic search (for large or fast-growing vaults)**
-> Worth adding when your wiki is **already large enough that `index.md` is hard to scan**, *or* when you **expect it to grow very large** — in that case adopt it **early**: the index then builds up incrementally (one quick re-embed per note as you go) instead of as one slow bulk embed later, and you get search-by-meaning the whole way up.
+> Worth adding when your wiki is **already large enough that `index.md` is hard to scan**, *or* when you **expect it to grow very large**. In that case adopt it **early**: the index then builds up incrementally (one quick re-embed per note as you go) instead of as one slow bulk embed later, and you get search-by-meaning the whole way up.
 - Once enabled, the agent **searches by meaning** (not just exact keywords) — but **only when it's actually needed**: when the normal `index.md` + keyword search comes up short for a question. It is **not** run on every search, and you don't have to ask for it — the agent decides when it genuinely helps (you *can* force it with `/qmd-search <query>`). Whenever qmd is off or absent, search silently falls back to the normal path.
 - It stays **dormant and cost-free** until you install and enable it, runs **only as quick one-shot calls** (nothing is ever left running in the background), and the agent keeps its index fresh automatically as you add or change notes. Ask the agent to set it up when you're ready.
 
@@ -106,7 +106,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - This is **separate from sharing the framework**: Obsidian Git backs up *everything to a private repo*; the framework is published *stripped of your notes to a public repo*. Keep the two remotes distinct.
 
 **`/export-template` — publish framework changes (contributors only)**
-> ⚠️ **For developers/contributors only.** If you are not planning to contribute changes to the framework itself, **ignore this skill** — you never need it to capture sources or use your wiki.
+> ⚠️ **For developers/contributors only.** If you are not planning to contribute changes to the framework itself, **ignore this skill**. You never need it to capture sources or use your wiki.
 - It packages the framework with **none** of your notes and syncs it with the public GitHub repo: `--push` publishes your framework changes, `--pull` updates your framework from upstream. It always previews and asks before writing anything, one direction at a time.
 - A plain `git push` only syncs a single repository with its own remote. This skill instead carries framework changes between two separate repositories, your private vault and the public framework repo, and assembles the shareable demo. Your knowledge therefore stays in its own private, independently backed-up vault, while your framework improvements still reach the public repo.
 
@@ -118,8 +118,8 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - Your agent's **name**, default **output style**, and **interaction preferences** live in `CUSTOMISATION.md`, seeded on first setup. Edit it — or just ask the agent — to change how it addresses you and how it writes.
 - Those are only starter examples: the file is **open-ended**. Add any standing preference you want every session to honour — citation habits, formatting rules, tutoring style, anything — as new bullets or sections.
 - **Deliverable defaults** (optional): a `## Deliverable defaults` section sets standing formats for `/output` documents — citation style, deck format, and so on. Leave it empty and the agent chooses per deliverable; whatever you write in the instruction always wins.
-- **Roles**: say *"act as tutor"* (or any role you define under `## Roles`) to switch the agent's task context for the conversation; every reply opens with the active `role · style`. Roles shape how the agent works on your task and add to your global preferences; they never change your output style — how much you read stays your choice alone.
-- **Output styles** shape conversation only, one ladder from most to least: `detailed` (everything the prompt makes relevant) · `balanced` (the default — the natural answer) · `brief` (a few fluent paragraphs, still a full answer) · `summary` (the minimum that fully answers). Say *"switch to brief"* for one session, or *"make summary my default"* to keep it. You can add your own styles too.
+- **Roles**: say *"act as tutor"* (or any role you define under `## Roles`) to switch the agent's task context for the conversation; every reply opens with the active `role · style` status line, a claim the reply has to satisfy rather than a decoration. Roles shape how the agent works on your task and add to your global preferences; they never change your output style — how much you read stays your choice alone.
+- **Output styles** shape conversation only, one ladder from most to least: `detailed` (everything the prompt makes relevant) · `balanced` (the default — the natural answer) · `brief` (a few fluent paragraphs, still a full answer) · `summary` (the minimum that fully answers). Say *"switch to brief"* for one session, or *"make summary my default"* to keep it. You can add your own styles too. A scoped wish such as *"more concise for the next 3 replies"* shows as `customised` in the status line while it lasts, then the style reverts on its own.
 - Choosing a style **never** changes the wiki itself — your notes, their confidence ratings, and the agent's status reports stay exactly the same.
 
 **More `/query` examples**
@@ -132,8 +132,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 
 ## Graph view (colours)
 
-The graph is **colour-coded by node type**, so the shape of your knowledge reads at a glance. Reopen the
-graph view after any setup change to load new colours. **A fresh vault's graph is empty** until you `/ingest` your first source (or load the demo with `bash setup.sh --with-example`) — the colours appear as soon as there are notes to colour, and `setup.sh` / your first ingest apply the palette automatically. If the colours ever disappear later (Obsidian can rewrite its graph config), just ask the agent to restore your graph colours.
+The graph is **colour-coded by node type**, so the shape of your knowledge reads at a glance. Reopen the graph view after any setup change to load new colours. **A fresh vault's graph is empty** until you `/ingest` your first source (or load the demo with `bash setup.sh --with-example`). The colours appear as soon as there are notes to colour, and `setup.sh` or your first ingest applies the palette automatically. If the colours ever disappear later (Obsidian can rewrite its graph config), just ask the agent to restore your graph colours.
 
 | Colour         | Node type       | What it is                                     |
 | -------------- | --------------- | ---------------------------------------------- |
@@ -150,7 +149,7 @@ graph view after any setup change to load new colours. **A fresh vault's graph i
 | 🟤 Brown       | Developments    | this vault's own self-upgrade docs (design · plans · rollouts) |
 | 🩶 Grey        | Attic           | retired files kept "just in case" (cold storage) |
 
-New nodes colour themselves: each colour keys off the **type folder** (`wiki/models/`, …), so anything the agent files there is coloured automatically — no manual tagging.
+New nodes colour themselves: each colour keys off the **type folder** (`wiki/models/`, …), so anything the agent files there is coloured automatically, with no manual tagging.
 
 ---
-*This manual is stable — it changes only when the system's setup changes, not on every ingest or query.*
+*This manual is stable. It changes only when the system's setup changes, not on every ingest or query.*

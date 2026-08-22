@@ -499,6 +499,10 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   active voice, short sentences, scannable structure; cut filler and redundancy. It must never read like
   AI-generated boilerplate. Write as **formal documentation**: no Q&A / FAQ-style phrasing ("Why not X?"),
   no rhetorical questions, and no defensive asides or parentheticals. State each point as a plain claim.
+  In `README.md` and `MANUAL.md`, flowing prose additionally keeps the human-expert punctuation
+  register: em-dashes, colons and semicolons stay rare, each earning a place no plain sentence would
+  serve. Headings, tables, code, and the `**term** — gloss` list format are structure, not prose, and
+  are exempt; `CLAUDE.md` and the skills are agent-facing contracts and keep their native idiom.
 - **Always log it** — append a `## [date] framework | …` entry to `wiki/log.md`.
 - **Always report system-file changes in-reply.** When a response edits a system file (`CLAUDE.md`,
   `MANUAL.md`, `README.md`, a skill, `setup.sh`), surface it in that reply as a table: what changed ·

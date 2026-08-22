@@ -39,6 +39,12 @@ grep -q 'no role may change the active style' "$ROOT/$CUST" 2>/dev/null && ok "r
 grep -q 'offer the full report' "$ROOT/$CUST" 2>/dev/null && ok "examiner compression-notice line seeded" || no "notice line missing"
 grep -q 'status line'         "$ROOT/$CUST" 2>/dev/null && ok "status-line rule shipped"               || no "status-line rule missing"
 grep -q "never the agent's internal reasoning" "$ROOT/$CUST" 2>/dev/null && ok "reasoning-invariance clause shipped" || no "reasoning-invariance clause missing"
+grep -q 'how plainly it is put' "$ROOT/$CUST" 2>/dev/null && ok "plainness dimension seeded (two-dimension ladder, v0.8.8)" || no "plainness preamble missing"
+grep -q '| depth | per request; ingest picks per source' "$ROOT/$CUST" 2>/dev/null && ok "depth axis row seeded (v0.8.8 vocabulary)" || no "depth axis row missing/stale"
+grep -q '^### customised' "$ROOT/$CUST" 2>/dev/null && ok "customised span seeded (№56)" || no "customised span missing"
+grep -q 'a claim, never a label' "$ROOT/$CUST" 2>/dev/null && ok "status-line claim rule seeded (№56)" || no "status-line claim rule missing"
+T=$(grep -c 'Test:' "$ROOT/$CUST" 2>/dev/null || echo 0)
+[ "$T" -ge 6 ] && ok "per-style Test clauses seeded ($T lines)" || no "Test clauses missing ($T lines, need >=6)"
 RAW=$(python3 -c "
 import re,sys
 s=open('$ROOT/$CUST').read()
@@ -48,8 +54,8 @@ print(len(re.findall(r'<[a-zA-Z][\w-]*>',b)))" 2>/dev/null || echo 99)
 grep -q 'CUSTOMISATION-LOADED-v1'     "$ROOT/$CUST" 2>/dev/null && ok "load marker seeded"                  || no "load marker missing"
 grep -q '^@CUSTOMISATION\.md' "$VAULT/CLAUDE.md" && ok "shipped CLAUDE.md imports the preference layer" || no "CLAUDE.md import line missing"
 L=$(wc -l < "$ROOT/$CUST" | tr -d ' '); B=$(wc -c < "$ROOT/$CUST" | tr -d ' ')
-# leanness guard only — the old ~10 KB bound encoded the hook-transport limit retired in v0.7.6; raised 2026-07-31 for the shipped Human-expert register default; raised 2026-08-14 for the four-style delivery ladder
-[ "$B" -le 14336 ]                            && ok "seeded template stays lean (${B} B / $L lines)"      || no "seeded template too heavy (${B} B / $L lines)"
+# leanness guard only — the old ~10 KB bound encoded the hook-transport limit retired in v0.7.6; raised 2026-07-31 for the shipped Human-expert register default; raised 2026-08-14 for the four-style delivery ladder; raised 2026-08-22 for the №56 style-ceiling enforcement layer (claim + Test clauses + customised spans)
+[ "$B" -le 16384 ]                            && ok "seeded template stays lean (${B} B / $L lines)"      || no "seeded template too heavy (${B} B / $L lines)"
 
 echo "== 3) re-run is idempotent (never overwrites user edits) =="
 fresh; ( cd "$ROOT" && bash setup.sh >/dev/null 2>&1 ); printf '\nMY EDIT\n' >> "$ROOT/$CUST"
