@@ -17,7 +17,7 @@
 | `attic/` | **Your cold storage** — retired files kept "just in case", each listed in `attic/MANIFEST.md`. The agent never opens it unless you explicitly ask; archived notes show **grey** in the graph. |
 | `CUSTOMISATION.md` | **How your agent behaves** (vault root, seeded on first setup) — its name, output styles, task roles, and any standing preferences you add. Edit it, or just ask the agent. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
-| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `reflect`, `lint`, `deep-lint`, `attic`, and `qmd-search` (plus `export-template` for contributors). |
+| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `reflect`, `lint`, `deep-lint`, `attic`, and `qmd-search` (plus `export-template` for framework updates). |
 
 Every note in `wiki/` (except the navigational maps) also carries a **confidence level**, so you can see at a glance how far to trust it:
 
@@ -101,14 +101,15 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - Once enabled, the agent **searches by meaning** (not just exact keywords) — but **only when it's actually needed**: when the normal `index.md` + keyword search comes up short for a question. It is **not** run on every search, and you don't have to ask for it — the agent decides when it genuinely helps (you *can* force it with `/qmd-search <query>`). Whenever qmd is off or absent, search silently falls back to the normal path.
 - It stays **dormant and cost-free** until you install and enable it, runs **only as quick one-shot calls** (nothing is ever left running in the background), and the agent keeps its index fresh automatically as you add or change notes. Ask the agent to set it up when you're ready.
 
-**Back up your vault — Obsidian Git (optional)**
-- The **Obsidian Git** plugin saves your *entire* vault — notes and all — to a **private** Git remote, giving you version history and sync across machines. Set it up once (a private repo + the plugin's backup command).
-- This is **separate from sharing the framework**: Obsidian Git backs up *everything to a private repo*; the framework is published *stripped of your notes to a public repo*. Keep the two remotes distinct.
+**Back up your vault — private repo**
+- Your *entire* vault — notes and all — can back up to a **private** Git remote, giving you version history and sync across machines. Ask the agent to set it up once; after that it backs up automatically after every framework publish, and any time you say "back up my vault".
+- This is **separate from sharing the framework**: the backup keeps *everything in a private repo*; the framework is published *stripped of your notes to a public repo*. Keep the two remotes distinct.
+- The **Obsidian Git** plugin is an optional extra if you want continuous, timed auto-backups without asking the agent.
 
-**`/export-template` — publish framework changes (contributors only)**
-> ⚠️ **For developers/contributors only.** If you are not planning to contribute changes to the framework itself, **ignore this skill**. You never need it to capture sources or use your wiki.
-- It packages the framework with **none** of your notes and syncs it with the public GitHub repo: `--push` publishes your framework changes, `--pull` updates your framework from upstream. It always previews and asks before writing anything, one direction at a time.
-- A plain `git push` only syncs a single repository with its own remote. This skill instead carries framework changes between two separate repositories, your private vault and the public framework repo, and assembles the shareable demo. Your knowledge therefore stays in its own private, independently backed-up vault, while your framework improvements still reach the public repo.
+**`/export-template` — sync the framework with its repo**
+> Most users need this only to **update**: `--pull` brings a newer framework version into your vault. `--push` publishes framework changes and is the maintainer's path. You never need either to capture sources or use your wiki.
+- It packages the framework with **none** of your notes and syncs it with the public GitHub repo, one direction at a time. It always previews and asks before writing anything.
+- A plain `git push` only syncs a single repository with its own remote. This skill instead carries framework changes between two separate repositories, your private vault and the public framework repo, and assembles the shareable demo. Your knowledge therefore stays in its own private, independently backed-up vault, while the framework itself stays shareable through the public repo.
 
 **Modes and pacing**
 - **Depth**: `concise` · `standard` · `research`. When ingesting, the agent picks a depth for each source **after reading it** and tells you which it chose and why, in the same report that lists confidence — so you can re-grade either with one word. Narrow what it may use with `/ingest --depth concise,standard`, or pin one for the whole run with `--research`, `--standard` or `--concise`. Asking a question is different: there `research` is opt-in or the agent asks first. All modes stay token-efficient.

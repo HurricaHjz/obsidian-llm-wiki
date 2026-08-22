@@ -8,7 +8,6 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
 ├── README.md                  # onboarding: what it is · prerequisites · quick start → Manual
 ├── MANUAL.md                  # how to use it (beginner-first)
 ├── LICENSE.md                 # MIT — Mingjun (Jerry) Zhang, 2026
-├── CONTRIBUTING.md
 ├── .gitignore                 # tracks the framework, ignores all knowledge/content
 ├── .gitattributes
 ├── setup.sh                   # first-run bootstrap (registries; --with-example; --reset)
@@ -28,7 +27,7 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
 ```
 
 ## Git tracking policy
-- **Tracked (framework):** README, Manual, LICENSE.md, CONTRIBUTING, .gitignore, .gitattributes, setup.sh,
+- **Tracked (framework):** README, Manual, LICENSE.md, .gitignore, .gitattributes, setup.sh,
   CLAUDE.md, `.claude/skills/**`, `.obsidian/{graph,app,core-plugins,appearance}.json`, the `.gitkeep`
   skeleton, and `examples/`.
 - **Ignored (local knowledge):** `wiki/**` (incl. `index.md`, `log.md`), `raw/**`, `assets/**` (bar the README images),
@@ -37,8 +36,8 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
   local, and `git push` shares only framework changes.
 
 ## KEEP / STRIP (copied from the live vault by the builder)
-- **KEEP →** CLAUDE.md, MANUAL.md, `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` (from the vault root),
-  `.claude/skills/**` — **every** skill, **incl. `export-template`** (the contributor publish tool, with its `payload/`),
+- **KEEP →** CLAUDE.md, MANUAL.md, `README.md`/`LICENSE.md` + `assets/` (from the vault root),
+  `.claude/skills/**` — **every** skill, **incl. `export-template`** (the maintainer's publish tool, with its `payload/`),
   `.obsidian/{graph,app,core-plugins,appearance}.json`.
 - **STRIP →** all `wiki/**`, `raw/**`, `assets/**` (bar the README images), `output/**`, `attic/**`,
   `wiki/user/**`, `CUSTOMISATION.md`, personal data, `.obsidian/workspace.json`/`plugins/`/`community-plugins.json`, `.claudian/`, `.git/`.
@@ -52,12 +51,12 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
 ## Push / pull round-trip (how repo and vault stay in sync)
 The builder runs **one direction per invocation** (see SKILL.md):
 - **push** (vault → repo): `copy_framework` (CLAUDE.md, MANUAL.md, skills, `.obsidian`, seed) +
-  `copy_packaging` (`README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` from the vault root; setup.sh + git
+  `copy_packaging` (`README.md`/`LICENSE.md` + `assets/` from the vault root; setup.sh + git
   dotfiles from `payload/`) + `make_skeleton` + `apply_fixes`.
 - **pull** (repo → vault, with `--apply`): repo framework → vault (CLAUDE.md, MANUAL.md,
-  `README.md`/`LICENSE.md`/`CONTRIBUTING.md`+`assets/`, all skills — copied **per-name**, incl.
+  `README.md`/`LICENSE.md`+`assets/`, all skills — copied **per-name**, incl.
   `export-template` itself (replacing the running script is Unix-safe)); repo setup.sh/git-dotfiles/seed → `payload/`.
-- **Canonical sources:** `README.md`, `LICENSE.md`, `CONTRIBUTING.md` + `assets/` live at the **vault root**
+- **Canonical sources:** `README.md`, `LICENSE.md` + `assets/` live at the **vault root**
   (visible, editable); the build machinery lives in `payload/`. Pull keeps both fresh so push never clobbers
   upstream edits.
 - **Pull never writes** to `wiki/ raw/ output/` (and your own `assets/` media), never touches

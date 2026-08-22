@@ -23,11 +23,11 @@ build_fake_vault(){
   mkdir -p "$V/.claude/skills" "$V/.obsidian" "$V/wiki/sources" "$V/raw" "$V/assets" "$V/output"
   printf '# CLAUDE (test contract)\n' > "$V/CLAUDE.md"
   printf '# Manual (test)\n' > "$V/MANUAL.md"
-  printf '# README (test)\n\n![graph](assets/framework_demo.png)\n\nSee the [Manual](MANUAL.md).\n\nLicence: [LICENSE](LICENSE.md) · [CONTRIBUTING.md](CONTRIBUTING.md)\n' > "$V/README.md"
+  printf '# README (test)\n\n![graph](assets/framework_demo.png)\n\nSee the [Manual](MANUAL.md).\n\nLicence: [LICENSE](LICENSE.md)\n' > "$V/README.md"
   printf 'FAKE-PNG-BYTES\n' > "$V/assets/framework_demo.png"      # README screenshot — force-tracked
   printf 'LOCAL-USER-MEDIA\n' > "$V/assets/my_photo.png"          # user media — must NOT ship
   printf 'MIT License (test)\n' > "$V/LICENSE.md"
-  printf '# Contributing (test)\n' > "$V/CONTRIBUTING.md"
+  printf '# Contributing (test — legacy leftover, must never ship)\n' > "$V/CONTRIBUTING.md"
   for f in app core-plugins appearance; do printf '{\n  "x": 1\n}\n' > "$V/.obsidian/$f.json"; done
   printf '{ "colorGroups": [ {"query":"path:wiki/models/","color":1} ], "showOrphans": true, "scale": 0.5, "close": true, "search": "q", "collapse-filter": true }\n' > "$V/.obsidian/graph.json"
   for s in ingest query lint oldskill output gather newskill; do  # 'newskill' tests dynamic discovery
@@ -62,8 +62,7 @@ chk "build: assets/ screenshot present"     '[ -f "$BUILT/assets/framework_demo.
 chk "build: LICENSE.md present"             '[ -f "$BUILT/LICENSE.md" ]'
 chk "build: LICENSE.md sourced from root"   'diff -q "$V/LICENSE.md" "$BUILT/LICENSE.md"'
 chk "build: no legacy no-ext LICENSE"       '[ ! -f "$BUILT/LICENSE" ]'
-chk "build: CONTRIBUTING present"           '[ -f "$BUILT/CONTRIBUTING.md" ]'
-chk "build: CONTRIBUTING sourced from root" 'diff -q "$V/CONTRIBUTING.md" "$BUILT/CONTRIBUTING.md"'
+chk "build: CONTRIBUTING NOT shipped (retired)" '[ ! -f "$BUILT/CONTRIBUTING.md" ]'
 chk "build: .gitignore present"             '[ -f "$BUILT/.gitignore" ]'
 chk "build: setup.sh present + executable"  '[ -x "$BUILT/setup.sh" ]'
 chk "build: 8 skills shipped (auto-discovered)" '[ "$(ls "$BUILT/.claude/skills" | wc -l | tr -d " ")" = 8 ]'
@@ -126,7 +125,7 @@ chk "preview: still writes nothing"         '[ "$(hash_of "$V/README.md")" = "$b
 echo "== Phase 5: pull --apply updates root docs + assets, pulls new skills, preserves export-template, spares knowledge =="
 setup_published
 printf '\nUPSTREAM EDIT v2\n' >> "$CLONE/README.md"
-printf '# new contributing\n' > "$CLONE/CONTRIBUTING.md"
+printf '# new contributing\n' > "$CLONE/CONTRIBUTING.md"   # legacy repo-side file — retired, must NOT flow home
 printf 'NEW LICENSE v2\n' > "$CLONE/LICENSE.md"
 mkdir -p "$CLONE/.claude/skills/repoonly"; printf '# repoonly\n' > "$CLONE/.claude/skills/repoonly/SKILL.md"   # exists only upstream
 ( cd "$CLONE" && $GIT add -A && $GIT commit -qam edit2 && $GIT push -q ) >/dev/null 2>&1
@@ -134,7 +133,7 @@ b_secret="$(hash_of "$V/wiki/sources/secret.md")"
 bash "$SCRIPT" --pull "$CLONE" --apply >/dev/null 2>&1
 chk "apply: README updated at root"         'grep -q "UPSTREAM EDIT v2" "$V/README.md"'
 chk "apply: LICENSE.md updated at root"     'grep -q "NEW LICENSE v2" "$V/LICENSE.md"'
-chk "apply: CONTRIBUTING updated at root"   'grep -q "new contributing" "$V/CONTRIBUTING.md"'
+chk "apply: CONTRIBUTING NOT pulled (retired)" '! grep -q "new contributing" "$V/CONTRIBUTING.md"'
 chk "apply: assets/ screenshot present"     '[ -f "$V/assets/framework_demo.png" ]'
 chk "apply: repo-only skill pulled (dynamic)" '[ -d "$V/.claude/skills/repoonly" ]'
 chk "apply: user media untouched"           '[ -f "$V/assets/my_photo.png" ]'

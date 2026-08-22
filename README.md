@@ -87,7 +87,7 @@ Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with 
 | `attic` | Retire notes into cold storage, or restore them — only ever on your explicit instruction. |
 | `reflect` | Capture what a working session taught — insight, method lessons, defects — and file what you approve. Only on your explicit instruction. |
 | `qmd-search` | *(optional)* Local semantic search over the wiki via qmd; dormant unless installed. |
-| `export-template` | Publish framework changes to GitHub. Contributors only; see the [Manual](MANUAL.md) and [CONTRIBUTING](CONTRIBUTING.md). |
+| `export-template` | Sync with the framework repo: `--pull` updates your copy from upstream; `--push` is the maintainer's publish path. See the [Manual](MANUAL.md). |
 
 ## What the repository tracks
 
@@ -97,4 +97,4 @@ To back those notes up, use the optional Obsidian Git step above. That gives you
 
 ## Credits and licence
 
-Based on Andrej Karpathy's [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) pattern and kepano's [obsidian-skills](https://github.com/kepano/obsidian-skills). Released under the MIT License ([`LICENSE`](LICENSE.md)); contributions are welcome (see [`CONTRIBUTING.md`](CONTRIBUTING.md)).
+Based on Andrej Karpathy's [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) pattern and kepano's [obsidian-skills](https://github.com/kepano/obsidian-skills). Released under the MIT License ([`LICENSE`](LICENSE.md)).

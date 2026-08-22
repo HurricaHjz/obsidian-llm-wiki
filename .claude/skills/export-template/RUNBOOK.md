@@ -10,7 +10,7 @@ bash .claude/skills/export-template/export_template.sh template-export
 Produces `template-export/` per `SPEC.md`.
 
 ## B. Verify (script prints most of this — confirm)
-- Skills = all of `ingest gather query reflect lint deep-lint qmd-search output export-template` (export-template ships too, for contributors).
+- Skills = all of `ingest gather query reflect lint deep-lint qmd-search output export-template` (export-template ships too — users need its `--pull` to update).
 - `template-export/wiki` & `/raw` hold only `.gitkeep` (no seed, no `index.md`/`log.md`); the demo is in
   `template-export/examples/seed/`.
 - No personal leak: grep the build for **your own** name / handle / affiliation
@@ -47,7 +47,7 @@ Produces `template-export/` per `SPEC.md`.
 > Publish repository (untick "keep private").
 
 ## D. Maintain — push and pull (ONE direction at a time)
-The framework round-trips with the repo (README.md, LICENSE.md, CONTRIBUTING.md + `assets/` at the vault root; the
+The framework round-trips with the repo (README.md, LICENSE.md + `assets/` at the vault root; the
 build machinery in the skill's `payload/`). Keep your clone **outside the vault**; never sync both ways at
 once. **Easiest:**
 ask the agent to publish or update via the
@@ -61,7 +61,7 @@ git -C /path/to/obsidian-llm-wiki-assistant pull --ff-only                      
 bash .claude/skills/export-template/export_template.sh --push /path/to/obsidian-llm-wiki-assistant
 cd /path/to/obsidian-llm-wiki-assistant && git add -A && git diff       # review → commit → push
 ```
-`--push` overlays vault-owned files (CLAUDE.md, MANUAL.md, `README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/`,
+`--push` overlays vault-owned files (CLAUDE.md, MANUAL.md, `README.md`/`LICENSE.md` + `assets/`,
 `.claude/skills/**`, `.obsidian` config, `examples/seed`) **and** the build machinery from the skill's
 `payload/` (setup.sh, .gitignore, .gitattributes), leaving `.git/` untouched. (`--sync` is an alias.)
 
@@ -71,7 +71,7 @@ bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-
 bash .claude/skills/export-template/export_template.sh --pull /path/to/obsidian-llm-wiki-assistant --apply    # apply (+ --with-graph for colours)
 ```
 `--pull` previews which framework files differ, then (with `--apply`) copies CLAUDE.md, MANUAL.md,
-`README.md`/`LICENSE.md`/`CONTRIBUTING.md` + `assets/` and the skills into your vault and refreshes the `payload/`
+`README.md`/`LICENSE.md` + `assets/` and the skills into your vault and refreshes the `payload/`
 machinery — **never** touching your knowledge (`wiki/ raw/ output/` and your own `assets/` media) or `.obsidian` config. It copies
 skills per-name — including `export-template` itself; replacing the running script mid-pull is Unix-safe (the old inode stays open).
 

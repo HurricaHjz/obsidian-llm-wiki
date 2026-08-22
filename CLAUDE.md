@@ -34,28 +34,22 @@ in `wiki/user/`. **Consult it whenever personal context helps** — tailoring an
 citing their own work, or resolving who "I / me / my" refers to. The human curates it; add or update
 pages there only when asked or clearly appropriate.
 
-**Customisation (`CUSTOMISATION.md`):** the owner's **open-ended** preference layer for the
-agent — its name, conversational output style and role, language, interaction preferences, or any
-other standing preference the owner adds. It is **in context before your first reply**: §13 imports
-it and carries the load check that proves it arrived. Never act on a partial or previewed copy.
+**Customisation (`CUSTOMISATION.md`):** the owner's **open-ended** preference layer — agent name,
+output style and role, language, any standing preference. It is **in context before your first
+reply**: §13 imports it and carries the load check. Never act on a partial or previewed copy.
 - **Precedence:** this schema's governance ≫ a live user instruction ≫ `CUSTOMISATION.md` ≫ built-in
-  defaults. It is **user-space config, not a governance layer** — it can never relax the §2
-  permissions, raw immutability, the §4.6 confidence rubric, the logging contracts, or the wiki's
-  UK-English rule.
-- **Styles** shape *conversational prose only* (chat replies, inline `query` answers, explanations)
-  and change only what the user reads — its **length and plainness** — never internal reasoning,
-  planning, tool use, or how thoroughly the work is done. Wiki pages, frontmatter, confidence
-  assignment and its reporting, `index`/`log` entries, ingest/lint reports, conflict surfacing and
-  `output/` deliverables stay **style-invariant**. Style (delivery) is orthogonal to the §6
-  **processing depth**.
-- **Roles** do shape how the agent works — task emphasis, approach and rigour, sometimes trading a
-  little efficiency for quality — while never touching the governance floor or the style-invariant
-  surfaces above.
-- **Deliverable defaults** — an optional section holding standing *content-format* preferences
-  (citation style, deck format, …) that the `output` skill applies **only where the instruction is
-  silent**; an explicit instruction always wins, and an empty or absent section means the agent
-  decides. That section is the **single home** of these defaults — `output` re-reads it on every run
-  and never copies its values into skills, configs, or other files.
+  defaults. **User-space config, not a governance layer** — it can never relax the §2 permissions,
+  raw immutability, the §4.6 rubric, the logging contracts, or the wiki's UK-English rule.
+- **Styles** shape *conversational prose only* — the **length and plainness** of what the user reads —
+  never internal reasoning, planning, tool use, or how thoroughly the work is done. Wiki pages,
+  frontmatter, confidence assignment and its reporting, `index`/`log` entries, ingest/lint reports,
+  conflict surfacing and `output/` deliverables stay **style-invariant**. Style (delivery) is
+  orthogonal to §6 **processing depth**.
+- **Roles** do shape how the agent works — emphasis, approach and rigour, sometimes trading a little
+  efficiency for quality — while never touching the governance floor or the style-invariant surfaces.
+- **Deliverable defaults** — standing *content-format* preferences the `output` skill applies **only
+  where the instruction is silent** (explicit instruction wins; empty/absent = agent decides). That
+  section is their **single home** — `output` re-reads it every run and never copies values elsewhere.
 - **Logging:** a persisted change to this file is logged as `framework`; a session-only style switch is not.
 
 **Language:** Write and maintain the entire wiki in **English with British/UK spelling** (colour,
@@ -64,16 +58,14 @@ non-English sources into UK English. Keep US spelling **only** inside verbatim q
 and code / identifiers (e.g. Obsidian's `colorGroups` / `color` JSON keys). This applies to all future
 writing — existing pages are updated opportunistically when edited, not in a mass rewrite.
 
-**Line discipline:** Obsidian renders every single newline as a hard line break, so **never hard-wrap
-prose at a fixed column** — write each paragraph, list item, or quote as one continuous line and let
-the editor soft-wrap; put a newline only where a rendered break belongs. This governs prose rendered for humans — `wiki/**` pages, `output/**` deliverables, and the root docs `README.md`, `MANUAL.md`, `IDEAS.md`. The
-agent's raw-text contract and source files (`CLAUDE.md` and the skills under `.claude/skills/**`) keep
-source-file wrapping: they are read as text, and fixed columns give line-granular diffs. Within a
-governed file, frontmatter, code blocks, tables and HTML comments are still exempt; existing
-hard-wrapped wiki pages are fixed opportunistically when edited (`deep-lint` flags suspects, `wiki/`
-only). Likewise wrap every angle-bracket placeholder in backticks —
-Obsidian parses a raw `<tag>` in prose as HTML: a bare `<style>` hijacks the page's rendering and
-unknown tags are silently stripped from view.
+**Line discipline:** Obsidian renders every newline as a hard break, so **never hard-wrap prose at a
+fixed column** — one continuous line per paragraph, list item or quote; a newline only where a
+rendered break belongs. Governs human-rendered prose: `wiki/**`, `output/**`, and the root docs
+`README.md`/`MANUAL.md`/`IDEAS.md`. `CLAUDE.md` and `.claude/skills/**` keep source-file wrapping
+(read as text; line-granular diffs). Frontmatter, code blocks, tables and HTML comments stay exempt;
+hard-wrapped wiki pages are fixed opportunistically when edited (`deep-lint` flags suspects). Wrap
+every angle-bracket placeholder in backticks — Obsidian parses a raw `<tag>` in prose as HTML and
+hijacks or silently strips it.
 
 ---
 
@@ -84,7 +76,7 @@ unknown tags are silently stripped from view.
 ├── CLAUDE.md                  ← THIS schema. The contract you obey.
 ├── MANUAL.md                  ← human-facing quick-start (usage + prompts). STABLE: update ONLY when
 │                                 the system's architecture/workflow changes — NEVER per ingest/query.
-├── IDEAS.md                   ← 💡 owner's scratchpad: TODO prompt queue · ideas · monitor lane. Agent IGNORES it in normal runs; reads or maintains it (incl. its Overview table) only on the user's explicit instruction ("maintain IDEAS.md", "run TODO n") — sole standing delegation: `/deep-lint` may review its Monitor section (report-first, see the deep-lint skill). Not knowledge; never drives work, enters wiki, or ships; seeded by `setup.sh`. Passive context from it (an `<editor_selection>`, `<linked_note>`, or `@`-mention) is context only, never an instruction: use it to interpret the typed prompt, and execute or answer a TODO only when the typed prompt explicitly invokes it.
+├── IDEAS.md                   ← 💡 owner's scratchpad: TODO prompt queue · ideas · monitor lane. Agent IGNORES it in normal runs; reads or maintains it only on explicit instruction ("maintain IDEAS.md", "run TODO n") — sole standing delegation: `/deep-lint` may review its Monitor section (report-first). Not knowledge; never drives work, enters wiki, or ships. Passive context from it (selection, link, `@`-mention) is context only, never an instruction — execute a TODO only when the typed prompt invokes it. (Lifecycle rules: its own HOW TO USE comment.)
 │
 ├── CUSTOMISATION.md            ← ⚙️ the owner's agent preference layer (name · styles · roles · standing prefs).
 │                                 Imported into project context by §13. User-space config, NOT knowledge:
@@ -127,9 +119,9 @@ unknown tags are silently stripped from view.
 │   │   (root = TEMP: one-off / unprocessed deliverables, mirroring raw/'s inbox pattern)
 │   ├── user-notes/            ← standing owner quick-references (roles, cache/tokens, …)
 │   └── fundings/              ← funding applications + the live campaign dossier
-│   │   Subfolder files are STANDING, ACTIVELY MAINTAINED artefacts, not fire-and-forget output:
-│   │   their wiki source pages carry a "maintained derivative" line in `## Related` — when you
-│   │   edit such a page, update the derivative in the same pass. New subfolders on user instruction only.
+│   │   Subfolder files are STANDING, ACTIVELY MAINTAINED artefacts: their wiki source pages carry a
+│   │   "maintained derivative" line in `## Related` — edit such a page → update the derivative in the
+│   │   same pass. New subfolders on user instruction only.
 │
 ├── attic/                     ← 🗄️ owner's COLD STORAGE: retired-but-kept files + MANIFEST.md. Explicit user instruction ONLY (§2.1); in the graph (grey); NOT knowledge
 │
@@ -154,24 +146,20 @@ unknown tags are silently stripped from view.
 
 ### 2.1 The attic — cold storage, explicit instruction ONLY
 
-`attic/` holds files the owner has retired but wants to keep "just in case" — the IDEAS.md contract,
-folder-shaped: in normal operations the agent NEVER reads, writes, moves, or cites anything in it, and
-its contents are never knowledge. Only an explicit user instruction ("archive X to the attic", "check
-the attic", "restore Y") opens it. `attic/MANIFEST.md` catalogues the contents — one line per item —
-and is written ONLY during the two operations below.
-- **Archive (on instruction):** move the file into `attic/`; append a manifest line
-  (`- [YYYY-MM-DD] [[file]] — from origin/path — one-phrase reason`); if it was a wiki page, remove
-  its `index.md` entry and replace inbound links from live pages with plain text ("X, archived");
-  then log an `attic` entry (§5).
-- **Unarchive (on instruction):** reverse it — move the file back, delete its manifest line, re-index
-  a wiki page, restore links where wanted; log an `attic` entry.
-- **Graph:** the attic IS in the graph, coloured grey — the manifest's `[[links]]` give every archived
-  note an edge (orphan nodes are hidden in the graph settings), so retired material stays visible
-  without ever re-entering the knowledge base.
-- **Procedure:** archive/restore operations run through the **`attic` skill** (census → harvest of
-  future-useful facts into surviving pages → owner-approved preview → move + manifest → plain-text
-  link sweep → control-verified check). The skill is procedure only — the permissions above remain
-  the contract — and routine `/lint` guards the boundary (no live page may link into the attic).
+`attic/` holds files the owner retired but keeps "just in case": in normal operations the agent NEVER
+reads, writes, moves or cites anything in it, and its contents are never knowledge — only an explicit
+user instruction ("archive X to the attic", "check the attic", "restore Y") opens it.
+`attic/MANIFEST.md` catalogues contents, one line per item
+(`- [YYYY-MM-DD] [[file]] — from origin/path — one-phrase reason`), written ONLY during these operations:
+- **Archive (on instruction):** move the file in; append its manifest line; if a wiki page, de-index
+  it and replace inbound links from live pages with plain text ("X, archived"); log an `attic` entry
+  (§5). **Unarchive (on instruction):** reverse it all; log an `attic` entry.
+- **Graph:** the attic IS in the graph, coloured grey — the manifest's `[[links]]` keep every archived
+  note visible without re-entering the knowledge base.
+- **Procedure:** both operations run through the **`attic` skill** (census → harvest into surviving
+  pages → owner-approved preview → move + manifest → plain-text link sweep → control-verified check);
+  the permissions above remain the contract, and routine `/lint` guards the boundary (no live page
+  may link into the attic).
 
 ---
 
@@ -185,21 +173,23 @@ and is written ONLY during the two operations below.
 
 **Sort each processed file by content + `source:` URL** into the matching `raw/` subfolder (the §2 map names them; the full type→folder table lives in the `ingest` skill, Step 6). Non-obvious lanes: `7-reviews/` (peer reviews / OpenReview), `9-originals/` (the owner's own works), `archives/` (catch-all), `duplicates/` (confirmed dups).
 
-**Duplicate handling:** a detected duplicate is **not auto-discarded**. *Process it as an update* —
-merging new findings into the **existing** pages — when a deeper depth is asked for (`--research`), extra
-instructions, a newer version, or genuinely new content (e.g. an **OpenReview / review** page)
-warrant it. Only when it adds nothing, or the user says *"ignore duplicates"*, move it to
-`raw/duplicates/`. Reviews are their own category (`raw/7-reviews/`), not duplicates. (See the `ingest` skill.)
+**Duplicate handling:** a detected duplicate is **not auto-discarded** — process it as an *update* to
+the **existing** pages when a deeper depth, extra instructions, a newer version or genuinely new content
+(e.g. an **OpenReview / review** page) warrant it; only when it adds nothing, or on *"ignore
+duplicates"*, move it to `raw/duplicates/`. Reviews are their own category (`raw/7-reviews/`), never
+duplicates. (See the `ingest` skill.)
 
 ### 3.1 Non-Markdown sources → convert to Markdown first (MarkItDown)
 
-Markdown is the LLM's native format. **Conversion runs ONLY for non-`.md` sources** — a file already
-`.md` (e.g. a Web Clipper clip) is ingested **as-is**, so no tokens are wasted. Any other input — PDF,
-PPTX, DOCX, XLSX, image, audio, HTML, CSV, EPUB, or a YouTube/web **URL** — is first captured as Markdown (a raw `.md`/text URL via `curl` **verbatim**; web pages via `defuddle` — real content, *not* a summary; YouTube/binary via the **`markitdown`** engine; **never WebFetch for ingest — it returns a model *summary*, not the source**), saved into `raw/` as `<stem>.md` with provenance frontmatter
+**Conversion runs ONLY for non-`.md` sources** — a file already `.md` is ingested **as-is**. Any other
+input — PDF, Office, image, audio, HTML, CSV, EPUB, or a YouTube/web **URL** — is first captured as
+Markdown (raw `.md`/text URLs via `curl` **verbatim**; web pages via `defuddle` — real content, *not* a
+summary; YouTube/binary via **`markitdown`**; **never WebFetch for ingest — it returns a model
+*summary*, not the source**), saved into `raw/` as `<stem>.md` with provenance frontmatter
 (`converted_from` / `converted_by` / `converted_on`), and the **original is kept** — the pair moves
-together when sorted (§3). **Dual provenance:** wiki pages built from a converted source list **both**
-the converted `.md` and the original (path or URL) in `sources:`. Exact commands, name-clash handling,
-the opt-in **`--verbatim`** byte-exact capture (`curl`/`gh`), and the scanned-PDF fallback live in the `ingest` skill (Step 0).
+together when sorted (§3). **Dual provenance:** pages built from a converted source list **both** files
+in `sources:`. Exact commands, name-clash handling, opt-in **`--verbatim`** capture and the scanned-PDF
+fallback: the `ingest` skill, Step 0.
 
 ---
 
@@ -277,10 +267,11 @@ confidence). Compiled pages (concept/entity/tool/model/benchmark) **cap at `high
 peer-reviewed/expert sources are `authoritative`; agent-derived pages (`synthesis`, `development`) likewise
 cap at `high` and default to `medium`. Keep inline `unverified` for specific shaky claims
 (`type` already carries the summary-vs-generated axis, so `confidence` stays a pure trust signal).
-**Use:** `ingest` assigns it free (the source is already read) and reports each new page's level for review; `query` triages/weights/hedges by it (and reports the confidence of any synthesis it files) and,
-when coverage is only `low`, still answers *with a warning*; the monthly `/deep-lint` (not routine
-`/lint`) audits coverage, staleness and freshness. Full rubric + decision procedure:
-`wiki/developments/wiki-confidence-levels.md`. **Defaults — an explicit user instruction overrides a page's tier** (e.g. the owner's own work is `high` by default, but the user may set a given work higher, like a published paper → `authoritative`, or lower).
+**Use:** `ingest` assigns it free (the source is already read) and reports each new page's level;
+`query` triages/weights/hedges by it, reports the confidence of any filed synthesis, and answers
+`low`-only coverage *with a warning*; `/deep-lint` (never routine `/lint`) audits coverage, staleness
+and freshness. Full rubric: `wiki/developments/wiki-confidence-levels.md`. **An explicit user
+instruction overrides a page's tier** (e.g. the owner's published paper → `authoritative`).
 
 ---
 
@@ -314,54 +305,48 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 
 | Trigger | Skill | What it does |
 |---------|-------|--------------|
-| `/ingest` or "add this to my wiki" | **ingest** | Compile inbox files → wiki pages, update index+log, then sort the raw file into its category subfolder. |
-| `/gather <url…>` · `/gather --search "<topic>"` or "gather sources on X" | **gather** | *(opt-in)* Web capture into `raw/` — seed mode (given URLs ± the links they cite) or search mode (topic → web search → approved shortlist; `--rounds` deepening); preview-and-approve, capped; then hand to `ingest`. |
-| `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → synthesise a cited answer; offer to file high-value answers into `syntheses/`. |
-| `/lint` or "health-check the wiki" | **lint** | Cheap, frequent scan: dead links, orphans, unindexed pages, unresolved conflicts; report; fix only after confirmation. (No confidence/online checks — those are `deep-lint`'s.) |
-| `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy periodic pass (~monthly, or when flags accumulate): reconciles query-time `flagged:` freshness flags and the `known-issues` defect register, audits confidence/staleness on changed + flagged + sampled cold pages (never a full-vault LLM re-read), capped online-freshness probes, deep structural checks, the IDEAS.md Monitor review (its sole standing delegation), qmd refresh; updates the vault, confirming large changes. |
-| `/attic archive <files>` · `/attic restore <item>` or "archive X to the attic" | **attic** | *(explicit-only, never automatic)* The §2.1 runbook: inbound-reference census, harvest into surviving pages, owner-approved preview, move + manifest, plain-text link sweep, control-verified check. Deep-lint only suggests candidates; this skill moves them on the owner's word. |
-| `/reflect` or "capture what we learned" | **reflect** | *(explicit-only, never automatic)* Sweep the current conversation for research insight, method lessons and framework defects; check the register, apply an evidence bar, route each to a rule / wiki page / note / register / discard, and write only what the owner approves. A **second lane** beside the agent's unchanged in-flight filing — the owner's own trigger for what that lane missed. Bounded by what is still visible, and it says so. |
-| `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search over the wiki via qmd — **dormant** unless qmd is installed + enabled; the `query`/`output` fallback and the refresh-on-write hook. |
-| `/output <instruction>` or "write me a …" | **output** | Generate a deliverable (report/brief/deck/table/…) into `output/`, grounded in the wiki + cited; strictly follows the instruction, labels general knowledge, never fabricates. |
+| `/ingest` or "add this to my wiki" | **ingest** | Compile inbox files → wiki pages; update index+log; sort the raw file into its category subfolder. |
+| `/gather <url…>` · `/gather --search "<topic>"` or "gather sources on X" | **gather** | *(opt-in)* Web capture into `raw/` — seed mode (URLs ± cited links) or search mode (topic → approved shortlist); preview-and-approve, capped; hands to `ingest`. |
+| `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → cited answer; offer to file high-value answers into `syntheses/`. |
+| `/lint` or "health-check the wiki" | **lint** | Cheap frequent scan (dead links, orphans, unindexed pages, unresolved conflicts); report; fix only after confirmation. |
+| `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy ~monthly superset: reconciles `flagged:` flags + the `known-issues` register, audits confidence/staleness (changed + flagged + sampled cold pages, never a full-vault re-read), capped online probes, the IDEAS.md Monitor review (its sole standing delegation), qmd refresh; confirms large changes. |
+| `/attic archive <files>` · `/attic restore <item>` | **attic** | *(explicit-only, never automatic)* The §2.1 runbook: census → harvest → owner-approved preview → move + manifest → control-verified check. |
+| `/reflect` or "capture what we learned" | **reflect** | *(explicit-only, never automatic)* Sweep the still-visible conversation for research insight, method lessons, framework defects; route by evidence bar; write only what the owner approves. |
+| `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search via qmd — dormant unless installed + enabled (§10). |
+| `/output <instruction>` or "write me a …" | **output** | Deliverable into `output/`, wiki-grounded + cited, instruction-strict, labels general knowledge, never fabricates. |
 
-> **Ingest and query leave the graph integrity-clean by construction** (index synced, no dead
-> links/orphans — ingest self-checks at Step 7). So you do **not** need to `/lint` after a normal
-> ingest. `/lint` is for *drift* (manual edits/renames, external or OneDrive/git sync changes) and
-> periodic *discovery* (emerging gap pages, cross-corpus contradictions, stale claims). The monthly
-> **`/deep-lint`** is the heavy superset that additionally audits confidence, staleness and online
-> freshness; routine `/lint` never does that work. Staleness detection is **event-driven**:
-> `query`/`output` flag suspect pages they have already read (`flagged:` frontmatter, §4.4 conflict
-> blocks — no extra reads), and `deep-lint` reconciles the accumulated flags plus a sampled cold
+> **Ingest and query leave the graph integrity-clean by construction** (ingest self-checks at Step 7),
+> so no `/lint` after a normal ingest: `/lint` is for *drift* (manual edits, sync changes) and periodic
+> *discovery*; only `/deep-lint` audits confidence, staleness and online freshness. Staleness detection
+> is **event-driven**: `query`/`output` flag suspect pages they have already read (`flagged:`
+> frontmatter, §4.4 blocks — no extra reads), and `deep-lint` reconciles the flags plus a sampled cold
 > tail rather than re-reading the vault (design: `wiki/developments/deeplint-scalable-maintenance-design.md`).
 
 **Gap-driven gather (propose-only).** When a `query`/`output` run finds the vault demonstrably lacks
-knowledge load-bearing for the live task, the agent may append ONE proposal after the answer — why
-(the evidenced gap) · what (sources sought) · how (the literal `/gather` command, never `--yes`) ·
-cost — surfaced whatever the active style. Only the owner's explicit yes runs it, scoped to that
-echoed run-spec; silence is not consent — propose once, remind once, then quiet; an explicit no ends
-it for the session. Non-interactive runs never propose — they report the gap. Gather's own gates
-apply unchanged. (Design: `wiki/developments/agent-initiated-gather-design.md`.)
+knowledge load-bearing for the live task, it may append ONE why · what · how (the literal `/gather`
+command, never `--yes`) · cost proposal, surfaced whatever the active style. Only the owner's explicit
+yes runs it — propose once, remind once, then quiet; an explicit no ends it for the session.
+Non-interactive runs report the gap instead. (Full contract: the query/output/gather skills; design:
+`wiki/developments/agent-initiated-gather-design.md`.)
 
 **Never answer purely in chat for substantial work — answer in files**, then link them. Queries should compound back into the wiki.
 
 ### Processing depth (orthogonal to pacing — full detail in the `ingest`/`query` skills)
-**concise** · **standard** · **research** (raises *accuracy & structure* + adds academic frontmatter,
-**not** verbosity). Every depth stays token-efficient; `research` permits depth only where the material
-justifies it. **In `ingest`, depth is chosen per source *after* reading it** — never from filename,
-folder or length — within the run's **authorised range** (default: all three; the user narrows with
-`--depth …` or pins with `--research`/`--standard`/`--concise`; a need outside the range stops and asks).
-Consent lives in the range, notice lives in the record: **never silent → never unrecorded.** Every source
-page carries `depth:`, and every run reports each source's depth *with the evidence that decided it* and
-logs the tally — a completion gate, never a step (design + measurements:
-`wiki/developments/ingest-auto-mode-design.md`). In `query`, where one question replaces a batch,
-`research` stays **opt-in or ask-first, never silent**.
+**concise** · **standard** · **research** (raises *accuracy & structure* + academic frontmatter,
+**not** verbosity; every depth stays token-efficient). **In `ingest`, depth is chosen per source
+*after* reading it** — never from filename, folder or length — within the run's **authorised range**
+(default all three; `--depth …` narrows, a depth flag pins; a need outside the range stops and asks).
+**Never silent → never unrecorded:** every source page carries `depth:`, and every run reports each
+choice *with its evidence* and logs the tally — a completion gate, never a step (design:
+`wiki/developments/ingest-auto-mode-design.md`). In `query`, `research` stays **opt-in or ask-first,
+never silent**.
 
 ---
 
 ## 7. Available Skills & When To Use Them
 
 Each skill's own description surfaces automatically — below is just *when to reach for which*:
-- **Capture / convert**: `defuddle` for a web page → Markdown (WebFetch only for throwaway lookups — **never to capture a source**, §3.1); **`markitdown`** to convert any non-`.md` source (PDF/PPTX/DOCX/XLSX/image/audio/HTML/CSV/EPUB/URL) before ingest (§3.1).
+- **Capture / convert**: `defuddle` for web page → Markdown; **`markitdown`** for any non-`.md` source; WebFetch only for throwaway lookups, **never to capture a source** (§3.1).
 - **Vault I/O**: prefer **`obsidian-cli`** (cheaper/safer than raw file ops); `obsidian-markdown` for Obsidian-flavoured syntax; `obsidian-bases` (`.base` views) · `json-canvas` (`.canvas` maps).
 - **Custom (this vault)**: `ingest` · `gather` (opt-in web capture: seed or search mode) · `reflect` (explicit-only session capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `attic` (explicit-only cold-storage archive/restore) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `output` · `export-template` (publish/update the public framework repo) — see §6.
 - **Version control / backup**: the **Obsidian Git** plugin backs up the *whole vault* (knowledge included) to a *private* remote (history + multi-device sync); `export-template` publishes the *framework only* to the *public* repo. Two repos, never crossed (§11).
@@ -371,10 +356,9 @@ Each skill's own description surfaces automatically — below is just *when to r
 ## 8. Media Handling
 
 - **Media & reference attachments** (images, diagrams, screenshots, and *special* PDFs you want to link to but **not** ingest) live in **`assets/`**. Embed with `![[name.png]]`. (Normal source PDFs belong in `raw/` — see below.)
-- **Source files you want to ingest** (PDFs, papers, slides, docs, …) are *sources*, not attachments
-  → keep them in `raw/`. `/ingest` **converts them to Markdown with MarkItDown first** (§3.1), then
-  compiles the result; the original and the converted `.md` both sort to their category folder
-  (e.g. `raw/2-papers/`). Scanned-PDF fallback (when conversion yields empty text) lives in the `ingest` skill.
+- **Source files you want to ingest** (PDFs, papers, slides, …) are *sources*, not attachments →
+  keep them in `raw/`; `/ingest` converts via MarkItDown first (§3.1) and both files sort to their
+  category folder (e.g. `raw/2-papers/`).
 - **LLMs can't read inline-image Markdown in one pass.** Workflow: read the **text first**, then
   open referenced images **separately** with the Read tool to gain visual context.
 - If a source has external image URLs worth keeping, download them into `assets/` with a
@@ -399,17 +383,13 @@ Each skill's own description surfaces automatically — below is just *when to r
 ## 10. Search & Scale
 
 - At this scale (~100–200 sources, hundreds of pages) **`index.md` is the search layer** — no vector DB needed; the agent reads it first, then `grep`s.
-- **Optional semantic layer — [qmd](https://github.com/tobi/qmd) via the `qmd-search` skill.** A local hybrid
-  BM25 + vector + rerank engine, **dormant by default**: the agent uses it only when qmd is installed, an index
-  exists, and no `.qmd-off` marker sits in the vault root (installing qmd + building an index *is* the
-  opt-in; the marker forces qmd off without uninstalling); otherwise it silently falls back to `index.md` →
-  `grep`. **CLI shell-out by default** (MCP daemon optional). **Retrieval only** — `index.md` stays the
-  read-first catalogue and the compiled layer keeps governing; qmd ranks by relevance, then the agent re-orders
-  by `confidence` (§4.6).
-- **Refresh on write:** whenever a page is created or updated, its `confidence` and (if qmd is active) its qmd
-  embedding are refreshed **together**, so both signals stay current. Adopt qmd when the wiki outgrows
-  `index.md`, **or earlier if it's expected to grow very large** (so embedding stays incremental rather than
-  one bulk pass) — see `wiki/developments/implementing-qmd-opt-in-plan.md`.
+- **Optional semantic layer — [qmd](https://github.com/tobi/qmd) via the `qmd-search` skill** (local
+  BM25 + vector + rerank), **dormant by default**: used only when qmd is installed, an index exists,
+  and no `.qmd-off` marker sits at the vault root; otherwise silent fallback to `index.md` → `grep`.
+  **Retrieval only** — the compiled layer keeps governing; the agent re-orders qmd hits by
+  `confidence` (§4.6). Full contract: the `qmd-search` skill.
+- **Refresh on write:** a created/updated page refreshes its `confidence` and (if qmd is active) its
+  embedding **together**. Adoption timing: `wiki/developments/implementing-qmd-opt-in-plan.md`.
 
 ---
 
@@ -422,15 +402,20 @@ Each skill's own description surfaces automatically — below is just *when to r
     `examples/`. **Never `git add`** captured or compiled **knowledge** — `wiki/**` (incl. `index.md`,
     `log.md`), `raw/**`, `assets/**`, `output/**`; the shipped `.gitignore` enforces this.
     A file is committable here only if it changes the *system*, not if it is *content the system produced*.
-  - **Private vault backup** *(optional)* — the **Obsidian Git** plugin versions the vault's *own* git repo,
-    backing up your **whole vault, knowledge included, to a PRIVATE remote** (history + multi-device sync).
-    This is encouraged and does **not** conflict with the rule above: it is a *different repo* (private,
-    everything) from the public framework repo (public, framework-only). **Never point the vault's backup
-    remote at the public framework repo**, and never publish knowledge.
+  - **Private vault backup** — the vault's *own* git repo backs up the **whole vault, knowledge
+    included, to a PRIVATE remote** (history + multi-device sync). It is a *different repo* (private,
+    everything) from the public framework repo (public, framework-only): **never point the backup
+    remote at the public framework repo**, and never publish knowledge. Where it exists, the **agent
+    maintains it** — after every successful public publish, and on request ("back up the vault") — via
+    the `export-template` skill's Private backup step: add-all → dated commit → push, report-only,
+    no review gate. Routine backups are **never logged** in `wiki/log.md`. The Obsidian Git plugin
+    stays an optional extra for continuous timed auto-backups.
   - Commit or publish **only when the user asks** — and gate **every** publish (whatever the path,
-    skill or script) on the **version-family recap table**: all releases of the current minor version
-    plus the candidate, each row verified (full spec in the `export-template` skill). The user's
-    approval of that table *is* the publish approval.
+    skill or script) on a **verified candidate recap**: the candidate's row verified against the actual
+    files, its version number derived from evidence (full spec in the `export-template` skill). The
+    **full version-family table** runs only at a minor-version boundary (the first release of a new
+    minor) or on an explicit "full recap". The user's approval of the presented recap *is* the
+    publish approval.
 - ⚠️ **Token cost** — pushing many linked pages + this schema into context on every op is expensive. Read selectively (index first), not the whole wiki.
 - ⚠️ **Hallucination is the cardinal risk.** A fabricated fact compiled into the wiki becomes a
   permanent "fact" that poisons future reasoning. When unsure, mark it `unverified` and cite the
@@ -448,86 +433,66 @@ Each skill's own description surfaces automatically — below is just *when to r
 ## 12. Framework / self-modification policy
 When you change *how the system works* (this `CLAUDE.md`, a skill, the folder layout, conventions):
 
-- **Performance is the first-class constraint; ignore the one-time upgrade cost.** The first priority of
-  every framework change is the best possible *recurring* behaviour — correctness, guarantees, quality.
-  The **one-time cost of performing the upgrade itself** (the tokens/effort to migrate, backfill,
-  re-embed, re-tag, …) is **not a design factor** — never weaken the future design to make the upgrade
-  cheaper. A large one-time cost may be surfaced to *warn* the developer, but it never shapes the design.
-- **Token efficiency serves performance, never rivals it.** It ranks immediately after — and inside —
-  performance: choose the cheapest design *among those that fully deliver the behaviour*, and never
-  sacrifice a correctness property, a guarantee, or an approval gate to save a trivial cost.
-  **Trade rule (three-way):** a real behavioural gain costing only a few lines or a few hundred
-  always-on tokens (negligible against sessions of millions) is taken **automatically**; cost without
-  behavioural gain is rejected **automatically** (that is bloat, and it stays banned). Between those,
-  when a real gain demands a genuinely expensive recurring cost, **never decide unilaterally —
-  present the trade-off (the gain, the recurring cost, the options) and let the user decide.**
+- **Performance is the first-class constraint; ignore the one-time upgrade cost.** Every framework
+  change optimises the best possible *recurring* behaviour — correctness, guarantees, quality. The
+  one-time cost of the upgrade itself (migrate, backfill, re-embed, …) is **not a design factor**:
+  surface a large one to *warn* the developer, never to shape the design.
+- **Token efficiency serves performance, never rivals it**: choose the cheapest design *among those
+  that fully deliver the behaviour*; never sacrifice a correctness property, guarantee or approval
+  gate to save a trivial cost. **Trade rule (three-way):** a real behavioural gain for a few lines or
+  a few hundred always-on tokens is taken **automatically**; cost without behavioural gain is rejected
+  **automatically** (bloat stays banned); a real gain demanding a genuinely expensive recurring cost
+  is **never decided unilaterally** — present the gain, the cost and the options, let the user decide.
   Discipline still applies wherever it does no harm — shell over LLM reads, compact output, scoped
   checks, opt-in over always-on for anything expensive.
-- **System files carry behaviour, not history.** Framework files (this schema, `MANUAL.md`, `README.md`,
-  the skills, `setup.sh`) state *what to do now*. Keep only the minimal rationale that shapes a judgement
-  call, or that a human-facing doc (README/Manual) deliberately explains. Change history and design
-  rationale belong in `wiki/developments/` and `wiki/log.md` — never in files loaded each session.
-- **Sweep the contract, not just the code.** A change that retires or alters a rule must find every
-  *restatement* of that rule — in this schema, the skills, their tests, and forward-facing
-  `developments/` specs — and reconcile them all in the same change; dated records of what was once
-  true stay as they are. Grep for the retired **claim**, not only for the changed path, and prove the
-  sweep ran with a control pattern (§11). A contract left standing in two places drifts silently.
-- **Attack a new guard before shipping it.** For any check, script or hook added, enumerate what it
-  does when its own premise fails — the file it reads is missing, the marker it looks for was deleted,
-  the pattern it greps matches nothing — and make each case behave sensibly. A guard that fires on its
-  own broken premise is worse than no guard.
-- **Consult and record in `wiki/developments/`.** This vault keeps its **own self-upgrade history** there
-  (type `development`: design · plan · rollout docs). **Before** a framework change, read the relevant
-  `developments/` docs so you build on prior decisions rather than re-derive or contradict them; **after**,
-  file the new design/plan/rollout there (`type: development`, and report its `confidence`). It is the
-  framework's memory of how and why it evolved — treat it as the first place to look when self-upgrading.
-  Write each doc **forward-facing**: the current design plus the rationale future work needs; record
-  decision changes as dated status facts, and keep drafting corrections in `log.md` or chat — a
-  contract must never read as a rebuttal of its own earlier wording.
-- **Log defects the moment you find them.** When any run surfaces a defect in an existing framework
-  surface (this schema, a skill or its scripts, `setup.sh`) that is out of scope to fix there and
-  then, append an entry to `wiki/developments/known-issues.md` in the same pass — date · surface ·
-  symptom · suspected cause · severity · status — and say so in the reply. A finding that warrants
-  its own design doc gets one, with a register line pointing to it. Recording is bookkeeping, never
-  a licence to fix: changes stay gated as above. Before changing a framework surface, check its open
-  entries; a fix closes the entry as a dated status fact. Register appends are not logged to
-  `log.md` — the closing fix's `framework` entry names the entries it closes, the same carve-out as
-  query-time `flagged:` writes — and `/deep-lint` reviews open entries each run. A missing register
-  is not an error: recreate it (frontmatter + `## Open` / `## Closed`) and continue.
-- **Prose quality for human-facing docs.** When writing or editing `README.md`, `MANUAL.md`, `CLAUDE.md`,
-  or anything a person reads, make it **clear, concise, fluent and genuinely human** — British English,
-  active voice, short sentences, scannable structure; cut filler and redundancy. It must never read like
-  AI-generated boilerplate. Write as **formal documentation**: no Q&A / FAQ-style phrasing ("Why not X?"),
-  no rhetorical questions, and no defensive asides or parentheticals. State each point as a plain claim.
-  In `README.md` and `MANUAL.md`, flowing prose additionally keeps the human-expert punctuation
-  register: em-dashes, colons and semicolons stay rare, each earning a place no plain sentence would
-  serve. Headings, tables, code, and the `**term** — gloss` list format are structure, not prose, and
-  are exempt; `CLAUDE.md` and the skills are agent-facing contracts and keep their native idiom.
+- **System files carry behaviour, not history.** Framework files (this schema, `MANUAL.md`,
+  `README.md`, the skills, `setup.sh`) state *what to do now*, keeping only the minimal rationale that
+  shapes a judgement call or that a human-facing doc deliberately explains. History and design
+  rationale live in `wiki/developments/` and `wiki/log.md` — never in files loaded each session.
+- **Sweep the contract, not just the code.** A change that retires or alters a rule must find and
+  reconcile every *restatement* — in this schema, the skills, their tests, and forward-facing
+  `developments/` specs — in the same change (dated records of what was once true stay). Grep for the
+  retired **claim**, not only the changed path, and prove the sweep ran with a control pattern (§11).
+- **Attack a new guard before shipping it.** For any added check, script or hook, enumerate what it
+  does when its own premise fails (missing file, deleted marker, zero-match pattern) and make each
+  case behave sensibly — a guard that fires on its own broken premise is worse than no guard.
+- **Consult and record in `wiki/developments/`** — the framework's own self-upgrade memory. **Before**
+  a framework change, read the relevant `developments/` docs (build on prior decisions, never
+  re-derive or contradict them); **after**, file the design/plan/rollout there (`type: development`,
+  report its `confidence`). Write each doc **forward-facing**: the current design plus the rationale
+  future work needs; record decision changes as dated status facts — a contract must never read as a
+  rebuttal of its own earlier wording.
+- **Log defects the moment you find them.** A defect found in a framework surface that is out of scope
+  to fix there and then gets a `wiki/developments/known-issues.md` entry in the same pass (date ·
+  surface · symptom · suspected cause · severity · status), said in the reply; a finding warranting a
+  design doc gets one, with a register line pointing to it. Recording is never a licence to fix —
+  changes stay gated as above. Check a surface's open entries before changing it; a fix closes its
+  entry as a dated status fact. Register appends are not logged to `log.md` (the closing fix's
+  `framework` entry names them); `/deep-lint` reviews open entries each run. A missing register is not
+  an error: recreate it (frontmatter + `## Open` / `## Closed`) and continue.
+- **Prose quality for human-facing docs** (`README.md`, `MANUAL.md`, `CLAUDE.md`, anything a person
+  reads): **clear, concise, fluent and genuinely human** — British English, active voice, short
+  sentences, scannable structure, no filler; never AI-boilerplate. Formal documentation: no Q&A/FAQ
+  phrasing, no rhetorical questions, no defensive asides — each point a plain claim. `README.md` and
+  `MANUAL.md` flowing prose also keeps the human-expert punctuation register (em-dashes, colons and
+  semicolons rare, each earning its place). Headings, tables, code and `**term** — gloss` lists are
+  structure, exempt; agent-facing contracts keep their native idiom.
 - **Always log it** — append a `## [date] framework | …` entry to `wiki/log.md`.
-- **Always report system-file changes in-reply.** When a response edits a system file (`CLAUDE.md`,
-  `MANUAL.md`, `README.md`, a skill, `setup.sh`), surface it in that reply as a table: what changed ·
-  what for · why (table detail scales with the active output style). Where the file is Markdown,
-  anchor its table cell as a clickable wikilink to the changed section (`[[file#heading]]`) so the
-  user can jump straight to the modification — except files under dot-folders (e.g. `.claude/skills/**`):
-  Obsidian does not index those, a wikilink to them can never resolve (clicking tries to create the
-  note and fails), so cite them as plain code paths. **Every file mention in the table takes exactly
-  one of those two forms** — vault-visible Markdown → wikilink · dot-folder or non-Markdown → plain
-  code path — and the table is re-checked against this rule before the reply is sent (a bare unlinked
-  path to linkable Markdown is a reporting defect). A behaviour or governance change must never land silently.
-- **🧹 Deep-lint at version boundaries.** When the user **explicitly declares** the next version tier or a
-  new major feature ("let's start v0.7", "next, we build X"), or a genuinely large multi-file upgrade has
-  **just completed**, append one short notice to the reply: `🧹 Before moving on: consider /deep-lint — the
-  vault has changed a lot since the last full audit.` Fire only on those two observable triggers — never on
-  speculation about what the next version might be, and never for routine ops or patch-level work.
+- **Always report system-file changes in-reply** as a table: what changed · what for · why (detail
+  scales with the active style). Anchor vault-visible Markdown as clickable wikilinks
+  (`[[file#heading]]`); dot-folder files (`.claude/skills/**` — Obsidian cannot resolve them) as plain
+  code paths. **Every file mention takes exactly one of those two forms**, re-checked before the reply
+  is sent. A behaviour or governance change must never land silently.
+- **🧹 Deep-lint at version boundaries.** When the user **explicitly declares** the next version tier
+  or a new major feature, or a genuinely large multi-file upgrade has **just completed**, append:
+  `🧹 Before moving on: consider /deep-lint — the vault has changed a lot since the last full audit.`
+  Only on those two observable triggers — never on speculation, routine ops or patch-level work.
 - **Update `MANUAL.md` only when warranted** — i.e. the change edits existing Manual content, adds
   user-facing usage/info, or the user explicitly asks. Internal-only changes do **not** touch the Manual.
-- **The graph is `wiki/` plus the attic.** Everything else — `raw/`, `assets/`, `output/`, and the
-  root docs (`CLAUDE.md`, `MANUAL.md`, `IDEAS.md`, `README.md`, …) — is
-  excluded from Obsidian's graph/search via `.obsidian/app.json` → `userIgnoreFilters`; `attic/`
-  stays visible with its own grey group (§2.1) so retired material reads at a glance.
-  In addition, `ingest` Step 0 **sanitises converted artefacts** (strips control bytes; defangs stray
-  `[text](bareword)` and `[[…]]` that MarkItDown emits from math/citations). Together these keep the
-  knowledge graph free of spurious nodes.
+- **The graph is `wiki/` plus the attic.** Everything else — `raw/`, `assets/`, `output/`, the root
+  docs — is excluded via `.obsidian/app.json` → `userIgnoreFilters`; `attic/` stays visible in grey
+  (§2.1). `ingest` Step 0 additionally **sanitises converted artefacts** (strips control bytes;
+  defangs stray `[text](bareword)` / `[[…]]` from MarkItDown), keeping the graph free of spurious nodes.
 
 ---
 

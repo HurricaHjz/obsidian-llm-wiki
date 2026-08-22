@@ -4,7 +4,7 @@
 #   bash export_template.sh [OUT_DIR]               fresh build  (default OUT_DIR = <vault>/template-export)
 #   bash export_template.sh --push <repo>           vault → repo : overlay framework + packaging into a clone
 #   bash export_template.sh --pull <repo>           repo → vault : PREVIEW (git pull + diff; writes NOTHING)
-#   bash export_template.sh --pull <repo> --apply   repo → vault : APPLY (CLAUDE/Manual/skills + README/LICENSE/CONTRIBUTING at root, screenshot in assets/, + payload)
+#   bash export_template.sh --pull <repo> --apply   repo → vault : APPLY (CLAUDE/Manual/skills + README/LICENSE at root, screenshot in assets/, + payload)
 #       add  --with-graph  to also pull .obsidian/graph.json (colour scheme); never app/appearance/core-plugins.
 #   (--sync is kept as an alias for --push.)
 #
@@ -32,7 +32,7 @@ strip_junk() {   # drop regenerable cache / OS junk so it never ships or pollute
 strip_junk "$KIT"   # keep the payload mirror clean
 
 list_skills() {  # echo EVERY skill folder under $1/.claude/skills — auto-discovery, so new skills ship/sync with zero edits.
-  [ -d "$1/.claude/skills" ] || return 0   # export-template is included (it ships for contributors); see SKILL.md.
+  [ -d "$1/.claude/skills" ] || return 0   # export-template is included (users need its --pull to update); see SKILL.md.
   for d in "$1/.claude/skills"/*/; do
     [ -d "$d" ] || continue
     d="${d%/}"; d="${d##*/}"
@@ -60,11 +60,11 @@ copy_framework() {
 # ── publish-only packaging: vault root + payload → $1  (build & push) ────────────────────────
 copy_packaging() {
   local D="$1" f
-  for f in README.md LICENSE.md CONTRIBUTING.md; do                                 # canonical at the vault root
+  for f in README.md LICENSE.md; do                                                 # canonical at the vault root
     [ -f "$SRC/$f" ] || { echo "ERROR: $SRC/$f missing — it is canonical at the vault root"; exit 1; }
     cp "$SRC/$f" "$D/$f"
   done
-  rm -f "$D/LICENSE"; rm -rf "$D/docs"                                              # drop legacy no-ext LICENSE + old docs/ folder
+  rm -f "$D/LICENSE" "$D/CONTRIBUTING.md"; rm -rf "$D/docs"                         # drop legacy no-ext LICENSE, retired CONTRIBUTING + old docs/ folder
   mkdir -p "$D/assets"
   for img in $(readme_images "$SRC/README.md"); do
     if [ -f "$SRC/$img" ]; then cp "$SRC/$img" "$D/$img"; fi                        # README images (force-tracked)
@@ -111,10 +111,10 @@ json.dump(g, open(p, "w"), indent=2)
 PY
 }
 
-# ── pull publish files from the repo: README/LICENSE/CONTRIBUTING → vault root, screenshot → assets/, rest → payload ──
+# ── pull publish files from the repo: README/LICENSE → vault root, screenshot → assets/, rest → payload ──
 refresh_local() {
   local R="$1" f
-  for f in README.md LICENSE.md CONTRIBUTING.md; do                                 # canonical at the vault root
+  for f in README.md LICENSE.md; do                                                 # canonical at the vault root
     [ -f "$R/$f" ] && cp "$R/$f" "$SRC/$f"
   done
   mkdir -p "$SRC/assets"
@@ -151,7 +151,7 @@ if [ "$WANT_PULL" = 1 ]; then
 
   echo "--- framework changes pull would apply to your vault ---"
   CHG=0
-  for f in CLAUDE.md MANUAL.md README.md LICENSE.md CONTRIBUTING.md; do
+  for f in CLAUDE.md MANUAL.md README.md LICENSE.md; do
     diff -q "$REPO/$f" "$SRC/$f" >/dev/null 2>&1 || { echo "  update  $f"; CHG=1; }
   done
   for img in $(readme_images "$REPO/README.md"); do
@@ -193,7 +193,7 @@ if [ "$WANT_PUSH" = 1 ]; then
   [ -d "$REPO/.git" ] || { echo "ERROR: $REPO is not a git clone"; exit 1; }
   echo "PUSH → overlaying framework + packaging into $REPO (knowledge never copied; .git untouched)"
   copy_framework "$REPO"
-  copy_packaging "$REPO"     # publish files: README/LICENSE/CONTRIBUTING + screenshot from the vault; machinery from payload
+  copy_packaging "$REPO"     # publish files: README/LICENSE + screenshot from the vault; machinery from payload
   make_skeleton  "$REPO"     # idempotent (re-touches .gitkeep); creates the skeleton on a first publish
   apply_fixes    "$REPO"
   echo "DONE. Guided publish next: git -C \"$REPO\" pull --ff-only → add -A → diff → confirm → commit → push"
