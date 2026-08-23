@@ -1,6 +1,7 @@
 ---
 title: "Wiki Index"
 type: index
+confidence: high
 updated: 2025-01-01
 ---
 

@@ -1,3 +1,9 @@
+---
+title: "Wiki Log"
+type: log
+confidence: high
+---
+
 # Wiki Log
 
 > Append-only timeline. Append a `## [date] action | title` entry on every brain-updating op — **via

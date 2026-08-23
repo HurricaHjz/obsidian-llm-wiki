@@ -394,7 +394,7 @@ created, one line saying so satisfies the gate.
 - Every wiki page (except `map`) carries a `confidence` — assign it per CLAUDE.md §4.6 (free, since you've already read the source).
 - **Every source page carries a `depth`** — decided *after* the read, inside the run's authorised range, never from filename/folder/length/markers (Depth). Never backfill it onto older pages.
 - After ingesting, **report the created/updated pages with their depth + locator and their `confidence`** so the user can review and re-grade — a completion gate: no done-declaration without it (Step 8).
-- **Refresh on write:** if qmd is active, refresh its index for the pages you created/updated (`qmd update && qmd embed`, incremental — the `qmd-search` hook); a no-op when qmd is dormant.
+- **Refresh on write:** the pages you created/updated refresh per the `qmd-search` contract — a turn-end hook where installed, inline only where not; a no-op when qmd is dormant.
 - Entities/Concepts = Title Case filenames; Sources/Syntheses = kebab-case.
 - Write everything in **British/UK English** (US spelling only inside verbatim quotes, proper nouns, or code).
 - Don't fabricate. Mark uncertain claims `unverified` and cite the source.

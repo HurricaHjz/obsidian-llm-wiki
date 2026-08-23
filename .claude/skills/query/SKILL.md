@@ -109,9 +109,9 @@ On yes, create `wiki/syntheses/<slug>.md` (kebab-case) with synthesis frontmatte
 Give it a **conservative inherited `confidence`** (a synthesis caps at `medium` as agent-derived; drop to
 `low` if it rests mainly on `low` sources); never crystallise a `low`/`unverified` claim as asserted fact.
 **Report the filed page and its `confidence`** to the user — every newly added wiki file states its level
-(as `ingest` Step 8 does), so you can review and re-grade it. **Refresh on write:** if qmd is active, refresh
-the new page's qmd embedding (`qmd update && qmd embed`, incremental — the `qmd-search` hook); a no-op when
-qmd is dormant.
+(as `ingest` Step 8 does), so you can review and re-grade it. **Refresh on write:** the new page's qmd
+embedding refreshes per the `qmd-search` contract — a turn-end hook where installed, inline only where not;
+a no-op when qmd is dormant.
 
 ### Step 6 — Log it (only if you filed a synthesis)
 **A pure inline answer is NOT logged** — logging is for brain-updating ops only (see CLAUDE.md §5).

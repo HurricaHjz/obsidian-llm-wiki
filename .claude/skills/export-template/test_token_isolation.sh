@@ -29,8 +29,24 @@ if [ "$OUT" = 0 ]; then ok "sync engine confined to export-template/"; else no "
 echo "== 4) log.md stays append-only in frequent ops (never whole-file read) =="
 # positively detect a real READ of log.md (Read tool / bare cat / python .read); appends (cat >>),
 # create/seed, existence checks and glob-excludes are all fine.
-R=$(grep -rnE 'Read.{0,2}wiki/log\.md|cat +wiki/log\.md|open\([^)]*log\.md[^)]*\)\.read' .claude/skills/{ingest,query,lint,output,gather}/ 2>/dev/null | wc -l | tr -d ' ')
-if [ "$R" = 0 ]; then ok "no whole-file log.md read in frequent ops (append-only)"; else no "$R real log.md read(s) in frequent ops"; fi
+# Premise check first: a missing dir would make the grep print a warning and match nothing, so the
+# old form (with 2>/dev/null) reported "ok" on a tree with no skills at all. Dirs are listed
+# explicitly rather than word-split from a variable, and stderr is NOT discarded.
+MISSING=""
+for d in ingest query lint output gather; do
+  [ -d ".claude/skills/$d" ] || MISSING="$MISSING $d"
+done
+if [ -n "$MISSING" ]; then
+  no "probe premise broken — missing skill dir(s):$MISSING"
+else
+  # §11 positive control: the same recursive scan must find log.md mentioned at all. A zero here
+  # means the scan is not running (bad glob, silent grep failure), not that the vault is clean.
+  CTRL=$(grep -rnE 'wiki/log\.md' .claude/skills/ingest .claude/skills/query .claude/skills/lint .claude/skills/output .claude/skills/gather | wc -l | tr -d ' ')
+  R=$(grep -rnE 'Read.{0,2}wiki/log\.md|cat +wiki/log\.md|open\([^)]*log\.md[^)]*\)\.read' .claude/skills/ingest .claude/skills/query .claude/skills/lint .claude/skills/output .claude/skills/gather | wc -l | tr -d ' ')
+  if [ "$CTRL" = 0 ]; then no "probe control failed — the scan matched no 'wiki/log.md' mention anywhere (scan not running)"
+  elif [ "$R" = 0 ]; then ok "no whole-file log.md read in frequent ops (append-only; control $CTRL)"
+  else no "$R real log.md read(s) in frequent ops"; fi
+fi
 
 echo "== 5) export-template's always-on description stays lean (<=160 words) =="
 W=$(python3 -c "import re;t=open('.claude/skills/export-template/SKILL.md').read();m=re.search(r'^description:\s*(.*?)(?=^\w[\w-]*:\s|\n---)',t,re.S|re.M);print(len(m.group(1).split()) if m else 999)")

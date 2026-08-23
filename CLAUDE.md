@@ -201,6 +201,7 @@ fallback: the `ingest` skill, Step 0.
 ---
 title: "Page Title"
 type: concept | entity | tool | model | benchmark | source | synthesis | development | map | user
+#   the two registries add `index` and `log` (§5); they carry `confidence:` like every other page
 confidence: authoritative | high | medium | low | very-low   # how far to trust this page — every type except `map` (see §4.6)
 tags: [topic, subtopic]
 sources: [raw/1-articles/example.md]   # provenance; required for source/synthesis pages
@@ -222,7 +223,8 @@ the raw file) let `ingest` detect a re-added document — see the `ingest` skill
 
 - **Entities, Concepts, Models, Benchmarks & Tools** → `Title Case With Spaces.md` → e.g. `[[Claude Code]]`, `[[Qwen]]`, `[[AIME]]` (a tool keeps its conventional lowercase name where canonical, e.g. `qmd`, `defuddle`). User pages follow the same Title Case (`About Me.md`, `Customisation.md`).
 - **Sources, Syntheses, Developments & Maps** → `kebab-case.md` → e.g. `karpathy-llm-wiki-gist.md`, `wiki-confidence-levels.md`.
-- **Notes** — the owner's compact mind-refreshers, a **synthesis subtype** (`type: synthesis`, structure and rules unchanged) — keep kebab-case but **must be prefixed `notes-`** → e.g. `notes-token-and-caching-playbook.md`, so the owner can find every note at a glance.
+- **Notes** — the owner's compact mind-refreshers, a **synthesis subtype** (`type: synthesis`, structure and rules unchanged) — keep kebab-case but **must be prefixed `notes-`** → e.g. `notes-token-and-caching.md`, so the owner can find every note at a glance.
+- **A rename keeps its old name.** Add the previous stem to the successor's `aliases:` in the same pass — renames here run through shell `mv`, so Obsidian's link updater never fires, and the alias is what keeps historical links (`log.md`, `IDEAS.md`, `output/`, dated `developments/` records) resolving without sweeping every layer.
 
 ### 4.3 Required structure per type
 
@@ -289,6 +291,7 @@ On a query, **read this first** to locate relevant pages, then drill in. This re
 - **Changed**: created [[Page A]], [[summary-slug]]; updated [[index.md]]
 - **Conflicts**: none   (or: conflict with [[Page B]], flagged)
 ```
+**Keep the entry small** — the shape above, ~600 bytes. When a bullet wants more, the detail belongs in the `wiki/developments/` page the entry links, not in the log.
 Actions: `ingest` · `gather` · `synthesis` · `lint` · `deep-lint` · `framework` · `setup` · `maps` · `attic` · `export`.
 
 **Log only operations that change the brain:** `ingest` (compiled from a raw source), a `synthesis`
@@ -388,6 +391,9 @@ Each skill's own description surfaces automatically — below is just *when to r
   and no `.qmd-off` marker sits at the vault root; otherwise silent fallback to `index.md` → `grep`.
   **Retrieval only** — the compiled layer keeps governing; the agent re-orders qmd hits by
   `confidence` (§4.6). Full contract: the `qmd-search` skill.
+- **`wiki/log.md` stays out of the semantic index** (`ignore: ["**/log.md"]`): embeddings key on a
+  file's whole-content hash, so every append re-embeds the timeline and a hit invites an ~80k-token
+  read. `index.md` stays (a router, not a timeline). `lint` asserts it — the qmd config lives outside the vault.
 - **Refresh on write:** a created/updated page refreshes its `confidence` and (if qmd is active) its
   embedding **together**. Adoption timing: `wiki/developments/implementing-qmd-opt-in-plan.md`.
 

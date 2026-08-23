@@ -64,6 +64,16 @@ style and are NOT findings. Any hit is a **leak finding**: report it; the fix (o
 re-sweeping to plain text per §2.1, or `/attic restore` if the page should live again. Control
 (§11): the same pipeline against one known live page name must return >0 before reporting "no leaks".
 
+### 2d — qmd registry guard (one scripted check; skipped silently when qmd is dormant)
+`wiki/log.md` must stay out of the semantic index (CLAUDE.md §10) — embeddings key on a file's
+whole-content hash, so every append re-embeds the whole timeline, and a hit invites an ~80k-token
+`qmd get`. The exclusion lives in `~/.config/qmd/index.yml`, **outside the vault and outside both
+git repos**, so it can disappear silently. Run
+`sh .claude/skills/lint/check-qmd-registry.sh .` and copy its one line into the report verbatim.
+The script carries its own §11 control (`index.md`, deliberately kept, must be listed) and reports
+`PROBE FAILED` rather than "clean" when its own premise breaks. Exit 1 = finding; the fix is to
+restore `ignore: ["**/log.md"]` on the `wiki` collection and re-run `qmd update`.
+
 ### 3 — Conflict audit
 Find pages containing `## Conflicts / Open Questions`. List each unresolved conflict (the two sides)
 as cognitive tech-debt to resolve.
@@ -114,6 +124,7 @@ never on a routine lint.
 
 ### ⏳ Flags
 - **N pages carry `flagged:`** (engine control OK) — ≥5 → consider `/deep-lint`
+- `<the qmd-registry line, verbatim from the script>` · `attic-leak: none / n/a / N leaks`
 
 ### 🛠️ Proposed next steps
 1. Auto-register unindexed pages? (y/n)
@@ -129,6 +140,6 @@ never on a routine lint.
 - **Graph colour restore is on-demand only** (see its section) — never scanned or read on a routine lint.
 - After approved fixes, append to `wiki/log.md`:
   `## [YYYY-MM-DD] lint | fixed N issues (M dead links, K unindexed)`.
-- **Refresh on write:** if approved fixes touched wiki pages and qmd is active, run the `qmd-search`
-  refresh hook (`qmd update && qmd embed`); a no-op when qmd is dormant.
+- **Refresh on write:** if approved fixes touched wiki pages, the `qmd-search` refresh applies — run it
+  inline only where no turn-end refresh hook is installed (that skill owns the rule); a no-op when qmd is dormant.
 - Report in **British/UK English**.

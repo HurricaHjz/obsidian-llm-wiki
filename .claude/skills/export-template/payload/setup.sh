@@ -13,6 +13,7 @@ mk_index() {
 ---
 title: "Wiki Index"
 type: index
+confidence: high
 ---
 
 # Wiki Index
@@ -35,6 +36,12 @@ IDX
 
 mk_log() {
   cat > wiki/log.md <<'LOG'
+---
+title: "Wiki Log"
+type: log
+confidence: high
+---
+
 # Wiki Log
 
 > Append-only timeline. Append a `## [date] action | title` entry on every brain-updating op — via shell

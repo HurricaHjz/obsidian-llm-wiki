@@ -90,7 +90,8 @@ Residues are findings, not embarrassments: fix, re-run the probe, and report the
 
 ### 8 — Registries
 Append one `attic` entry to `wiki/log.md` (shell append, never Read+Edit) naming: harvest edits,
-swept pages, moves, manifest delta. If qmd is active, run `qmd update && qmd embed`.
+swept pages, moves, manifest delta. The qmd refresh applies per the `qmd-search` contract (turn-end hook
+where installed, inline only where not) — archiving removes pages, which that refresh must see.
 
 ## Restore pipeline
 1. Read `attic/MANIFEST.md` (this instruction is the sanctioned read); locate the item + origin.

@@ -6,9 +6,12 @@ identical rules instead of re-deriving an ad-hoc scanner. Rules encoded here:
   - scans wiki/**/*.md; wiki/log.md is EXCLUDED as a link source (append-only history);
   - fenced code blocks, inline code spans and HTML comments are stripped before extraction
     (documentation examples like `[[wikilink]]` are not links);
-  - page links resolve against: wiki page stems -> frontmatter aliases -> vault-relative
-    paths (with or without .md), so [[Claude Model Family|Claude]], [[CLAUDE#h]] and
-    [[assets/x.md]] all resolve correctly;
+  - page links resolve the way Obsidian does: wiki page stems -> frontmatter aliases ->
+    vault-relative paths (with or without .md) -> any visible file's basename, with or
+    without the extension. Obsidian keys its own lookup on the basename *including* the
+    extension over every non-dot path in the vault, so a narrower rule reports live links
+    as dead ([[index.md]], [[Claude Code.md]], [[choices-quick-reference]] in output/, and
+    every attic target all resolve in the app);
   - media embeds ![[name.ext]] resolve against assets/ (the attachment folder) and are
     reported separately as dead embeds when missing — they are checked, not skipped;
   - prints scan totals as its own positive control (a zero-findings run with zero links
@@ -29,6 +32,17 @@ MEDIA_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".pdf", ".mp3", "
 
 files = sorted(glob.glob(os.path.join(wiki, "**", "*.md"), recursive=True))
 stems = {os.path.splitext(os.path.basename(p))[0] for p in files}
+
+# Obsidian's resolver (uniqueFileLookup) is keyed on each visible file's basename INCLUDING the
+# extension, across the whole vault; dot-folders are invisible to it. Model the same surface or
+# valid links read as dead. Ambiguous basenames are treated as resolving: for a dead-link checker,
+# erring permissive avoids false alarms, and Obsidian falls back to path resolution there anyway.
+vault_basenames = set()
+for _dir, _subdirs, _names in os.walk(root):
+    _subdirs[:] = [d for d in _subdirs if not d.startswith(".")]
+    for _n in _names:
+        if not _n.startswith("."):
+            vault_basenames.add(_n.lower())
 
 aliases = {}
 for p in files:
@@ -70,6 +84,9 @@ def resolves(target):
             if os.path.exists(os.path.join(root, cand)):
                 return True
     if os.path.exists(os.path.join(root, t + ".md")):        # root doc, e.g. [[CLAUDE]]
+        return True
+    base = os.path.basename(t).lower()                        # Obsidian basename lookup
+    if base in vault_basenames or (base + ".md") in vault_basenames:
         return True
     return False
 
