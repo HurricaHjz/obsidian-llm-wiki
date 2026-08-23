@@ -88,7 +88,8 @@ declared in the run-spec echo:
 - **Engine preflight**: verify the capture chain (`defuddle`, `markitdown`, `gh`) is available and
   declare any substitution up front ("defuddle absent → Jina fallback" — third-party routing is
   consented before capture, not reported after). When platform channels will be used, also declare
-  the platform tier (`.agent-reach-on` + `doctor --json`, invoked with the venv on PATH).
+  the platform tier (`.agent-reach-on` + `doctor --json`, invoked with the venv on PATH:
+  `PATH="$HOME/.agent-reach-venv/bin:$PATH"` — never a guessed path).
 - **Run ledger**: every run inits one (`python3 .claude/skills/gather/run_ledger.py init
   --id <run-id> --budget <N>`) — the write path requires it. Its cross-round AUTHORITY (feeding
   `funnel_knobs.py --ledger-id`, the mismatch rule, resume) engages when `--rounds > 1` or the
@@ -128,10 +129,13 @@ declared in the run-spec echo:
    two-per-facet (floor 3 · cap 12), the band wins: keep every sub-question represented first,
    then trim narrow variants. Run WebSearch per query, with
    `--include`/`--exclude` mapped to allowed/blocked domains. **Platform discovery engines
-   (declared, 2026-08-23):** when coverage calls for Chinese/community/video sources and the
+   (declared, 2026-08-23):** when coverage calls for Chinese/community/video/feed sources and the
    vault's platform tier is enabled (`.agent-reach-on`), supplementary declared queries may run
-   through those channels — `bili search "<q>" --type video -n 5` (Bilibili) · the V2EX public
-   API — each engine named in the run-spec echo, hits triaged identically (metadata-only).
+   through those channels — `bili search "<q>" --type video -n 5` (Bilibili; venv-only, like every
+   agent-reach binary incl. `yt-dlp` — invoke via `~/.agent-reach-venv/bin/<cmd>` or with that dir on PATH) · the V2EX public
+   API · known RSS/Atom feeds parsed via the tier-1 feedparser channel
+   (`~/.agent-reach-venv/bin/python3 -c "import feedparser; …"`; blog/newsletter coverage) —
+   each engine named in the run-spec echo, hits triaged identically (metadata-only).
    X has no consented search route: locate posts via WebSearch, read via the tier-1 Jina
    channel (governance: `wiki/developments/agent-reach-adoption-design.md`). The pool holds the top candidates
    by triage score, up to the pool value — a cap, not a quota: underfill is reported, with
@@ -263,8 +267,9 @@ Fetch each APPROVED link with the same chain (→ Jina fallback). A page whose w
 (Jina included) is reported — URL, engines tried — and its slot is never auto-backfilled from
 the ranked remainder; offer a follow-up rule or round instead (the date-window discard rule,
 mirrored). When a formerly-working engine fails on ordinary pages (rot, not a one-off), the run
-report adds one report-only line proposing a post-run version check/upgrade for that engine
-(pin-by-class policy: `wiki/developments/agent-reach-adoption-design.md`) — never upgrade mid-run. Write each captured page through the SOLE write path:
+report says so, and after the run the engine's class-rule upgrade may run automatically under the
+trusted-release criteria (`wiki/developments/agent-reach-adoption-design.md`), reported from → to —
+never mid-run, and never for a release failing the criteria (those are reported for the owner). Write each captured page through the SOLE write path:
 ```bash
 python3 .claude/skills/gather/capture_write.py write --url <url> --engine <engine> \
         --ledger-id <run-id> [--title T] < fetched.md
@@ -327,8 +332,11 @@ a facetless seed run reports plan-versus-captured instead. For a synthesised rep
 - **Capture, don't summarise**: use `defuddle`/`curl`/`markitdown`/Jina (verbatim/extraction).
   WebFetch is triage-only (throwaway date checks) — never a capture path. Never fill gaps with
   invented content; mark anything uncertain `unverified`.
-- **Privacy/safety**: skip anything behind a login or obviously private; the Jina fallback routes
-  URLs through a third party, so don't use it for sensitive links.
+- **Privacy/safety**: skip anything behind a login or obviously private — sole exception: channels
+  the owner consented at tier 3 (X via twitter-cli · Reddit via rdt-cli, burner-account posture,
+  2026-08-23 amendment in `wiki/developments/agent-reach-adoption-design.md`), and only once marked
+  ACTIVE in `.agent-reach-on`; each tier-3 capture is declared in the run-spec echo like any engine.
+  The Jina fallback routes URLs through a third party, so don't use it for sensitive links.
 - **British/UK English at COMPILE time, not capture time**: non-English pages are captured
   VERBATIM in their source language (raw/ is immutable evidence — CLAUDE.md §3.1); `/ingest`
   translates into UK English when it compiles. Note the source language in the gate row when

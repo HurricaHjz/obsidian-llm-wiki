@@ -84,7 +84,8 @@ b=".claude/skills/lint/sanctioned-skills.txt"    # ships with the framework: vau
 h="$HOME/.claude/skills/.sanctioned.txt"         # machine-local baseline: user-level skill names
 [ -s "$b" ] || { echo "PROBE FAILED: vault baseline missing/empty"; }   # premise guard, never "clean"
 comm -13 <(grep '^vault:' "$b" | cut -d: -f2 | sort) <(ls .claude/skills | sort)
-[ -s "$h" ] && comm -13 <(sort "$h") <(ls ~/.claude/skills 2>/dev/null | sort)
+[ -d ~/.claude/skills ] || echo "PROBE FAILED: ~/.claude/skills missing"   # premise guard, never "clean"
+[ -s "$h" ] && [ -d ~/.claude/skills ] && comm -13 <(sort "$h") <(ls ~/.claude/skills | sort)
 ```
 Any name printed = an **unsanctioned skill directory** (finding: report it; the fix — owner-confirmed —
 is removal, or a conscious baseline addition in the same pass that sanctions it). No machine-local

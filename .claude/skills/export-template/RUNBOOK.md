@@ -10,7 +10,12 @@ bash .claude/skills/export-template/export_template.sh template-export
 Produces `template-export/` per `SPEC.md`.
 
 ## B. Verify (script prints most of this — confirm)
-- Skills = all of `ingest gather query reflect lint deep-lint qmd-search output export-template` (export-template ships too — users need its `--pull` to update).
+- Skills = **every directory under `.claude/skills/`** (auto-discovered by `list_skills()`; check with `ls .claude/skills` — never a hand-kept list, which has gone stale twice: v0.7.6 and the 2026-08-23 `attic` omission). export-template ships too — users need its `--pull` to update.
+- **Suites — run all seven; green = `0 failed` printed by each suite itself** (never compare against a historical count — assertion totals grow):
+  ```bash
+  for t in capture_write funnel_knobs gather_links run_ledger; do (cd .claude/skills/gather && python3 test_$t.py) || echo "SUITE FAILED: $t"; done
+  for t in export_template setup_customisation token_isolation; do (cd .claude/skills/export-template && bash test_$t.sh) || echo "SUITE FAILED: $t"; done
+  ```
 - `template-export/wiki` & `/raw` hold only `.gitkeep` (no seed, no `index.md`/`log.md`); the demo is in
   `template-export/examples/seed/`.
 - No personal leak: grep the build for **your own** name / handle / affiliation

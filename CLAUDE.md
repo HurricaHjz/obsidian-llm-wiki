@@ -322,7 +322,9 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 > so no `/lint` after a normal ingest: `/lint` is for *drift* (manual edits, sync changes) and periodic
 > *discovery*; only `/deep-lint` audits confidence, staleness and online freshness. Staleness detection
 > is **event-driven**: `query`/`output` flag suspect pages they have already read (`flagged:`
-> frontmatter, §4.4 blocks — no extra reads), and `deep-lint` reconciles the flags plus a sampled cold
+> frontmatter, §4.4 blocks — no extra reads); `ingest`, on a conflict over a time-sensitive fact,
+> suspects the older page, not the newer source (one bounded probe or a `flagged:` mark before any
+> downgrade — the ingest skill, Step 4); and `deep-lint` reconciles the flags plus a sampled cold
 > tail rather than re-reading the vault (design: `wiki/developments/deeplint-scalable-maintenance-design.md`).
 
 **Gap-driven gather (propose-only).** When a `query`/`output` run finds the vault demonstrably lacks
@@ -351,6 +353,7 @@ never silent**.
 Each skill's own description surfaces automatically — below is just *when to reach for which*:
 - **Capture / convert**: `defuddle` for web page → Markdown; **`markitdown`** for any non-`.md` source; WebFetch only for throwaway lookups, **never to capture a source** (§3.1).
 - **Vault I/O**: prefer **`obsidian-cli`** (cheaper/safer than raw file ops); `obsidian-markdown` for Obsidian-flavoured syntax; `obsidian-bases` (`.base` views) · `json-canvas` (`.canvas` maps).
+- **Deliverable graphics** (user-level installs, machine-local, never shipped): **`lieflat-charts`** — HTML/interactive charts, dashboards and full-page HTML reports (the `output/` lane; browser-viewed, some templates need CDN network). **`scientific-figure-making`** (from figures4papers) — publication-grade matplotlib figures for papers, theses and slides (PDF/PNG for LaTeX). Rule of thumb: web-viewed → lieflat-charts; print/venue-bound → scientific-figure-making. Adoption records: `wiki/tools/lieflat-charts.md` · `wiki/tools/figures4papers.md`.
 - **Custom (this vault)**: `ingest` · `gather` (opt-in web capture: seed or search mode) · `reflect` (explicit-only session capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `attic` (explicit-only cold-storage archive/restore) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `output` · `export-template` (publish/update the public framework repo) — see §6.
 - **Version control / backup**: the **Obsidian Git** plugin backs up the *whole vault* (knowledge included) to a *private* remote (history + multi-device sync); `export-template` publishes the *framework only* to the *public* repo. Two repos, never crossed (§11).
 
@@ -430,9 +433,18 @@ Each skill's own description surfaces automatically — below is just *when to r
   prove the probe actually ran: show it matches a known positive, or that its file/hit count is
   non-zero on a control pattern. Silent tool failures (unsplit variables, empty globs, `2>/dev/null`)
   otherwise report "clean" on a scan that searched nothing.
+- ⚠️ **Destructive git is guarded — vault-locally only.** A `PreToolUse` hook in `.claude/settings.json`
+  turns `git checkout|restore|clean` and `reset --hard` into ask-first (branch-create and the public
+  framework clone exempt; incident: uncommitted work destroyed, 2026-08-23). The hook never ships and
+  `--pull` never restores it — on a fresh machine, recreate it before trusting git cleanup commands.
 - ⚠️ **Human in the loop.** Default ingest pacing is `auto` (the `ingest` skill chooses batch vs.
   one-by-one — see its Pacing section); always surface conflicts and large/uncertain changes for
   review rather than committing silently.
+- ⚠️ **Secrets never enter the vault.** Credentials, cookies, API keys and passwords never go into
+  any vault file — the vault syncs to cloud storage and (where configured) pushes to a git backup, so
+  a secret written here leaves the machine, possibly more than once. Keep them in an agent-owned store
+  *outside* the vault tree (a `600`-permission file), and put only a pointer in the wiki. This
+  overrides the general "store what you learn in the wiki" habit for secrets specifically.
 
 ---
 

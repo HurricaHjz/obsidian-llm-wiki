@@ -55,6 +55,8 @@ grep -q 'CUSTOMISATION-LOADED-v1'     "$ROOT/$CUST" 2>/dev/null && ok "load mark
 grep -q '^@CUSTOMISATION\.md' "$VAULT/CLAUDE.md" && ok "shipped CLAUDE.md imports the preference layer" || no "CLAUDE.md import line missing"
 L=$(wc -l < "$ROOT/$CUST" | tr -d ' '); B=$(wc -c < "$ROOT/$CUST" | tr -d ' ')
 # leanness guard only — the old ~10 KB bound encoded the hook-transport limit retired in v0.7.6; raised 2026-07-31 for the shipped Human-expert register default; raised 2026-08-14 for the four-style delivery ladder; raised 2026-08-22 for the №56 style-ceiling enforcement layer (claim + Test clauses + customised spans)
+# raised 2026-08-23 for the fourth invariant (filed work is never restated) — vault↔template parity
+if grep -q "Four invariants hold across the ladder" "$ROOT/CUSTOMISATION.md" && grep -q "filed work is never restated" "$ROOT/CUSTOMISATION.md"; then ok "fourth invariant (no-restatement) seeded"; else no "fourth invariant missing from seeded CUSTOMISATION"; fi
 [ "$B" -le 16384 ]                            && ok "seeded template stays lean (${B} B / $L lines)"      || no "seeded template too heavy (${B} B / $L lines)"
 
 echo "== 3) re-run is idempotent (never overwrites user edits) =="

@@ -42,7 +42,11 @@ list_skills() {  # echo EVERY skill folder under $1/.claude/skills — auto-disc
 
 # ── vault-owned framework files: vault → $1  (build & push) ─────────────────────────────────
 copy_framework() {
-  local D="$1" s
+  local D="$1" s STRAY
+  # cwd-shift guard (known-issues 2026-08-21→23): a wiki/raw/output tree nested in a skill dir means a
+  # relative write landed inside shipped machinery — refuse to package knowledge. payload/example/ is the demo seed.
+  STRAY="$(find "$SRC/.claude/skills" -mindepth 2 -type d \( -name wiki -o -name raw -o -name output \) ! -path '*/payload/example/*')"
+  [ -n "$STRAY" ] && { echo "ERROR: knowledge-shaped dirs inside .claude/skills — fix before shipping:"; echo "$STRAY"; exit 1; }
   cp "$SRC/CLAUDE.md" "$SRC/MANUAL.md" "$D/"
   mkdir -p "$D/.claude/skills"
   for s in $(list_skills "$SRC"); do
@@ -109,6 +113,15 @@ for k in ("scale", "close", "search", "collapse-filter", "collapse-color-groups"
     g.pop(k, None)
 json.dump(g, open(p, "w"), indent=2)
 PY
+  # drop vault-local snippet enablement from the shipped appearance.json — the snippets themselves
+  # (.obsidian/snippets/) never ship, so the key would dangle in the template (added 2026-08-23).
+  python3 - "$D/.obsidian/appearance.json" <<'PY2' || true
+import json, sys
+p = sys.argv[1]
+a = json.load(open(p))
+a.pop("enabledCssSnippets", None)
+json.dump(a, open(p, "w"), indent=2)
+PY2
 }
 
 # ── pull publish files from the repo: README/LICENSE → vault root, screenshot → assets/, rest → payload ──
@@ -193,6 +206,10 @@ if [ "$WANT_PUSH" = 1 ]; then
   [ -d "$REPO/.git" ] || { echo "ERROR: $REPO is not a git clone"; exit 1; }
   echo "PUSH → overlaying framework + packaging into $REPO (knowledge never copied; .git untouched)"
   copy_framework "$REPO"
+  for d in "$REPO/.claude/skills"/*/; do            # repo-side dirs the vault retired (known-issues 2026-08-22)
+    s="$(basename "$d")"
+    [ -d "$SRC/.claude/skills/$s" ] || echo "STALE repo-side skill '$s' (vault has none) — propose at the diff gate:  git -C \"$REPO\" rm -r .claude/skills/$s"
+  done
   copy_packaging "$REPO"     # publish files: README/LICENSE + screenshot from the vault; machinery from payload
   make_skeleton  "$REPO"     # idempotent (re-touches .gitkeep); creates the skeleton on a first publish
   apply_fixes    "$REPO"

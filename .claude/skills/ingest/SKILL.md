@@ -143,11 +143,14 @@ wiki size** (grep for *this* file's hash, never dump all hashes; never read page
 
 ```bash
 f="<filename>"; u="<source: URL, or empty>"
-{ find raw -mindepth 2 -name "$f" 2>/dev/null
-  h=$(shasum -a 256 "raw/$f" 2>/dev/null | cut -c1-16); [ -n "$h" ] && grep -rl "$h" wiki/sources/ 2>/dev/null
-  [ -n "$u" ] && grep -rl "$u" wiki/sources/ raw/*/ 2>/dev/null
-} | sort -u      # empty = NEW → proceed;  any path printed = possible duplicate
+{ find raw -mindepth 2 -name "$f"
+  h=$(shasum -a 256 "raw/$f" | cut -c1-16); [ -n "$h" ] && grep -rlF "$h" wiki/sources/
+  [ -n "$u" ] && grep -rlF -- "$u" wiki/sources/ raw/*/
+} | sort -u      # any path printed = possible duplicate
+grep -rlF "source_hash" wiki/sources/ | head -1   # §11 control: MUST print a page — silence = the probe searched nothing, so "NEW" is unproven
 ```
+An empty candidate list means NEW **only when the control line printed**; stderr stays visible by
+design (a missing file or unreadable dir must surface, never read as "no duplicate").
 
 **On a match, decide (don't blindly skip):**
 - **Process it as an UPDATE** when there's something new to extract — the user gave extra instructions,
@@ -191,7 +194,8 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
      - **YouTube / binary URL** → MarkItDown's Python API (its CLI only accepts file paths):
        `python3 -c "from markitdown import MarkItDown; open('raw/<stem>.md','w').write(MarkItDown().convert('<url>').text_content)"`
      - **Fallback — a web page none of the above can capture** (JS-heavy / anti-bot / empty or garbled result) → `curl -sL "https://r.jina.ai/<url>"` (Jina Reader renders server-side → clean Markdown). **Last resort only**; it routes the URL through a third party, so skip it for sensitive or login-walled pages.
-     - **Platform URL the whole chain cannot capture** (an X/Twitter post, Reddit thread, XiaoHongShu note, Bilibili search, or other login-walled/bot-blocked platform page) → do NOT improvise a scraper and never WebFetch it: report the gap and point at the ready, owner-gated platform-reach option (`wiki/developments/agent-reach-adoption-design.md` — nothing installs or routes without the owner's word). YouTube stays on the markitdown route above.
+     - **Public X/Twitter post URL** → capture via the tier-1 Jina channel: `curl -sL "https://r.jina.ai/<post-url>"` (route live-verified 2026-08-23; declare the routing in the ingest report, as with any Jina capture). Single public posts only — X search, timelines and protected content take the platform-gap path below.
+     - **Platform URL the whole chain cannot capture** (a Reddit thread, XiaoHongShu note, X search/timeline/protected content, Bilibili search page, or other login-walled/bot-blocked platform page) → do NOT improvise a scraper and never WebFetch it: report the gap and point at the ready, owner-gated platform-reach option (`wiki/developments/agent-reach-adoption-design.md` — nothing installs or routes without the owner's word). YouTube stays on the markitdown route above.
      - **Opt-in `--verbatim` (byte-exact original).** When the user wants the *unaltered* source (research-grade provenance / exact quoting), `curl -sL "<url>" > raw/<stem>.md` (or `gh`) and keep the bytes **unmodified** — skip the step-3 defang/clean (raw/ is graph-excluded anyway). For an HTML page, `curl` it then `python3 -m markitdown` to convert deterministically (full content, no summary). Heavier on tokens → opt-in, not the default.
 3. **Save** the Markdown into `raw/` as `<original-stem>.md` (use `<original-stem>.converted.md` if
    that name is taken). **This is the only time you may add a file to `raw/`.** Prepend provenance:
@@ -208,6 +212,7 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
    perl -i -pe 's/[\x00-\x08\x0b\x0c\x0e-\x1f]//g; s{\[([^\]\n]*)\]\(([^)\n]*)\)}{my($t,$u)=($1,$2); $u =~ m{://|^#|^mailto} ? "[$t]($u)" : "$t ($u)"}ge; s/\[\[/[ [/g; s/\]\]/] ]/g' "raw/<stem>.md"
    ```
    (Strips control bytes; defangs `[a,b](z)`→`a,b (z)` and `[[x]]`→`[ [x] ]`; keeps real `https://` links. `raw/` is also graph-excluded — see CLAUDE.md §12.)
+   **Post-sanitise check (same pass, cheap):** keep a pre-image first (`cp "raw/<stem>.md" /tmp/` — perl edits in place), then compare `wc -c` and `grep -c ']('` before/after: bytes may fall only by the stripped control bytes, and the `](` count only by the intended bareword defangs — any other delta (a falling kept-link count above all) is a sanitiser defect: STOP, restore the pre-image, inspect. No pre-image (premise failure) → recompute the before-counts from the fetched source and say so. `--verbatim` captures skip sanitising, and this check with it. (Instantiates `wiki/developments/verification-discipline.md`; the 2026-08-23 capture-group clobber shipped `[]()` mangles for two months before an ad-hoc size check caught it — `wiki/developments/known-issues.md` §Closed.)
 3b. **Conversion-quality check (converted files only).** Some PDFs convert with the inter-word spaces
    stripped, so the body reads `ProximalPolicyOptimizationAlgorithms…`. The text is still readable but
    has **no word boundaries to quote**, which silently defeats research depth's verbatim-quote contract
@@ -291,6 +296,14 @@ GPT, Llama) → `wiki/models/`, **benchmark** (any eval dataset named — e.g. A
 2. **Page exists** → read it, then **incrementally merge** new info (don't clobber).
 3. **Conflict found** → **pause**, report the conflict to the user, ask how to handle it
    (keep both under `## Conflicts / Open Questions`, overwrite, or skip), then continue.
+   **Time-sensitive conflict → suspect the page first.** When the contradicted fact is
+   time-sensitive (releases, versions, prices, dates, roles) and the wiki page predates the
+   source, never default to grading the incoming claim down — an earlier compile date is
+   evidence of age, not of correctness. Either run ONE bounded verification probe (a single
+   search or authoritative lookup) to settle which side is current, or set
+   `flagged: YYYY-MM-DD <one-phrase reason>` on the page and keep both statements per §4.4.
+   In batch pacing this needs no pause — report the outcome in Step 8. (Precedent: the
+   2026-08-23 Opus-5 staleness reversal, log entry same date.)
 
 **Models & benchmarks link bidirectionally** (CLAUDE.md §4.5): add this paper under the model/benchmark
 page's `## Appears in`, and list the models/benchmarks the paper uses in the source page's `## Related`

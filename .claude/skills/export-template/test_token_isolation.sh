@@ -16,7 +16,9 @@ GITPAT='export_template|export-template|--push|--pull|--with-graph'
 
 echo "== 1) frequent everyday skills never reference the git/sync features =="
 for s in $NORMAL; do
-  if grep -rEiq "$GITPAT" ".claude/skills/$s/" 2>/dev/null; then no "skill '$s' references git features"; else ok "skill '$s' free of git refs (loads no git content)"; fi
+  # sanctioned-skills.txt is the injection-guard NAME REGISTRY (lists every vault skill incl. export-template);
+  # naming a skill is not loading export machinery — excluded 2026-08-23 when the baseline file broke this test.
+  if grep -rEiq --exclude=sanctioned-skills.txt "$GITPAT" ".claude/skills/$s/"; then no "skill '$s' references git features"; else ok "skill '$s' free of git refs (loads no git content)"; fi
 done
 
 echo "== 2) CLAUDE.md (loaded every session) does not pull in the heavy git files =="

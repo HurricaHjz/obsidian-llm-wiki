@@ -133,7 +133,7 @@ def check_verb(_a):
 def dedup(a):
     # accept comma-joined, space-separated (nargs), or mixed — the 2026-08-18 doc/arg
     # mismatch showed a single accepted form fails as soon as its restatement drifts
-    urls = [u.strip() for tok in (a.urls or []) for u in tok.split(",") if u.strip()]
+    urls = [u.strip() for tok in (a.urls or []) for u in re.split(r"[,\s]+", tok) if u.strip()]
     if not urls:
         raise ValueError("dedup needs --urls a,b,c (or --urls a b c)")
     if not a.control and not a.allow_no_control:
