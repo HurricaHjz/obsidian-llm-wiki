@@ -74,6 +74,27 @@ The script carries its own §11 control (`index.md`, deliberately kept, must be 
 `PROBE FAILED` rather than "clean" when its own premise breaks. Exit 1 = finding; the fix is to
 restore `ignore: ["**/log.md"]` on the `wiki` collection and re-run `qmd update`.
 
+### 2e — Skill-injection guard (names only — no skill contents are read)
+Third-party installers write skill directories into agent skill roots (a user-level skill loads into
+**every** session — e.g. Agent Reach's documented SKILL.md auto-install; two register incidents prove
+the class: `wiki/developments/known-issues.md` 2026-08-21/22). Diff both roots against the sanctioned
+baseline `.claude/skills/lint/sanctioned-skills.txt`:
+```bash
+b=".claude/skills/lint/sanctioned-skills.txt"    # ships with the framework: vault-skill names only
+h="$HOME/.claude/skills/.sanctioned.txt"         # machine-local baseline: user-level skill names
+[ -s "$b" ] || { echo "PROBE FAILED: vault baseline missing/empty"; }   # premise guard, never "clean"
+comm -13 <(grep '^vault:' "$b" | cut -d: -f2 | sort) <(ls .claude/skills | sort)
+[ -s "$h" ] && comm -13 <(sort "$h") <(ls ~/.claude/skills 2>/dev/null | sort)
+```
+Any name printed = an **unsanctioned skill directory** (finding: report it; the fix — owner-confirmed —
+is removal, or a conscious baseline addition in the same pass that sanctions it). No machine-local
+baseline yet (fresh machine) → report the current `~/.claude/skills` list as info and propose seeding
+`$h` from it after the owner reviews — never a finding, never auto-seeded. Baseline entries missing on
+disk are reported as info (drift), not findings. §11 control before trusting an empty result: re-run
+one `comm` with a known-absent name injected into the disk side (`printf 'zzz-ctrl\n'`) and confirm it
+prints. A missing/empty vault baseline or an unreadable root reports `PROBE FAILED`, never "clean".
+(Deep-lint inherits this via its structural pass.)
+
 ### 3 — Conflict audit
 Find pages containing `## Conflicts / Open Questions`. List each unresolved conflict (the two sides)
 as cognitive tech-debt to resolve.
@@ -124,7 +145,7 @@ never on a routine lint.
 
 ### ⏳ Flags
 - **N pages carry `flagged:`** (engine control OK) — ≥5 → consider `/deep-lint`
-- `<the qmd-registry line, verbatim from the script>` · `attic-leak: none / n/a / N leaks`
+- `<the qmd-registry line, verbatim from the script>` · `attic-leak: none / n/a / N leaks` · `skill-guard: clean / N unsanctioned (control OK)`
 
 ### 🛠️ Proposed next steps
 1. Auto-register unindexed pages? (y/n)

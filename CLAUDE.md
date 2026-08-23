@@ -291,7 +291,7 @@ On a query, **read this first** to locate relevant pages, then drill in. This re
 - **Changed**: created [[Page A]], [[summary-slug]]; updated [[index.md]]
 - **Conflicts**: none   (or: conflict with [[Page B]], flagged)
 ```
-**Keep the entry small** — the shape above, ~600 bytes. When a bullet wants more, the detail belongs in the `wiki/developments/` page the entry links, not in the log.
+**Keep the entry small** — the shape above, ~600 bytes (template ≈175 B, corpus median ≈750 B when set — 2026-08-23, `wiki/developments/threshold-governance-and-prefix-reconciliation.md`). Detail belongs in the `wiki/developments/` page the entry links, not in the log; the one exception is an entry that is itself the run's only record (a deep-lint audit), which takes what the record needs and no more.
 Actions: `ingest` · `gather` · `synthesis` · `lint` · `deep-lint` · `framework` · `setup` · `maps` · `attic` · `export`.
 
 **Log only operations that change the brain:** `ingest` (compiled from a raw source), a `synthesis`
@@ -459,6 +459,13 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   reconcile every *restatement* — in this schema, the skills, their tests, and forward-facing
   `developments/` specs — in the same change (dated records of what was once true stay). Grep for the
   retired **claim**, not only the changed path, and prove the sweep ran with a control pattern (§11).
+- **A number that decides carries its derivation.** A threshold that fires a flag, blocks an action
+  or reroutes work states its evidence (measurement · dated incident · cost model) or an explicit
+  "set by judgement, unmeasured" beside it; a number that merely bounds (safety cap, truncation,
+  timeout) needs only stated headroom. Backfill opportunistically when a surface is next edited,
+  never as a mass rewrite. Where a quantity is *meant* to grow (the always-on prefix), watch
+  composition — attribute each delta — rather than thresholding the total: a growth threshold
+  converts sanctioned change into alarm.
 - **Attack a new guard before shipping it.** For any added check, script or hook, enumerate what it
   does when its own premise fails (missing file, deleted marker, zero-match pattern) and make each
   case behave sensibly — a guard that fires on its own broken premise is worse than no guard.

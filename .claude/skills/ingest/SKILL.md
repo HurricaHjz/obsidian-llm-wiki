@@ -191,6 +191,7 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
      - **YouTube / binary URL** → MarkItDown's Python API (its CLI only accepts file paths):
        `python3 -c "from markitdown import MarkItDown; open('raw/<stem>.md','w').write(MarkItDown().convert('<url>').text_content)"`
      - **Fallback — a web page none of the above can capture** (JS-heavy / anti-bot / empty or garbled result) → `curl -sL "https://r.jina.ai/<url>"` (Jina Reader renders server-side → clean Markdown). **Last resort only**; it routes the URL through a third party, so skip it for sensitive or login-walled pages.
+     - **Platform URL the whole chain cannot capture** (an X/Twitter post, Reddit thread, XiaoHongShu note, Bilibili search, or other login-walled/bot-blocked platform page) → do NOT improvise a scraper and never WebFetch it: report the gap and point at the ready, owner-gated platform-reach option (`wiki/developments/agent-reach-adoption-design.md` — nothing installs or routes without the owner's word). YouTube stays on the markitdown route above.
      - **Opt-in `--verbatim` (byte-exact original).** When the user wants the *unaltered* source (research-grade provenance / exact quoting), `curl -sL "<url>" > raw/<stem>.md` (or `gh`) and keep the bytes **unmodified** — skip the step-3 defang/clean (raw/ is graph-excluded anyway). For an HTML page, `curl` it then `python3 -m markitdown` to convert deterministically (full content, no summary). Heavier on tokens → opt-in, not the default.
 3. **Save** the Markdown into `raw/` as `<original-stem>.md` (use `<original-stem>.converted.md` if
    that name is taken). **This is the only time you may add a file to `raw/`.** Prepend provenance:
@@ -204,7 +205,7 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
    Then **sanitize the saved body** so it can never pollute the Obsidian graph (MarkItDown emits stray
    `[text](bareword)` links from math/citations, and sometimes control/binary bytes):
    ```bash
-   perl -i -pe 's/[\x00-\x08\x0b\x0c\x0e-\x1f]//g; s{\[([^\]\n]*)\]\(([^)\n]*)\)}{ $2 =~ m{://|^#|mailto} ? "[$1]($2)" : "$1 ($2)" }ge; s/\[\[/[ [/g; s/\]\]/] ]/g' "raw/<stem>.md"
+   perl -i -pe 's/[\x00-\x08\x0b\x0c\x0e-\x1f]//g; s{\[([^\]\n]*)\]\(([^)\n]*)\)}{my($t,$u)=($1,$2); $u =~ m{://|^#|^mailto} ? "[$t]($u)" : "$t ($u)"}ge; s/\[\[/[ [/g; s/\]\]/] ]/g' "raw/<stem>.md"
    ```
    (Strips control bytes; defangs `[a,b](z)`→`a,b (z)` and `[[x]]`→`[ [x] ]`; keeps real `https://` links. `raw/` is also graph-excluded — see CLAUDE.md §12.)
 3b. **Conversion-quality check (converted files only).** Some PDFs convert with the inter-word spaces

@@ -87,7 +87,8 @@ Parse args + natural language into the run-spec; NL intent maps to flags (*"two 
 declared in the run-spec echo:
 - **Engine preflight**: verify the capture chain (`defuddle`, `markitdown`, `gh`) is available and
   declare any substitution up front ("defuddle absent → Jina fallback" — third-party routing is
-  consented before capture, not reported after).
+  consented before capture, not reported after). When platform channels will be used, also declare
+  the platform tier (`.agent-reach-on` + `doctor --json`, invoked with the venv on PATH).
 - **Run ledger**: every run inits one (`python3 .claude/skills/gather/run_ledger.py init
   --id <run-id> --budget <N>`) — the write path requires it. Its cross-round AUTHORITY (feeding
   `funnel_knobs.py --ledger-id`, the mismatch rule, resume) engages when `--rounds > 1` or the
@@ -126,7 +127,13 @@ declared in the run-spec echo:
    §3.1); round ≥2 queries narrow onto the open gaps. When the scripted band overrides
    two-per-facet (floor 3 · cap 12), the band wins: keep every sub-question represented first,
    then trim narrow variants. Run WebSearch per query, with
-   `--include`/`--exclude` mapped to allowed/blocked domains. The pool holds the top candidates
+   `--include`/`--exclude` mapped to allowed/blocked domains. **Platform discovery engines
+   (declared, 2026-08-23):** when coverage calls for Chinese/community/video sources and the
+   vault's platform tier is enabled (`.agent-reach-on`), supplementary declared queries may run
+   through those channels — `bili search "<q>" --type video -n 5` (Bilibili) · the V2EX public
+   API — each engine named in the run-spec echo, hits triaged identically (metadata-only).
+   X has no consented search route: locate posts via WebSearch, read via the tier-1 Jina
+   channel (governance: `wiki/developments/agent-reach-adoption-design.md`). The pool holds the top candidates
    by triage score, up to the pool value — a cap, not a quota: underfill is reported, with
    `--queries`/`--rounds` suggested.
 2. Triage on result metadata — no capture fetches at this stage. Dedupe by URL, recording
@@ -201,7 +208,8 @@ declared in the run-spec echo:
 
 Guards: WebSearch unavailable → say so and ask for seed URLs — never substitute model memory. Zero
 hits → print the queries run (proof the probe ran) and offer reformulations. Results are US-region
-— note it when the topic suggests non-US sources (those may need direct URLs). When search returns
+— note it when the topic suggests non-US sources (those may need direct URLs, or the enabled
+platform engines of Step 1.1). When search returns
 only secondary coverage of a known primary artefact (a repo, a paper), a declared **locate probe**
 is permitted — ≤2 per round (a `gh` search, an arXiv listing lookup), discovery only, never a
 capture path, reported at the gate like every other pre-consent spend.
@@ -254,7 +262,9 @@ step — the human stays in control.
 Fetch each APPROVED link with the same chain (→ Jina fallback). A page whose whole chain fails
 (Jina included) is reported — URL, engines tried — and its slot is never auto-backfilled from
 the ranked remainder; offer a follow-up rule or round instead (the date-window discard rule,
-mirrored). Write each captured page through the SOLE write path:
+mirrored). When a formerly-working engine fails on ordinary pages (rot, not a one-off), the run
+report adds one report-only line proposing a post-run version check/upgrade for that engine
+(pin-by-class policy: `wiki/developments/agent-reach-adoption-design.md`) — never upgrade mid-run. Write each captured page through the SOLE write path:
 ```bash
 python3 .claude/skills/gather/capture_write.py write --url <url> --engine <engine> \
         --ledger-id <run-id> [--title T] < fetched.md

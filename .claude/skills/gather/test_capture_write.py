@@ -100,6 +100,11 @@ check("no control refused",      r.returncode == 2 and "control" in r.stderr)
 r = run("dedup", "--urls", "https://x.test/new", "--allow-no-control")
 check("explicit opt-out works",  r.returncode == 0)
 
+long_fm = os.path.join(VAULT, "raw", "longfm.md")
+open(long_fm, "w").write("---\ntitle: t\nnote_field: " + "x" * 5000 + "\nsource_url: https://x.test/longfm\n---\nbody\n")
+r = run("dedup", "--urls", "https://x.test/longfm", "--control", "https://x.test/two")
+check("key past 4096 B found (extend-on-miss)", "ALREADY IN VAULT" in r.stdout and "longfm" in r.stdout)
+
 os.remove(rl.path_for(RID))
 import shutil; shutil.rmtree(VAULT)
 print(f"\n{P} passed, {F} failed")

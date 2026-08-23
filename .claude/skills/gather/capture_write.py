@@ -152,6 +152,11 @@ def dedup(a):
                 try:
                     with open(fp, encoding="utf-8") as fh:
                         head = fh.read(4096)
+                        # The de-dup keys live in frontmatter. If the opening --- is not closed
+                        # inside the fast window, extend once (64 KB hard stop) rather than
+                        # silently scanning a truncated head (§12: bounds need stated headroom).
+                        if head.startswith("---") and "\n---" not in head[3:]:
+                            head += fh.read(61440)
                 except OSError:
                     continue
                 for line in head.splitlines():

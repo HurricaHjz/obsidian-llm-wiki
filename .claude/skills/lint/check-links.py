@@ -46,7 +46,7 @@ for _dir, _subdirs, _names in os.walk(root):
 
 aliases = {}
 for p in files:
-    head = open(p, encoding="utf-8").read(2500)
+    head = open(p, encoding="utf-8").read()   # full read — a byte-capped head can silently drop aliases past the cap (§12: a bound needs stated headroom; the link pass re-reads every file in full anyway)
     fm = re.match(r"\A---\n(.*?)\n---", head, re.S)
     if not fm:
         continue
