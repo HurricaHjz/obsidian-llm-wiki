@@ -323,7 +323,9 @@ gets a `## Related` section.
   the user to reload Obsidian with the graph view closed. This runs **only** here (registries missing),
   never on a normal ingest. Then proceed.
 - **`wiki/index.md`** → add each new page under its type heading (Sources / Entities / Tools / Models /
-  Benchmarks / Concepts / Syntheses / …) with a one-line desc.
+  Benchmarks / Concepts / Syntheses / …) with a one-line desc. **Mechanism: anchored `Edit` (or append)
+  per heading — NEVER a whole-file read-modify-write** (a rewrite writes back a stale snapshot and
+  silently drops entries a concurrent session added; CLAUDE.md §5, incident 2026-08-23).
 - **`wiki/log.md`** → append **via shell** (`cat >> wiki/log.md …`; never Read the whole file — it grows unbounded):
   ```markdown
   ## [YYYY-MM-DD] ingest | <short title>
@@ -412,3 +414,5 @@ created, one line saying so satisfies the gate.
 - Entities/Concepts = Title Case filenames; Sources/Syntheses = kebab-case.
 - Write everything in **British/UK English** (US spelling only inside verbatim quotes, proper nouns, or code).
 - Don't fabricate. Mark uncertain claims `unverified` and cite the source.
+
+> **Standing derivative**: `output/user-notes/gather-ingest-quick-reference.md` — a change to this skill's user-facing workflow (commands, flags, gates, report shape) updates that note in the same pass (§2 output contract).

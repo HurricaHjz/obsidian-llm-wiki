@@ -22,7 +22,7 @@ or broken the run STOPS and asks — never hand-write captures around it. Verbs:
         greps candidate URLs against source_url/converted_from in raw/ + wiki/;
         the --control URL MUST hit (proof the scan ran — CLAUDE.md §11)
 """
-import argparse, datetime, os, re, sys
+import argparse, datetime, json, os, re, sys
 import run_ledger
 
 CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
@@ -70,6 +70,17 @@ def quality_check(body):
         return "engine error stub ('Target URL returned error') — the page was not captured"
     if re.search(r"^Title: Page Not Found$", head, re.M):
         return "engine returned a Page Not Found shell, not the page"
+    if text.startswith("{"):
+        # An all-JSON body is an engine's API error response served as the page
+        # (2026-08-25: a Jina 403 AbuseAlleviationError stub, 620 B, cleared the
+        # size floor). Markdown that merely opens with "{" fails json.loads and
+        # passes; a deliberate JSON capture goes through --allow-degraded.
+        try:
+            json.loads(text)
+            return ("body is a JSON document, not Markdown — an engine API "
+                    "error response served as the page")
+        except ValueError:
+            pass
     tags = len(re.findall(r"<[A-Za-z][^>\n]*>", text))
     lines = max(1, text.count("\n"))
     if tags >= QUALITY_TAG_COUNT and tags / lines >= QUALITY_TAG_RATIO:

@@ -84,6 +84,12 @@ r = run("check", stdin=GOOD)
 check("check passes good body",  r.returncode == 0 and "PASS" in r.stdout)
 r = run("check", stdin=STUB)
 check("check rejects stub",      r.returncode == 3 and "REJECT" in r.stdout)
+JSONSTUB = '{"data":null,"code":403,"name":"AbuseAlleviationError","message":"' + "blocked. " * 90 + '"}'
+r = run("check", stdin=JSONSTUB)
+check("json error stub refused", r.returncode == 3 and "JSON document" in r.stdout)
+BRACED = "{ this page opens with a brace but is prose, not JSON }\n\n" + PAD
+r = run("check", stdin=BRACED)
+check("brace-opening prose passes", r.returncode == 0 and "PASS" in r.stdout)
 
 print("== dedup ==")
 r = run("dedup", "--urls", "https://x.test/one,https://x.test/new", "--control", "https://x.test/two")

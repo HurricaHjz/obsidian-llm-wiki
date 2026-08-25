@@ -28,19 +28,45 @@ DOCS_HOST   = re.compile(r'(^docs\.|\.readthedocs\.|[\w.-]+\.github\.io$)', re.I
 # documentation-shaped hosts only — NOT github.com/gitlab/hf, whose /login is a real auth wall
 ASSET_EXT   = re.compile(r'\.(png|jpe?g|gif|webp|svg|ico|css|js|woff2?|ttf)(\?|$)', re.I)
 SHARE       = re.compile(r'(utm_[a-z]+=|/intent/|sharer|/share\b)', re.I)
+FORGE_REPO_ROOT = re.compile(r'/[^/]+/[^/]+/?')  # exactly /owner/repo — a forge repo-root path
+
+
+def normalise_base(url):
+    """Join-base normalisation for relative links (known-issues entry 2026-08-25).
+    Bare urljoin against a slash-less base drops the base's last path segment, so a
+    github.com/gitlab.com REPO-ROOT seed mis-joined README links into the owner
+    namespace (./docs/x.md → github.com/owner/docs/x.md). Probed 2026-08-25: that
+    bare joined path dead-ends (GitHub 404, GitLab 403) while <repo>/blob/HEAD/<path>
+    resolves on both forges — so repo-root seeds join under <seed>/blob/HEAD/.
+    Any other extensionless, slash-less tail joins as a directory (<seed>/, matching
+    the server's own trailing-slash redirect); a file-like base (dot in the last
+    segment) keeps standard urljoin semantics. Nested GitLab groups (3+ segments)
+    fall to the directory rule — accepted residual, no probe evidence yet."""
+    p = urlparse(url)
+    if not url or p.query or p.fragment:
+        return url
+    host = (p.hostname or "").lower()
+    if host in ("github.com", "gitlab.com") and FORGE_REPO_ROOT.fullmatch(p.path):
+        return url.rstrip("/") + "/blob/HEAD/"
+    last = p.path.rsplit("/", 1)[-1]
+    if p.path and not p.path.endswith("/") and "." not in last:
+        return url + "/"
+    return url
 
 
 def extract_links(text, base_url=""):
     """All http(s) links from Markdown `](url)` and bare URLs, de-duped, order-preserved.
     Relative Markdown targets (MkDocs-style docs sites) are resolved against base_url when
-    one is given; anchors and non-http schemes are never resolved."""
+    one is given — the base first normalised via normalise_base(), so repo-root and
+    extensionless seeds join correctly; anchors and non-http schemes are never resolved."""
     urls = []
+    base = normalise_base(base_url) if base_url else ""
     for m in re.finditer(r'\]\(([^)\s]+)\)', text):
         u = m.group(1)
         if u.startswith(('http://', 'https://')):
             urls.append(u)
-        elif base_url and not u.startswith('#') and not urlparse(u).scheme:
-            urls.append(urljoin(base_url, u).split('#', 1)[0])
+        elif base and not u.startswith('#') and not urlparse(u).scheme:
+            urls.append(urljoin(base, u).split('#', 1)[0])
     for m in re.finditer(r'(?<![("\w<])(https?://[^\s)\]<>"]+)', text):
         urls.append(m.group(1))
     seen, out = set(), []

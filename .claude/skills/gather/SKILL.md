@@ -153,7 +153,11 @@ declared in the run-spec echo:
    "recent work" is NOT one) — instead date-verifies EVERY menu row pre-gate, the overrun
    past the ≤6 baseline declared at the gate, and rule-selected below-menu rows are date-checked
    at capture: out-of-window pages are discarded unwritten, the spent fetch reported, and the
-   shortfall NOT auto-backfilled — offer a follow-up rule or round instead. Drop junk (listicles,
+   shortfall NOT auto-backfilled — offer a follow-up rule or round instead. An UNDATED living
+   surface (an active repo's files, a vendor docs page) may pass the window on liveness evidence
+   — host/repo activity (e.g. `pushed_at`) inside the window, the evidence named in its row —
+   while dated artefacts (posts, announcements) pass only on publication date (precedent: the
+   2026-08-25 harness run). Drop junk (listicles,
    undated marketing, off-topic) — every drop listed with its reason. **Backend-pain warn**: when
    a hard date window forces ≥8 in-window verifications in a single run, or the run's own
    row/drop reasons record region- or language-skew for the topic, SAY SO at the gate and note that an opt-in
@@ -228,8 +232,11 @@ fetch it as a declared discovery-only probe (one `curl`, never a capture path) a
 counts in the run-spec echo ("13 linked from the seed body · 97 on the host sitemap"); the
 sitemap's focus-relevant pages are then presented at the Step-4 preview alongside the classifier
 plan, owner-curated like any `maybe` (promotions count against the caps as ever). A missing,
-redirected, index-style or HTML-serving sitemap degrades to link-only discovery with the
-degradation STATED at the preview — it never aborts the run and never fabricates an inventory.
+redirected, index-style or HTML-serving sitemap falls back to ONE further declared probe of
+`/llms.txt` (docs hosts increasingly serve it as their machine-readable index — precedent:
+developers.openai.com, 2026-08-25); only when both are absent or empty does the probe degrade
+to link-only discovery, with the degradation STATED at the preview — it never aborts the run
+and never fabricates an inventory.
 Under seed `--expand 0` the probe still runs (a discovery read, not a capture) and its counts
 join the single batch preview, where sitemap pages are promotable like any `maybe`; that batch
 preview stays the one gate. Base pages (seeds, or
@@ -354,3 +361,5 @@ preview-only or aborted run (nothing captured) is not logged. After the entry, t
 - **`ingest`** → *compiles* `raw/` into linked `wiki/` pages (run it after gather).
 - **`query` / `output`** → the reporting half of deep research: cited answers/deliverables from
   the compiled pages. gather + ingest + query/output together replace external deep-research tools.
+
+> **Standing derivative**: `output/user-notes/gather-ingest-quick-reference.md` — a change to this skill's user-facing workflow (commands, flags, gates, report shape) updates that note in the same pass (§2 output contract).

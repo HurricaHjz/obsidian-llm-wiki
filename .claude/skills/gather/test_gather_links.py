@@ -29,6 +29,30 @@ check("never resolves mailto", not any("a@b.com" in u for u in rel))
 check("absolute still found alongside", "https://arxiv.org/abs/9" in rel)
 check("no base -> relatives ignored", g.extract_links(rel_txt) == ["https://arxiv.org/abs/9"])
 
+print("== extract_links: forge repo-root base (known-issues 2026-08-25) ==")
+gh = g.extract_links("[c](./docs/contributing.md) and [i](docs/install.md)",
+                     base_url="https://github.com/openai/codex")
+check("github repo-root ./link keeps repo segment",
+      "https://github.com/openai/codex/blob/HEAD/docs/contributing.md" in gh)
+check("github repo-root bare relative keeps repo segment",
+      "https://github.com/openai/codex/blob/HEAD/docs/install.md" in gh)
+gl = g.extract_links("[d](doc/api/index.md)", base_url="https://gitlab.com/gitlab-org/gitlab/")
+check("gitlab repo-root (trailing slash) joins under blob/HEAD",
+      "https://gitlab.com/gitlab-org/gitlab/blob/HEAD/doc/api/index.md" in gl)
+blob = g.extract_links("[b](./other.md)", base_url="https://github.com/o/r/blob/main/docs/a.md")
+check("blob file base keeps sibling-join semantics",
+      "https://github.com/o/r/blob/main/docs/other.md" in blob)
+ext = g.extract_links("[n](library/re.html)", base_url="https://docs.python.org/3")
+check("extensionless non-forge base joins as directory",
+      "https://docs.python.org/3/library/re.html" in ext)
+fil = g.extract_links("[n](./other.html)", base_url="https://ex.com/guide/page.html")
+check("file-like base keeps standard urljoin semantics",
+      "https://ex.com/guide/other.html" in fil)
+plan_gh = g.build_plan("[c](./docs/contributing.md)", seed_url="https://github.com/openai/codex")
+check("plan-level: repo-root seed resolves and expands correctly",
+      plan_gh["found"] == 1 and plan_gh["expand"]
+      and plan_gh["expand"][0][0] == "https://github.com/openai/codex/blob/HEAD/docs/contributing.md")
+
 print("== build_plan: zero-links guard ==")
 plan_w = g.build_plan("only [relative](../x/) links here")          # links present, no base
 check("warning fires on 0-found with links", "warning" in plan_w and plan_w["found"] == 0)

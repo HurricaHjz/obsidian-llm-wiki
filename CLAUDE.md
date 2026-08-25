@@ -40,16 +40,12 @@ reply**: §13 imports it and carries the load check. Never act on a partial or p
 - **Precedence:** this schema's governance ≫ a live user instruction ≫ `CUSTOMISATION.md` ≫ built-in
   defaults. **User-space config, not a governance layer** — it can never relax the §2 permissions,
   raw immutability, the §4.6 rubric, the logging contracts, or the wiki's UK-English rule.
-- **Styles** shape *conversational prose only* — the **length and plainness** of what the user reads —
-  never internal reasoning, planning, tool use, or how thoroughly the work is done. Wiki pages,
-  frontmatter, confidence assignment and its reporting, `index`/`log` entries, ingest/lint reports,
-  conflict surfacing and `output/` deliverables stay **style-invariant**. Style (delivery) is
-  orthogonal to §6 **processing depth**.
-- **Roles** do shape how the agent works — emphasis, approach and rigour, sometimes trading a little
-  efficiency for quality — while never touching the governance floor or the style-invariant surfaces.
-- **Deliverable defaults** — standing *content-format* preferences the `output` skill applies **only
-  where the instruction is silent** (explicit instruction wins; empty/absent = agent decides). That
-  section is their **single home** — `output` re-reads it every run and never copies values elsewhere.
+- **Styles govern delivery only; roles shape how the agent works** — full semantics live beside the
+  definitions in `CUSTOMISATION.md`. Whatever the style: wiki pages, frontmatter, confidence
+  assignment and its reporting, `index`/`log` entries, ingest/lint reports, conflict surfacing and
+  `output/` deliverables stay **style-invariant**; style (delivery) is orthogonal to §6 **processing
+  depth**. Deliverable defaults bind **only where the instruction is silent**, and `CUSTOMISATION.md`
+  is their single home (`output` re-reads it every run).
 - **Logging:** a persisted change to this file is logged as `framework`; a session-only style switch is not.
 
 **Language:** Write and maintain the entire wiki in **English with British/UK spelling** (colour,
@@ -149,17 +145,11 @@ hijacks or silently strips it.
 `attic/` holds files the owner retired but keeps "just in case": in normal operations the agent NEVER
 reads, writes, moves or cites anything in it, and its contents are never knowledge — only an explicit
 user instruction ("archive X to the attic", "check the attic", "restore Y") opens it.
-`attic/MANIFEST.md` catalogues contents, one line per item
-(`- [YYYY-MM-DD] [[file]] — from origin/path — one-phrase reason`), written ONLY during these operations:
-- **Archive (on instruction):** move the file in; append its manifest line; if a wiki page, de-index
-  it and replace inbound links from live pages with plain text ("X, archived"); log an `attic` entry
-  (§5). **Unarchive (on instruction):** reverse it all; log an `attic` entry.
-- **Graph:** the attic IS in the graph, coloured grey — the manifest's `[[links]]` keep every archived
-  note visible without re-entering the knowledge base.
-- **Procedure:** both operations run through the **`attic` skill** (census → harvest into surviving
-  pages → owner-approved preview → move + manifest → plain-text link sweep → control-verified check);
-  the permissions above remain the contract, and routine `/lint` guards the boundary (no live page
-  may link into the attic).
+`attic/MANIFEST.md` catalogues contents; its `[[links]]` keep the attic visible in the graph, coloured
+grey, without re-entering the knowledge base.
+- **Both operations run through the `attic` skill** (which owns the full runbook and the manifest
+  format); each logs an `attic` entry (§5); the permissions above remain the contract, and routine
+  `/lint` guards the boundary (no live page may link into the attic).
 
 ---
 
@@ -173,23 +163,19 @@ user instruction ("archive X to the attic", "check the attic", "restore Y") open
 
 **Sort each processed file by content + `source:` URL** into the matching `raw/` subfolder (the §2 map names them; the full type→folder table lives in the `ingest` skill, Step 6). Non-obvious lanes: `7-reviews/` (peer reviews / OpenReview), `9-originals/` (the owner's own works), `archives/` (catch-all), `duplicates/` (confirmed dups).
 
-**Duplicate handling:** a detected duplicate is **not auto-discarded** — process it as an *update* to
-the **existing** pages when a deeper depth, extra instructions, a newer version or genuinely new content
-(e.g. an **OpenReview / review** page) warrant it; only when it adds nothing, or on *"ignore
-duplicates"*, move it to `raw/duplicates/`. Reviews are their own category (`raw/7-reviews/`), never
-duplicates. (See the `ingest` skill.)
+**Duplicate handling:** a detected duplicate is **not auto-discarded** — the `ingest` skill decides
+between updating the **existing** pages and `raw/duplicates/`; reviews are their own category
+(`raw/7-reviews/`), never duplicates.
 
 ### 3.1 Non-Markdown sources → convert to Markdown first (MarkItDown)
 
 **Conversion runs ONLY for non-`.md` sources** — a file already `.md` is ingested **as-is**. Any other
-input — PDF, Office, image, audio, HTML, CSV, EPUB, or a YouTube/web **URL** — is first captured as
-Markdown (raw `.md`/text URLs via `curl` **verbatim**; web pages via `defuddle` — real content, *not* a
-summary; YouTube/binary via **`markitdown`**; **never WebFetch for ingest — it returns a model
-*summary*, not the source**), saved into `raw/` as `<stem>.md` with provenance frontmatter
-(`converted_from` / `converted_by` / `converted_on`), and the **original is kept** — the pair moves
-together when sorted (§3). **Dual provenance:** pages built from a converted source list **both** files
-in `sources:`. Exact commands, name-clash handling, opt-in **`--verbatim`** capture and the scanned-PDF
-fallback: the `ingest` skill, Step 0.
+input (PDF, Office, image, audio, HTML, CSV, EPUB, or a YouTube/web **URL**) is first captured as
+Markdown — real content, **never WebFetch, which returns a model *summary*, not the source** — saved
+into `raw/` as `<stem>.md` with conversion-provenance frontmatter, and the **original is kept**: the
+pair moves together when sorted (§3). **Dual provenance:** pages built from a converted source list
+**both** files in `sources:`. Engine routing, exact commands, name-clash handling, opt-in
+**`--verbatim`** capture and the scanned-PDF fallback: the `ingest` skill, Step 0.
 
 ---
 
@@ -281,6 +267,7 @@ instruction overrides a page's tier** (e.g. the owner's published paper → `aut
 
 ### `wiki/index.md` — content catalogue (update on every ingest)
 Format: `- [[Page Name]] — one-line description.` grouped under `## Sources / Entities / Tools / Models / Benchmarks / Concepts / Syntheses / Developments / Maps / User`.
+**Every writer updates it by anchored `Edit` or append — never a whole-file read-modify-write**: a rewrite commits a stale snapshot and silently erases entries a concurrent session added meanwhile (observed live 2026-08-23; anchored `Edit` instead surfaces a modified-on-disk warning and the concurrent entry survives).
 On a query, **read this first** to locate relevant pages, then drill in. This replaces embedding-based RAG at this scale.
 
 ### `wiki/log.md` — append-only timeline (log brain-updating ops only)
@@ -313,7 +300,7 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 | `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → cited answer; offer to file high-value answers into `syntheses/`. |
 | `/lint` or "health-check the wiki" | **lint** | Cheap frequent scan (dead links, orphans, unindexed pages, unresolved conflicts); report; fix only after confirmation. |
 | `/deep-lint` or "monthly deep maintenance" | **deep-lint** | Heavy ~monthly superset: reconciles `flagged:` flags + the `known-issues` register, audits confidence/staleness (changed + flagged + sampled cold pages, never a full-vault re-read), capped online probes, the IDEAS.md Monitor review (its sole standing delegation), qmd refresh; confirms large changes. |
-| `/attic archive <files>` · `/attic restore <item>` | **attic** | *(explicit-only, never automatic)* The §2.1 runbook: census → harvest → owner-approved preview → move + manifest → control-verified check. |
+| `/attic archive <files>` · `/attic restore <item>` | **attic** | *(explicit-only, never automatic)* The §2.1 archive/restore runbook — preview-first, control-verified. |
 | `/reflect` or "capture what we learned" | **reflect** | *(explicit-only, never automatic)* Sweep the still-visible conversation for research insight, method lessons, framework defects; route by evidence bar; write only what the owner approves. |
 | `/qmd-search <q>` *(optional)* | **qmd-search** | Semantic search via qmd — dormant unless installed + enabled (§10). |
 | `/output <instruction>` or "write me a …" | **output** | Deliverable into `output/`, wiki-grounded + cited, instruction-strict, labels general knowledge, never fabricates. |
@@ -328,23 +315,19 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 > tail rather than re-reading the vault (design: `wiki/developments/deeplint-scalable-maintenance-design.md`).
 
 **Gap-driven gather (propose-only).** When a `query`/`output` run finds the vault demonstrably lacks
-knowledge load-bearing for the live task, it may append ONE why · what · how (the literal `/gather`
-command, never `--yes`) · cost proposal, surfaced whatever the active style. Only the owner's explicit
-yes runs it — propose once, remind once, then quiet; an explicit no ends it for the session.
-Non-interactive runs report the gap instead. (Full contract: the query/output/gather skills; design:
-`wiki/developments/agent-initiated-gather-design.md`.)
+knowledge load-bearing for the live task, it may propose ONE `/gather` (never `--yes`), surfaced
+whatever the active style. Only the owner's explicit yes runs it — propose once, remind once, then
+quiet; an explicit no ends it for the session; non-interactive runs report the gap instead. (Full
+contract: the query/output/gather skills.)
 
 **Never answer purely in chat for substantial work — answer in files**, then link them. Queries should compound back into the wiki.
 
 ### Processing depth (orthogonal to pacing — full detail in the `ingest`/`query` skills)
 **concise** · **standard** · **research** (raises *accuracy & structure* + academic frontmatter,
-**not** verbosity; every depth stays token-efficient). **In `ingest`, depth is chosen per source
-*after* reading it** — never from filename, folder or length — within the run's **authorised range**
-(default all three; `--depth …` narrows, a depth flag pins; a need outside the range stops and asks).
-**Never silent → never unrecorded:** every source page carries `depth:`, and every run reports each
-choice *with its evidence* and logs the tally — a completion gate, never a step (design:
-`wiki/developments/ingest-auto-mode-design.md`). In `query`, `research` stays **opt-in or ask-first,
-never silent**.
+**not** verbosity). **In `ingest`, depth is chosen per source *after* reading it**, within the run's
+**authorised range**, and **never silent → never unrecorded**: every source page carries `depth:`,
+every run reports each choice *with its evidence* and logs the tally — a completion gate, never a
+step. In `query`, `research` stays **opt-in or ask-first, never silent**.
 
 ---
 
@@ -379,26 +362,21 @@ Each skill's own description surfaces automatically — below is just *when to r
 - **Canvas / Excalidraw / Mermaid** — visual maps via the relevant skills.
 - **Dataview** — since pages carry YAML frontmatter, Dataview can build dynamic tables/lists. Don't break existing ```dataview``` blocks.
 - **Graph view** — spot hubs/orphans. Nodes are **colour-coded by type folder** via `colorGroups` in
-  `.obsidian/graph.json` (`path:wiki/<type>/` → colour; `path:attic/` → grey), so pages `ingest` files
-  into `wiki/<type>/` colour themselves with zero upkeep. The palette table lives in MANUAL.md; the
-  canonical values live in `.claude/skills/lint/palette.json` (the `color` JSON key stays US-spelled —
-  it's Obsidian's).
+  `.obsidian/graph.json` (`path:attic/` → grey); the palette table lives in MANUAL.md, the canonical
+  values in `.claude/skills/lint/palette.json`.
 
 ---
 
 ## 10. Search & Scale
 
 - At this scale (~100–200 sources, hundreds of pages) **`index.md` is the search layer** — no vector DB needed; the agent reads it first, then `grep`s.
-- **Optional semantic layer — [qmd](https://github.com/tobi/qmd) via the `qmd-search` skill** (local
-  BM25 + vector + rerank), **dormant by default**: used only when qmd is installed, an index exists,
-  and no `.qmd-off` marker sits at the vault root; otherwise silent fallback to `index.md` → `grep`.
-  **Retrieval only** — the compiled layer keeps governing; the agent re-orders qmd hits by
-  `confidence` (§4.6). Full contract: the `qmd-search` skill.
-- **`wiki/log.md` stays out of the semantic index** (`ignore: ["**/log.md"]`): embeddings key on a
-  file's whole-content hash, so every append re-embeds the timeline and a hit invites an ~80k-token
-  read. `index.md` stays (a router, not a timeline). `lint` asserts it — the qmd config lives outside the vault.
+- **Optional semantic layer — [qmd](https://github.com/tobi/qmd) via the `qmd-search` skill**,
+  **dormant by default**: used only when qmd is installed, an index exists, and no `.qmd-off` marker
+  sits at the vault root; otherwise silent fallback to `index.md` → `grep`. **Retrieval only** — the
+  compiled layer keeps governing; hits re-ordered by `confidence` (§4.6). The `wiki/log.md` index
+  exclusion (asserted by `lint`) and the full contract: the `qmd-search` skill.
 - **Refresh on write:** a created/updated page refreshes its `confidence` and (if qmd is active) its
-  embedding **together**. Adoption timing: `wiki/developments/implementing-qmd-opt-in-plan.md`.
+  embedding **together**.
 
 ---
 
@@ -406,25 +384,18 @@ Each skill's own description surfaces automatically — below is just *when to r
 
 - **Git: two repos, never crossed.**
   - **Public framework repo** — the shared template, published via the `export-template` skill into a
-    *separate clone*. Track only **how the system works**: `CLAUDE.md`, `MANUAL.md`, `README`/`LICENSE`,
-    `.claude/skills/**`, `.obsidian/{graph,app,core-plugins,appearance}.json`, the `.gitkeep` skeleton, and
-    `examples/`. **Never `git add`** captured or compiled **knowledge** — `wiki/**` (incl. `index.md`,
-    `log.md`), `raw/**`, `assets/**`, `output/**`; the shipped `.gitignore` enforces this.
-    A file is committable here only if it changes the *system*, not if it is *content the system produced*.
-  - **Private vault backup** — the vault's *own* git repo backs up the **whole vault, knowledge
-    included, to a PRIVATE remote** (history + multi-device sync). It is a *different repo* (private,
-    everything) from the public framework repo (public, framework-only): **never point the backup
-    remote at the public framework repo**, and never publish knowledge. Where it exists, the **agent
-    maintains it** — after every successful public publish, and on request ("back up the vault") — via
-    the `export-template` skill's Private backup step: add-all → dated commit → push, report-only,
-    no review gate. Routine backups are **never logged** in `wiki/log.md`. The Obsidian Git plugin
-    stays an optional extra for continuous timed auto-backups.
-  - Commit or publish **only when the user asks** — and gate **every** publish (whatever the path,
-    skill or script) on a **verified candidate recap**: the candidate's row verified against the actual
-    files, its version number derived from evidence (full spec in the `export-template` skill). The
-    **full version-family table** runs only at a minor-version boundary (the first release of a new
-    minor) or on an explicit "full recap". The user's approval of the presented recap *is* the
-    publish approval.
+    *separate clone*. Track only **how the system works** (`CLAUDE.md`, `MANUAL.md`, `README`/`LICENSE`,
+    `.claude/skills/**`, the Obsidian config, the skeleton, `examples/`); **never `git add`** captured
+    or compiled **knowledge** — `wiki/**` (incl. `index.md`, `log.md`), `raw/**`, `assets/**`,
+    `output/**`; the shipped `.gitignore` enforces this. Committable here only if it changes the
+    *system*, not if it is *content the system produced*.
+  - **Private vault backup** — a *different repo*: the **whole vault, knowledge included, to a PRIVATE
+    remote**. **Never point the backup remote at the public framework repo**, and never publish
+    knowledge. The **agent maintains it** — after every successful public publish, and on request —
+    via the skill's Private backup step, report-only; routine backups are **never logged**.
+  - Commit or publish **only when the user asks** — and gate **every** publish (whatever the path) on
+    a **verified candidate recap**; the recap spec and the version-family rules live in the
+    `export-template` skill. The user's approval of the presented recap *is* the publish approval.
 - ⚠️ **Token cost** — pushing many linked pages + this schema into context on every op is expensive. Read selectively (index first), not the whole wiki.
 - ⚠️ **Hallucination is the cardinal risk.** A fabricated fact compiled into the wiki becomes a
   permanent "fact" that poisons future reasoning. When unsure, mark it `unverified` and cite the
@@ -435,8 +406,13 @@ Each skill's own description surfaces automatically — below is just *when to r
   otherwise report "clean" on a scan that searched nothing.
 - ⚠️ **Destructive git is guarded — vault-locally only.** A `PreToolUse` hook in `.claude/settings.json`
   turns `git checkout|restore|clean` and `reset --hard` into ask-first (branch-create and the public
-  framework clone exempt; incident: uncommitted work destroyed, 2026-08-23). The hook never ships and
-  `--pull` never restores it — on a fresh machine, recreate it before trusting git cleanup commands.
+  framework clone exempt). The hook never ships and `--pull` never restores it — on a fresh machine,
+  recreate it before trusting git cleanup commands.
+- ⚠️ **Backup commits are secret-scanned — vault-locally only.** A fail-closed `pre-commit` hook runs
+  gitleaks over the staged diff (false positives allowlisted by read-and-judged fingerprint in
+  `.gitleaksignore`); a missing scanner or allowlist blocks rather than passing unscanned, and
+  `git commit --no-verify` bypasses knowingly. The hook never ships — on a fresh machine, recreate it
+  (design: `wiki/developments/backup-secret-scan-guard.md`).
 - ⚠️ **Human in the loop.** Default ingest pacing is `auto` (the `ingest` skill chooses batch vs.
   one-by-one — see its Pacing section); always surface conflicts and large/uncertain changes for
   review rather than committing silently.
@@ -445,6 +421,17 @@ Each skill's own description surfaces automatically — below is just *when to r
   a secret written here leaves the machine, possibly more than once. Keep them in an agent-owned store
   *outside* the vault tree (a `600`-permission file), and put only a pointer in the wiki. This
   overrides the general "store what you learn in the wiki" habit for secrets specifically.
+- ⚠️ **Model safety-classifier false positives — isolate trigger-prone reads, on confirmation only.**
+  **Key the guard on the behaviour, not a model name.** *Reactive (any model):* the first
+  `stop_reason: "refusal"` / safeguard refusal of legitimate content is the signal — stop retrying (it
+  re-flags and one flagged read poisons the resent history), recover from disk/vault state, treat that
+  model as FP-prone for the session, add it to the known list. *Proactive (known FP-prone models —
+  currently **Claude Fable 5**):* before an **agent-initiated** read that would load trigger-prone
+  verbatim source, **surface the risk and propose** isolating the read in a helper on a non-FP-prone
+  model, returning only a summary — **never automatic; the owner confirms every time**. Bounded to
+  known + observed models; the classifiers are server-side, never disableable, never circumvented.
+  Pair with blast-radius discipline (work to disk, recover from vault state). Full design, mechanism,
+  current list & limits: `wiki/developments/model-safety-fp-isolation.md`.
 
 ---
 
@@ -463,6 +450,9 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   is **never decided unilaterally** — present the gain, the cost and the options, let the user decide.
   Discipline still applies wherever it does no harm — shell over LLM reads, compact output, scoped
   checks, opt-in over always-on for anything expensive.
+- **Primitives first for tooling.** Build a bespoke helper (script, hook, MCP server, non-primitive
+  tool) only on a need a real run has demonstrated; until then use shell primitives and tools already
+  shipped. (Guidance-grade evidence, unbenchmarked: the skills-strategy page in `wiki/developments/`.)
 - **System files carry behaviour, not history.** Framework files (this schema, `MANUAL.md`,
   `README.md`, the skills, `setup.sh`) state *what to do now*, keeping only the minimal rationale that
   shapes a judgement call or that a human-facing doc deliberately explains. History and design
@@ -478,9 +468,17 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   never as a mass rewrite. Where a quantity is *meant* to grow (the always-on prefix), watch
   composition — attribute each delta — rather than thresholding the total: a growth threshold
   converts sanctioned change into alarm.
+- **The prefix admits only what binds globally.** A new always-on line (this schema,
+  `CUSTOMISATION.md`) earns its place only if it changes behaviour in sessions where its topic never
+  arises through a skill; procedure a skill owns lives in that skill, with at most a one-line pointer
+  here. Deep-lint's prefix reconciliation attributes what slips through. (Evidence: the measured
+  decomposition record on the skills-strategy page in `wiki/developments/`.)
 - **Attack a new guard before shipping it.** For any added check, script or hook, enumerate what it
   does when its own premise fails (missing file, deleted marker, zero-match pattern) and make each
-  case behave sensibly — a guard that fires on its own broken premise is worse than no guard.
+  case behave sensibly — a guard that fires on its own broken premise is worse than no guard. Key a
+  guard on the observable property it tests, not a named instance (a specific model, a magic number):
+  an instance constant silently excludes the next instance that should fire it — a failure the
+  premise check above will not catch.
 - **Consult and record in `wiki/developments/`** — the framework's own self-upgrade memory. **Before**
   a framework change, read the relevant `developments/` docs (build on prior decisions, never
   re-derive or contradict them); **after**, file the design/plan/rollout there (`type: development`,
