@@ -96,6 +96,23 @@ one `comm` with a known-absent name injected into the disk side (`printf 'zzz-ct
 prints. A missing/empty vault baseline or an unreadable root reports `PROBE FAILED`, never "clean".
 (Deep-lint inherits this via its structural pass.)
 
+### 2f — Customisation pairing (cheap greps — no preference content is judged)
+The preference layer is two files: always-on `CUSTOMISATION.md` (core: contracts + default style/role
+blocks + `customised`) and on-demand `CUSTOMISATION-definitions.md` (the other definitions; read on
+switch). Core absent (fresh vault) → report `customisation-pairing: n/a` and skip. Checks:
+- The `style` and `role` values in core's `## Settings` each have a matching `^### <value>` heading
+  **in core** (the block-move rule keeps the defaults there). §11 control: the same probe must find
+  `### customised` in core (it never moves) before any missing-heading finding — or an all-present
+  result — is trusted.
+- No `### ` heading appears in both files:
+  `comm -12 <(grep '^### ' CUSTOMISATION.md | sort) <(grep '^### ' CUSTOMISATION-definitions.md | sort)`
+  must print nothing. A hit = a duplicated definition (finding: propose removing one copy; the owner
+  says which — never auto-edit their preferences). Note `### ` lines inside HTML comments (e.g. the
+  generalist example) can surface here; a hit inside a comment is reported as info, not a finding.
+- Definitions file missing while core exists → **warning** (switches beyond the defaults will run
+  without their definitions): propose recreating it from the private backup or the template seed
+  (the `mk_custom_defs` function in the shipped `setup.sh`). Never fatal, never auto-created.
+
 ### 3 — Conflict audit
 Find pages containing `## Conflicts / Open Questions`. List each unresolved conflict (the two sides)
 as cognitive tech-debt to resolve.
@@ -146,7 +163,7 @@ never on a routine lint.
 
 ### ⏳ Flags
 - **N pages carry `flagged:`** (engine control OK) — ≥5 → consider `/deep-lint`
-- `<the qmd-registry line, verbatim from the script>` · `attic-leak: none / n/a / N leaks` · `skill-guard: clean / N unsanctioned (control OK)`
+- `<the qmd-registry line, verbatim from the script>` · `attic-leak: none / n/a / N leaks` · `skill-guard: clean / N unsanctioned (control OK)` · `customisation-pairing: ok / n/a / N findings`
 
 ### 🛠️ Proposed next steps
 1. Auto-register unindexed pages? (y/n)

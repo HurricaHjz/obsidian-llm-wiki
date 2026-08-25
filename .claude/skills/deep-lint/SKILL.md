@@ -32,7 +32,10 @@ Run the full `lint` pipeline: index consistency, link health (dead links, orphan
 exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the cheap, unambiguous issues
 (register unindexed pages, etc.) after the report.
 - **Customisation sanity (deep-lint only):** if `CUSTOMISATION.md` exists, verify its `## Settings`
-  block exists and that its `style` and `role` values each name a section defined in the file (knobs live in the
+  block exists and that its `style` and `role` values each name a section defined **in the core file**
+  (the block-move rule keeps the defaults there; non-default definitions live in
+  `CUSTOMISATION-definitions.md`, whose pairing lint's 2f — inherited by the structural pass above —
+  already checks; the definitions file is on-demand, so it never counts toward the prefix line below), (knobs live in the
   body, never the frontmatter — the §13 import strips YAML), that no role line still uses the retired
   `- overrides <feature>:` syntax (mechanism retired 2026-08-17 — such a line is inert; flag it for the
   owner to reword, never rewrite it), and that its **loading path is intact**: the file carries its

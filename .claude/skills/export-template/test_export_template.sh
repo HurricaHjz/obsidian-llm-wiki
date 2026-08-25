@@ -38,6 +38,7 @@ build_fake_vault(){
   printf '# secret note\npersonal data here\n' > "$V/wiki/sources/secret.md"
   printf 'raw source\n' > "$V/raw/source1.md"
   mkdir -p "$V/wiki/user"; printf -- '---\ntitle: "Customisation"\ntype: user\n---\nowner personal prefs\n' > "$V/CUSTOMISATION.md"  # personal config — must NEVER ship
+  printf -- '---\ntitle: "Customisation definitions"\n---\nowner personal role defs\n' > "$V/CUSTOMISATION-definitions.md"  # on-demand half — must NEVER ship
   printf '# IDEAS\n- owner private idea\n' > "$V/IDEAS.md"   # personal scratchpad — must NEVER ship
   mkdir -p "$V/attic"; printf '# Attic Manifest\n- [2026-01-01] [[old-note]] retired\n' > "$V/attic/MANIFEST.md"  # cold storage — must NEVER ship
 }
@@ -76,7 +77,10 @@ chk "build: wiki ships empty"               '[ -z "$(find "$BUILT/wiki" -type f 
 chk "build: raw ships empty"                '[ -z "$(find "$BUILT/raw" -type f ! -name .gitkeep)" ]'
 chk "build: NO knowledge files shipped"     '[ ! -e "$BUILT/wiki/sources/secret.md" ] && [ ! -e "$BUILT/raw/source1.md" ]'
 chk "build: personal Customisation NOT shipped" '[ ! -e "$BUILT/CUSTOMISATION.md" ]'
+chk "build: personal Customisation-definitions NOT shipped" '[ ! -e "$BUILT/CUSTOMISATION-definitions.md" ]'
 chk "build: shipped setup.sh seeds Customisation" 'grep -q mk_custom "$BUILT/setup.sh"'
+chk "build: shipped setup.sh seeds the definitions half" 'grep -q mk_custom_defs "$BUILT/setup.sh"'
+chk "build: shipped gitignore ignores both halves" 'grep -qxF "/CUSTOMISATION-definitions.md" "$REALSKILL/payload/gitignore.txt"'
 chk "build: personal IDEAS.md NOT shipped"      '[ ! -e "$BUILT/IDEAS.md" ]'
 chk "build: shipped setup.sh seeds IDEAS"       'grep -q mk_ideas "$BUILT/setup.sh"'
 chk "build: publish allowlist ships with skill" '[ -f "$BUILT/.claude/skills/export-template/publish-allowlist.md" ]'

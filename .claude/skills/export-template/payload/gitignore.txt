@@ -13,6 +13,7 @@
 /template-export/
 /IDEAS.md
 /CUSTOMISATION.md
+/CUSTOMISATION-definitions.md
 
 # --- ...but keep the empty folder skeleton (the .gitkeep placeholders) ---
 !/wiki/**/

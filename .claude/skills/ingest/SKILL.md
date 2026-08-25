@@ -236,7 +236,10 @@ Otherwise (`.pdf`, `.pptx`, `.docx`, `.xlsx`, `.png`/`.jpg`, `.mp3`/`.wav`, `.ht
    Read tool) and transcribe it to `raw/<stem>.md` yourself — a faithful transcription, never a summary;
    mark illegible spots `unverified`; set provenance `converted_by: agent`. Reserve it for sources where
    layout or precision defeats MarkItDown — it costs real tokens, so it is never the default. **Fallback:**
-   when a conversion returns empty/garbled text (e.g. a scanned, image-only PDF), OFFER this route with a
+   when a conversion returns empty/garbled text (e.g. a scanned, image-only PDF), FIRST rule out a
+   truncated download — an empty converter error on a binary source may mean a partial file, so compare
+   byte size against the source and re-fetch once (precedent 2026-08-25: an arXiv PDF at 2.6 of 5.4 MB
+   failed markitdown silently; the re-download converted cleanly). Only then OFFER this route with a
    page/token estimate and proceed only on explicit confirmation; otherwise ask the user to OCR
    externally. Never fabricate content.
 

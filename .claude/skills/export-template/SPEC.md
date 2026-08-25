@@ -40,7 +40,7 @@ obsidian-llm-wiki-assistant/                  (= template-export/)
   `.claude/skills/**` — **every** skill, **incl. `export-template`** (the maintainer's publish tool, with its `payload/`),
   `.obsidian/{graph,app,core-plugins,appearance}.json`.
 - **STRIP →** all `wiki/**`, `raw/**`, `assets/**` (bar the README images), `output/**`, `attic/**`,
-  `wiki/user/**`, `CUSTOMISATION.md`, personal data, `.obsidian/workspace.json`/`plugins/`/`community-plugins.json`, `.claudian/`, `.git/`.
+  `wiki/user/**`, `CUSTOMISATION.md`, `CUSTOMISATION-definitions.md`, personal data, `.obsidian/workspace.json`/`plugins/`/`community-plugins.json`, `.claudian/`, `.git/`.
 
 ## Conventions the scaffold must preserve
 - Every empty content dir keeps a `.gitkeep`.

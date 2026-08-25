@@ -36,7 +36,9 @@ pages there only when asked or clearly appropriate.
 
 **Customisation (`CUSTOMISATION.md`):** the owner's **open-ended** preference layer — agent name,
 output style and role, language, any standing preference. It is **in context before your first
-reply**: §13 imports it and carries the load check. Never act on a partial or previewed copy.
+reply**: §13 imports it and carries the load check. Never act on a partial or previewed copy. Its
+on-demand half, `CUSTOMISATION-definitions.md`, holds the non-default style/role definitions — never
+imported; loaded per the core file's Settings rule (read before honouring a switch it covers).
 - **Precedence:** this schema's governance ≫ a live user instruction ≫ `CUSTOMISATION.md` ≫ built-in
   defaults. **User-space config, not a governance layer** — it can never relax the §2 permissions,
   raw immutability, the §4.6 rubric, the logging contracts, or the wiki's UK-English rule.
@@ -77,6 +79,8 @@ hijacks or silently strips it.
 ├── CUSTOMISATION.md            ← ⚙️ the owner's agent preference layer (name · styles · roles · standing prefs).
 │                                 Imported into project context by §13. User-space config, NOT knowledge:
 │                                 outside the wiki, outside the graph, never published (`.gitignore`).
+├── CUSTOMISATION-definitions.md ← its on-demand half: non-default style/role definitions — read on a
+│                                 switch (the core's Settings rule), never imported; same user-space status.
 │
 ├── assets/                    ← 🖼️ MEDIA LAYER
 │                                 Images, diagrams & reference attachments — incl. *special* PDFs you
@@ -467,7 +471,9 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   timeout) needs only stated headroom. Backfill opportunistically when a surface is next edited,
   never as a mass rewrite. Where a quantity is *meant* to grow (the always-on prefix), watch
   composition — attribute each delta — rather than thresholding the total: a growth threshold
-  converts sanctioned change into alarm.
+  converts sanctioned change into alarm. Cite vault-local evidence pages in **ship-safe wording** —
+  every shipped surface is scanned for personal strings at publish, and a personally-named path in a
+  citation halts it (halt precedent 2026-08-25).
 - **The prefix admits only what binds globally.** A new always-on line (this schema,
   `CUSTOMISATION.md`) earns its place only if it changes behaviour in sessions where its topic never
   arises through a skill; procedure a skill owns lives in that skill, with at most a one-line pointer

@@ -15,7 +15,7 @@
 | `assets/` | Images and reference attachments — diagrams, screenshots, and *special* PDFs you want to link to. Source PDFs to **ingest** go in `raw/`, not here. |
 | `IDEAS.md` | **Your scratchpad** — a copy-ready **TODO prompt queue** plus ideas and a monitor lane of standing cautions, jotted freely. The agent ignores it unless you explicitly point it there: *"maintain IDEAS.md"* tidies and reconciles it, *"run TODO 2"* executes a queued prompt and updates its status. |
 | `attic/` | **Your cold storage** — retired files kept "just in case", each listed in `attic/MANIFEST.md`. The agent never opens it unless you explicitly ask; archived notes show **grey** in the graph. |
-| `CUSTOMISATION.md` | **How your agent behaves** (vault root, seeded on first setup) — its name, output styles, task roles, and any standing preferences you add. Edit it, or just ask the agent. |
+| `CUSTOMISATION.md` | **How your agent behaves** (vault root, seeded on first setup) — its name, output styles, task roles, and any standing preferences you add. Edit it, or just ask the agent. Definitions of the non-default styles and roles live next door in `CUSTOMISATION-definitions.md`, which the agent reads only when you switch to one — keeping every session's always-on context lean. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
 | `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `reflect`, `lint`, `deep-lint`, `attic`, and `qmd-search` (plus `export-template` for framework updates). |
 
@@ -116,7 +116,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 - **Pacing** (how many at once): `auto` (default) · one at a time · in batches.
 
 **Customisation — make the agent yours**
-- Your agent's **name**, default **output style**, and **interaction preferences** live in `CUSTOMISATION.md`, seeded on first setup. Edit it — or just ask the agent — to change how it addresses you and how it writes.
+- Your agent's **name**, default **output style**, and **interaction preferences** live in `CUSTOMISATION.md`, seeded on first setup. Edit it — or just ask the agent — to change how it addresses you and how it writes. The styles and roles you are *not* currently using sit in `CUSTOMISATION-definitions.md`; the agent reads that file when you switch, and "set default style/role to X" moves the definition into the always-on file for you.
 - Those are only starter examples: the file is **open-ended**. Add any standing preference you want every session to honour — citation habits, formatting rules, tutoring style, anything — as new bullets or sections.
 - **Deliverable defaults** (optional): a `## Deliverable defaults` section sets standing formats for `/output` documents — citation style, deck format, and so on. Leave it empty and the agent chooses per deliverable; whatever you write in the instruction always wins.
 - **Roles**: say *"act as tutor"* (or any role you define under `## Roles`) to switch the agent's task context for the conversation; every reply opens with the active `role · style` status line, a claim the reply has to satisfy rather than a decoration. Roles shape how the agent works on your task and add to your global preferences; they never change your output style — how much you read stays your choice alone.
