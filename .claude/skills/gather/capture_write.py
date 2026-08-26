@@ -9,7 +9,10 @@ error stub served as a page, an HTML-dominant body from a crashed converter, a
 near-empty fetch), so the write path refuses those bodies; retry with the next
 engine, and a body you deliberately accept needs --allow-degraded '<why>' (the
 acceptance is stamped into the frontmatter and ledger, and declared in the run
-report). Fetching stays with the engines (defuddle/curl/markitdown/Jina); this
+report). PLATFORM LANE (tier-3 CLIs; agent-reach-adoption-design runbook step
+5): platform output (JSON/YAML/subtitles) is wrapped VERBATIM in closed fenced
+blocks at capture — the gate and sanitiser honour that convention (fence-aware),
+and bare unfenced whole-body JSON is refused so the convention is mechanical. Fetching stays with the engines (defuddle/curl/markitdown/Jina); this
 script only turns fetched Markdown into a raw/ file. If this script is missing
 or broken the run STOPS and asks — never hand-write captures around it. Verbs:
     write --url U --engine E --ledger-id ID [--title T] [--slug S] [--vault-root .]
@@ -27,11 +30,30 @@ import run_ledger
 
 CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 BARE_LINK = re.compile(r"\[([^\]\n]+)\]\(([^)\s]+)\)")
+HTML_TAG = re.compile(r"<[A-Za-z][^>\n]*>")
+# A CLOSED fenced block: column-0 opener, same-string closer alone on its line.
+# Deliberate bounds: an unclosed opener never matches (no fence privilege on a
+# broken premise); a longer/indented closer is not honoured — the platform
+# capture path writes exact column-0 pairs, and anything else stays prose.
+FENCED_BLOCK = re.compile(r"(?ms)^(?P<fence>`{3,}|~{3,})[^\n]*\n(?P<body>.*?)^(?P=fence)[ \t]*$\n?")
 
 
 def sanitise(text):
-    """Ingest Step-0 cleanup: strip control bytes; defang stray link syntax."""
-    text = CONTROL_CHARS.sub("", text)
+    """Ingest Step-0 cleanup: strip control bytes; defang stray link syntax.
+
+    Fence-aware (platform captures wrap CLI output verbatim in fenced blocks):
+    content inside a CLOSED fence is kept byte-exact apart from the control-byte
+    strip — Obsidian renders fences verbatim, so defanging there is needless and
+    would corrupt platform JSON (nested arrays read as [[ wiki-link openers).
+    An unclosed fence gets no privilege: its text is defanged as prose.
+    """
+    text = CONTROL_CHARS.sub("", text)  # first: no \x00 survives, so the fence
+    stash = []                          # placeholders below cannot collide
+
+    def _stash(m):
+        stash.append(m.group(0))
+        return f"\x00{len(stash) - 1}\x00"
+    text = FENCED_BLOCK.sub(_stash, text)
     text = text.replace("[[", r"\[\[")  # stray wiki-link syntax from math/citations
 
     def _defang(m):
@@ -39,7 +61,10 @@ def sanitise(text):
         if "://" in target or target.startswith(("#", "/", ".")) or "." in target:
             return m.group(0)  # real link — keep
         return f"{m.group(1)} ({target})"  # [text](bareword) — defang
-    return BARE_LINK.sub(_defang, text)
+    text = BARE_LINK.sub(_defang, text)
+    for i, block in enumerate(stash):
+        text = text.replace(f"\x00{i}\x00", block, 1)
+    return text
 
 
 def slug_from(url, title=None):
@@ -51,6 +76,40 @@ def slug_from(url, title=None):
 QUALITY_MIN_BYTES = 600
 QUALITY_TAG_COUNT = 100     # both tag thresholds must trip before a body is
 QUALITY_TAG_RATIO = 0.4     # called HTML-dominant (READMEs with badge HTML pass)
+# Platform lane: a fence is inspected as the capture's own payload only when it
+# DOMINATES the body — a minority fence is quoted material (a tutorial showing
+# an API error example must not be refused). Both judgement-set, unmeasured:
+# share 0.5 (a platform capture is a small header + the payload; a quoted
+# example is a fraction of its article), tags 30 (hello-world HTML ~10 tags,
+# a real served login/error page carries dozens).
+QUALITY_FENCE_SHARE = 0.5
+QUALITY_FENCE_TAGS = 30
+HTML_PAGE_SIG = re.compile(r"(?i)<!DOCTYPE\s+html|<html[\s>]")
+# Top-level JSON fields that never carry requested content — error envelopes
+# plus response metadata; judgement-set, extend as the platforms teach us.
+NONDATA_KEYS = {"error", "errors", "message", "msg", "code", "status", "name",
+                "detail", "details", "title", "reason", "success",
+                "meta", "metadata", "request_id", "timestamp"}
+
+
+def _json_payload_reject(payload):
+    """Inspect one JSON payload (a dominant fenced platform capture). Returns a
+    reason or None. Top-level only — a nested null inside real data is the live
+    probes' job, not the gate's; non-JSON (YAML/subtitles) passes through here
+    (stdlib has no YAML) and is carried by the size floor + HTML-page signature.
+    """
+    try:
+        obj = json.loads(payload)
+    except ValueError:
+        return None
+    if isinstance(obj, list) and not obj:
+        return "empty platform result (JSON [])"
+    if isinstance(obj, dict):
+        nonempty = {k.lower() for k, v in obj.items() if v not in (None, "", [], {})}
+        if nonempty <= NONDATA_KEYS:  # includes the all-empty dict
+            named = ", ".join(sorted(nonempty)) or "none"
+            return f"platform payload carries no content (non-empty fields: {named})"
+    return None
 
 
 def quality_check(body):
@@ -58,9 +117,16 @@ def quality_check(body):
 
     Each check behaves sensibly when its own premise fails: an empty or
     whitespace body is caught by the size floor, a newline-free body gets
-    lines >= 1 so the ratio cannot divide by zero, and no pattern here can
-    raise on arbitrary text. False positives (a legitimately tiny page, a
-    tutorial dense with literal HTML) go through --allow-degraded, declared.
+    lines >= 1 so the ratio cannot divide by zero, an unclosed fence is simply
+    prose, and no pattern here can raise on arbitrary text. False positives
+    (a legitimately tiny page, a tutorial dense with literal HTML) go through
+    --allow-degraded, declared.
+
+    Platform lane (fenced verbatim CLI output — JSON/YAML/subtitles): closed
+    fenced payloads are excluded from the HTML-dominance scan (subtitle markup
+    is data, not a crashed converter), and a DOMINANT fence is inspected
+    directly — a JSON error/empty payload or a served HTML page (a login wall
+    handed to the CLI) is refused.
     """
     text = body.strip()
     if len(text) < QUALITY_MIN_BYTES:
@@ -70,19 +136,33 @@ def quality_check(body):
         return "engine error stub ('Target URL returned error') — the page was not captured"
     if re.search(r"^Title: Page Not Found$", head, re.M):
         return "engine returned a Page Not Found shell, not the page"
-    if text.startswith("{"):
-        # An all-JSON body is an engine's API error response served as the page
-        # (2026-08-25: a Jina 403 AbuseAlleviationError stub, 620 B, cleared the
-        # size floor). Markdown that merely opens with "{" fails json.loads and
-        # passes; a deliberate JSON capture goes through --allow-degraded.
+    if text.startswith(("{", "[")):
+        # An all-JSON body is either an engine's API error response served as
+        # the page (2026-08-25: a Jina 403 AbuseAlleviationError stub, 620 B,
+        # cleared the size floor) or platform output missing its fence wrap.
+        # Markdown that merely opens with "{"/"[" fails json.loads and passes.
         try:
             json.loads(text)
-            return ("body is a JSON document, not Markdown — an engine API "
-                    "error response served as the page")
+            return ("body is a bare JSON document, not Markdown — an engine API "
+                    "error stub, or unfenced platform output (platform captures "
+                    "are fenced; adoption-design runbook step 5)")
         except ValueError:
             pass
-    tags = len(re.findall(r"<[A-Za-z][^>\n]*>", text))
-    lines = max(1, text.count("\n"))
+    for m in FENCED_BLOCK.finditer(text):
+        payload = m.group("body")
+        if len(payload) / len(text) < QUALITY_FENCE_SHARE:
+            continue  # minority fence — quoted material, not the payload
+        reason = _json_payload_reject(payload)
+        if reason:
+            return reason + " — in the capture's fenced platform payload"
+        fence_tags = len(HTML_TAG.findall(payload))
+        if HTML_PAGE_SIG.search(payload) and fence_tags >= QUALITY_FENCE_TAGS:
+            return (f"fenced payload is an HTML page ({fence_tags} tags, "
+                    f"{len(payload) * 100 // len(text)}% of the body) — the "
+                    "platform served a page (login wall / error), not data")
+    prose = FENCED_BLOCK.sub("", text)
+    tags = len(HTML_TAG.findall(prose))
+    lines = max(1, prose.count("\n"))
     if tags >= QUALITY_TAG_COUNT and tags / lines >= QUALITY_TAG_RATIO:
         return (f"HTML-dominant body ({tags} tags over {lines} lines) — "
                 "the converter emitted markup, not Markdown")

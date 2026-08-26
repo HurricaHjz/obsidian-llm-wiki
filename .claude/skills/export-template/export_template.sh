@@ -122,6 +122,20 @@ a = json.load(open(p))
 a.pop("enabledCssSnippets", None)
 json.dump(a, open(p, "w"), indent=2)
 PY2
+  # Strip VAULT-LOCAL blocks from every shipped Markdown file — content the vault needs but the
+  # template must never ship (owner-specific setup: tier-3 activation wiring, machine paths, burner).
+  # Marker: <!-- vault-local:begin --> … <!-- vault-local:end -->. General conditional-compile, so any
+  # future vault-specific block ships nothing by wrapping it (added 2026-08-26).
+  find "$D" -name '*.md' -type f -print0 2>/dev/null | while IFS= read -r -d '' f; do
+    python3 - "$f" <<'PY3' || true
+import re, sys
+p = sys.argv[1]
+try: t = open(p, encoding="utf-8").read()
+except Exception: sys.exit(0)
+n = re.sub(r"[ \t]*<!-- *vault-local:begin *-->.*?<!-- *vault-local:end *-->[ \t]*\n?", "", t, flags=re.S)
+if n != t: open(p, "w", encoding="utf-8").write(n)
+PY3
+  done
 }
 
 # ── pull publish files from the repo: README/LICENSE → vault root, screenshot → assets/, rest → payload ──

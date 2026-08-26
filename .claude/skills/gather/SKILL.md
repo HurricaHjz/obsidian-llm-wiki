@@ -136,8 +136,10 @@ declared in the run-spec echo:
    API · known RSS/Atom feeds parsed via the tier-1 feedparser channel
    (`~/.agent-reach-venv/bin/python3 -c "import feedparser; …"`; blog/newsletter coverage) —
    each engine named in the run-spec echo, hits triaged identically (metadata-only).
-   X has no consented search route: locate posts via WebSearch, read via the tier-1 Jina
-   channel (governance: `wiki/developments/agent-reach-adoption-design.md`). The pool holds the top candidates
+   X and Reddit are login-walled: by default locate posts via WebSearch and read via the tier-1 Jina
+   channel; consented **tier-3 platform search** (X/Reddit under the burner posture) is governed by
+   `wiki/developments/agent-reach-adoption-design.md` and activated per vault.
+   The pool holds the top candidates
    by triage score, up to the pool value — a cap, not a quota: underfill is reported, with
    `--queries`/`--rounds` suggested.
 2. Triage on result metadata — no capture fetches at this stage. Dedupe by URL, recording
@@ -287,7 +289,12 @@ full provenance frontmatter (`converted_from`/`converted_by`/`converted_on` + `s
 ingest's de-dup keeps working), and appends the capture to the ledger in one step. It also runs a
 **capture quality gate**: a body that is an engine error stub, a Page-Not-Found shell,
 HTML-dominant (a crashed converter emitting markup, not Markdown), or near-empty is REFUSED
-unwritten — treat the refusal as that engine failing and retry with the next engine in the chain
+unwritten. Platform captures (tier-3 CLIs) pipe the CLI's output VERBATIM inside a closed fenced
+block under a one-line header — the gate honours the fence (fenced payloads sit outside the HTML
+heuristic, so subtitle markup passes; the sanitiser leaves them byte-exact) but refuses a dominant
+fence that is a JSON error/empty payload or a served HTML page (a login wall), and refuses bare
+unfenced whole-body JSON, keeping the fence convention mechanical. Treat any refusal as that
+engine failing and retry with the next engine in the chain
 (a page every engine fails on is a whole-chain failure, handled as above). The `check` verb runs
 the gate alone on stdin (no write, no ledger) for pre-write probes; a body you deliberately accept
 needs `--allow-degraded '<why>'`, which stamps the acceptance into the frontmatter and ledger and
@@ -339,10 +346,7 @@ a facetless seed run reports plan-versus-captured instead. For a synthesised rep
 - **Capture, don't summarise**: use `defuddle`/`curl`/`markitdown`/Jina (verbatim/extraction).
   WebFetch is triage-only (throwaway date checks) — never a capture path. Never fill gaps with
   invented content; mark anything uncertain `unverified`.
-- **Privacy/safety**: skip anything behind a login or obviously private — sole exception: channels
-  the owner consented at tier 3 (X via twitter-cli · Reddit via rdt-cli, burner-account posture,
-  2026-08-23 amendment in `wiki/developments/agent-reach-adoption-design.md`), and only once marked
-  ACTIVE in `.agent-reach-on`; each tier-3 capture is declared in the run-spec echo like any engine.
+- **Privacy/safety**: skip anything behind a login or obviously private.
   The Jina fallback routes URLs through a third party, so don't use it for sensitive links.
 - **British/UK English at COMPILE time, not capture time**: non-English pages are captured
   VERBATIM in their source language (raw/ is immutable evidence — CLAUDE.md §3.1); `/ingest`
