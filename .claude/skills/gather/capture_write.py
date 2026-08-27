@@ -15,15 +15,20 @@ blocks at capture — the gate and sanitiser honour that convention (fence-aware
 and bare unfenced whole-body JSON is refused so the convention is mechanical. Fetching stays with the engines (defuddle/curl/markitdown/Jina); this
 script only turns fetched Markdown into a raw/ file. If this script is missing
 or broken the run STOPS and asks — never hand-write captures around it. Verbs:
-    write --url U --engine E --ledger-id ID [--title T] [--slug S] [--vault-root .]
+    write --url U --engine E --ledger-id ID [--title T] [--slug S] [--vault-root PATH]
           [--allow-degraded REASON]
         reads Markdown on stdin; writes raw/<slug>.md; appends to the ledger
     check
         reads Markdown on stdin; runs the quality gate only (no write, no
         ledger): prints PASS (exit 0) or REJECT + reason (exit 3)
-    dedup --urls a,b,c | --urls a b c  --control URL [--vault-root .] [--allow-no-control]
+    dedup --urls a,b,c | --urls a b c  --control URL [--vault-root PATH] [--allow-no-control]
         greps candidate URLs against source_url/converted_from in raw/ + wiki/;
         the --control URL MUST hit (proof the scan ran — CLAUDE.md §11)
+
+--vault-root defaults to this script's OWN vault (three parents above
+.claude/skills/gather/), never the cwd; default or explicit, the root must
+contain raw/ + wiki/ or write/dedup refuse to run (2026-08-26 defect: the old
+"." default scanned whatever tree the caller stood in).
 """
 import argparse, datetime, json, os, re, sys
 import run_ledger
@@ -65,6 +70,24 @@ def sanitise(text):
     for i, block in enumerate(stash):
         text = text.replace(f"\x00{i}\x00", block, 1)
     return text
+
+
+def resolve_vault_root(given):
+    """Return a validated vault root; default = this script's own vault.
+
+    The script lives at <vault>/.claude/skills/gather/, so the vault is three
+    parents above this file (realpath, so a symlinked install resolves too).
+    Whatever the origin, a root missing raw/ or wiki/ raises (exit 2 in main)
+    — a moved script or a wrong explicit path must fail loudly, never scan an
+    empty tree (the 2026-08-26 known-issues entry: default "." from /tmp).
+    """
+    here = os.path.dirname(os.path.realpath(__file__))
+    root = os.path.normpath(given or os.path.join(here, "..", "..", ".."))
+    missing = [d for d in ("raw", "wiki") if not os.path.isdir(os.path.join(root, d))]
+    if missing:
+        raise ValueError(f"--vault-root {root} lacks {' + '.join(missing)}/ — not a vault root; "
+                         "refusing to scan/write a wrong tree (pass --vault-root explicitly)")
+    return root
 
 
 def slug_from(url, title=None):
@@ -274,9 +297,13 @@ def main():
     ap.add_argument("--allow-degraded", dest="allow_degraded", metavar="REASON",
                     help="write despite a quality-gate rejection; REASON is stamped into "
                          "frontmatter + ledger and must be declared in the run report")
-    ap.add_argument("--vault-root", default=".")
+    ap.add_argument("--vault-root", default=None,
+                    help="vault to scan/write (default: this script's own vault; "
+                         "must contain raw/ + wiki/)")
     a = ap.parse_args()
     try:
+        if a.verb in ("write", "dedup"):   # check reads stdin only — no root needed
+            a.vault_root = resolve_vault_root(a.vault_root)
         if a.verb == "write":
             if not (a.url and a.ledger_id):
                 raise ValueError("write needs --url and --ledger-id")

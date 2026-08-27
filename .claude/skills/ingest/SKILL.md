@@ -132,6 +132,15 @@ updated: <YYYY-MM-DD>
 - [[…]]
 ```
 
+**Genre note — research depth is not paper-only.** T1 ∧ T2 fire on any primary source whose exact
+wording matters (regulations, institutional handbooks, contracts, policy documents). For those, keep
+the frontmatter fields that exist (no DOI → omit it; `venue:` takes the issuing body + version) and
+replace the paper-shaped middle sections (Research Question … Limitations) with genre-fitting
+equivalents (e.g. Scope & Applicability · Requirements & Thresholds · Deadlines & Milestones ·
+Governance). The obligations never flex — exact figures, verbatim quotes with §/page refs,
+`## Relation to Wiki`, `## Related` — and the substitution is declared on the page and in the run
+report. Precedent: [[oxford-cs-research-student-handbook-2025]] (2026-08-26).
+
 ## Pipeline (per source)
 
 ### Pre-flight — De-dup: have I ingested this already? (one cheap shell call)

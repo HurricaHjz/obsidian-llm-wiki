@@ -164,8 +164,21 @@ open(long_fm, "w").write("---\ntitle: t\nnote_field: " + "x" * 5000 + "\nsource_
 r = run("dedup", "--urls", "https://x.test/longfm", "--control", "https://x.test/two")
 check("key past 4096 B found (extend-on-miss)", "ALREADY IN VAULT" in r.stdout and "longfm" in r.stdout)
 
+print("== vault-root guard (2026-08-26 defect) ==")
+SCRIPT = os.path.join(CWD, "capture_write.py")
+r = subprocess.run([sys.executable, SCRIPT, "dedup", "--urls", "https://nowhere.test/a",
+                    "--allow-no-control"], capture_output=True, text=True, cwd=tempfile.gettempdir())
+check("foreign cwd defaults to the script's vault", r.returncode == 0 and "-> new" in r.stdout)
+BOGUS = tempfile.mkdtemp(prefix="cwtest-notavault-")
+r = subprocess.run([sys.executable, SCRIPT, "dedup", "--urls", "x", "--allow-no-control",
+                    "--vault-root", BOGUS], capture_output=True, text=True, cwd=CWD)
+check("dedup refuses a non-vault root", r.returncode == 2 and "not a vault root" in r.stderr)
+r = subprocess.run([sys.executable, SCRIPT, "write", "--url", "https://x.test/x", "--ledger-id", RID,
+                    "--vault-root", BOGUS], input=GOOD, capture_output=True, text=True, cwd=CWD)
+check("write refuses a non-vault root", r.returncode == 2 and "not a vault root" in r.stderr)
+
 os.remove(rl.path_for(RID))
 os.remove(rl.path_for(RID2))
-import shutil; shutil.rmtree(VAULT)
+import shutil; shutil.rmtree(VAULT); shutil.rmtree(BOGUS)
 print(f"\n{P} passed, {F} failed")
 sys.exit(1 if F else 0)
