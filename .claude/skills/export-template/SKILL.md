@@ -119,6 +119,11 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
    current minor so far plus the candidate, each row verified — runs only at a **minor-version
    boundary** (the first release of a new minor, vX.Y.0) or when the owner asks for a "full recap".
    The user's go-ahead on the presented recap is the publish approval.
+   **Framework paths are name-neutral (2026-08-28).** The agent's own name is user-space config
+   (`agent_name`, seeded blank in the shipped `setup.sh`), so no shipped path or env var may embed
+   it. The agent home is `~/.llm-wiki/` (ingest run ledger, and any future agent-owned state) and
+   the lane belt is `LLM_WIKI_LANE`. A vault whose home already sits elsewhere aliases it with a
+   machine-local symlink rather than moving data, so the convention costs no migration.
 3. **Confirm — mandatory gate:** ask the user to approve and to give/confirm a commit message.
    **Never `commit` or `push` without an explicit "yes".**
 4. **Publish:** `git -C <repo> commit -m "<message>" && git -C <repo> push`

@@ -10,11 +10,13 @@ description: >
   this session", "store the lessons from this". NEVER runs automatically and never fires from
   passive context. It is a SECOND lane beside the agent's ordinary in-flight filing, which is
   unchanged: this is the owner's own trigger for what that lane missed. Preview-and-approve every
-  run; opt-in `--yes` writes only inside wiki/ under a create-and-append rule.
+  run; opt-in `--yes` writes only inside wiki/ under a create-and-append rule. `--cross
+  <transcript>` runs the same bar over ANOTHER session's transcript via a read-only reflector
+  lane (cross-reflection; see its section below).
 user-invocable: true
 ---
 
-# reflect — capture what this session learned, on the owner's word
+# reflect — capture what a session learned, on the owner's word
 
 The agent already files findings as it works — the in-flight lane is real and measured (see
 `wiki/developments/reflect-skill-design.md`). **That lane is unchanged and ungated.** This skill is the *second* lane: an explicit trigger the owner owns, for the
@@ -59,8 +61,9 @@ then grep for it under the harness transcript directory (Claude Code: `~/.claude
 separators as dashes>/*.jsonl`). The single file containing the nonce IS this session's record — the
 transcript logs the probe itself, which is the positive control (CLAUDE.md §11). Count its human turns
 with a filter **verified against the visible span** (every visible human turn must be matched; beware:
-tool results also carry `"type":"user"` and must be excluded), and report `visible k of N recorded
-turns`. **Fallback** — no transcript, no unique nonce match, or a filter that fails its own check →
+tool results AND harness task-notifications also carry `"type":"user"` and must both be excluded — the
+notification miss overcounted 9 turns as 27, №103 cross-reflection P1, 2026-08-28), and report
+`visible k of N recorded turns`. **Fallback** — no transcript, no unique nonce match, or a filter that fails its own check →
 the unmeasured form: name the earliest visible turn and state that the boundary carries no control
 this run. **Never report "nothing to capture this session"** — only "nothing in the visible span".
 On `--full` (explicit request only), read the compacted-out remainder from the transcript file itself,
@@ -100,6 +103,10 @@ candidate is still not proposed, whatever the flag.
 mechanism that caught it** — a printed control, a failing test, an owner correction, a reviewer. An
 unwitnessed self-assessment has no witness and does not survive step 3.
 
+**Probe discipline (2026-08-27).** A dedup grep never carries an exclusion filter — one filtered out the
+very record that made a candidate redundant, manufacturing false novelty. And a probe's control is never
+the claim under test: pair every 0-hit with a positive control that hits on the same surface (§11).
+
 ### Step 4 — Route it
 In priority order. Say which rule sent it there.
 
@@ -131,8 +138,11 @@ Before the preview, brief a subagent to **refute** the candidate table: per cand
 a real event in the recorded span, is it genuinely unrecorded (re-run the Step 3 destination checks),
 is it load-bearing, and does a self-conduct item name a true external witness? A refuted candidate
 moves to "seen, not proposed" with the refutation as its reason; an arguable refutation stays proposed
-with the objection attached. This is the bounded per-run witness self-reflection lacks (IDEAS №61 is
-the cross-session form). `--no-critic` skips it and the preview says "critic: skipped"; where the
+with the objection attached. **A refuted candidate's defensible residue is a NEW candidate**: it
+re-enters at Step 3 and waits for the Step 6 preview like any other — never a direct write, however
+broad the standing go (the missing salvage path let two refuted items ship pre-preview, №103 session,
+recorded 2026-08-28). This is the bounded per-run witness self-reflection lacks (the
+cross-session form is `## Cross-reflection` below). `--no-critic` skips it and the preview says "critic: skipped"; where the
 harness offers no subagent mechanism, say "critic: unavailable". **The critic filters proposals; it
 never approves writes — approval still terminates at the owner.**
 
@@ -156,6 +166,41 @@ under `--yes` below.
   `framework` for a contract or `developments/` change, nothing for a register append (§12 exempts it).
   A run that changes nothing logs nothing.
 - Report what was written, where, at what tier, and what was discarded.
+
+### Step 8 — Recommend, don't queue (owner-added 2026-08-27)
+Close the report with next-action recommendations derived ONLY from what this run shipped, corrected or
+left undecided — an open decision surfaced, a stale premise fixed, a watch worth setting. A short ranked
+list: action · whose decision it is · when it becomes urgent. Where a written page ships, mirror it as a
+`## Next` section **worded as recommendations with their reasons** — findings, never instructions to
+future agents (§2.2 discipline applies to pages as to reports). Nothing self-executes; nothing enters
+IDEAS.md unless the owner says "queue it" (normal IDEAS rules then apply). A run with nothing genuinely
+open recommends nothing — no forced next.
+
+## Cross-reflection (`--cross`) — one agent reflects on another's session
+
+**Trigger, explicit only:** `/reflect --cross <transcript-path | session-id>`, or the owner accepting
+a workflow-end proposal (the delegate skill §5 owns that policy: the head may propose once, cost
+declared first, never auto-run). **Target:** a finished session's transcript, or the current
+session's transcript as of spawn — the live-write race is declared in the report; the pilot tested
+the finished case only (dated caveat: `wiki/developments/cross-reflection-pilot.md`).
+
+**Mechanism.** The head agent spawns a READ-ONLY reflector lane (delegate skill,
+`templates/brief-reflector.md`) that applies Steps 1–5 to the target transcript. The lane extracts
+the transcript's human turns and assistant prose (tool-result records excluded) to /tmp and reads
+that extraction in full, reporting "read k of N turns". **Horizon control** (replaces Step 2's
+nonce, which only proves one's *own* session): target file exists and is non-zero; human-turn count
+verified against the extraction; coverage declared, never claimed complete.
+
+**Witness ruling.** Proposer ≠ behaving agent, so a transcript-grounded observation (file + line)
+IS the external witness Step 3's self-conduct rule demands — cross mode is where unwitnessed
+conduct faults become recordable.
+
+**Scope v1:** the head transcript only; lane-internal events appear only as the lane reports
+embedded in it. **Output:** findings, never writes — the FULL named candidate table including every
+discard with the page that killed it (an aggregate count hides the dedup evidence). Step 5b is not
+re-run on cross output — duplicative cost, since the head's re-verify widens instead: dedup checks
+AND a re-read of each cited transcript span before the preview. Owner approval stays line-by-line;
+the head writes approved items. **`--yes` never applies to cross runs.**
 
 ## `--yes` — opt-in auto-approval (off by default)
 Set per run (`/reflect --yes`) or as a standing owner setting. It means **writing without waiting, never

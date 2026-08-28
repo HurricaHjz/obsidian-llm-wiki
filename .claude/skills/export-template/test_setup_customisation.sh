@@ -2,6 +2,14 @@
 # test_setup_customisation.sh — unit tests for setup.sh seeding the customisation layer.
 # Runs the shipped payload/setup.sh in an isolated temp dir; NEVER touches the real vault.
 # Run:  bash test_setup_customisation.sh
+# Premise guard: this suite needs process substitution. Invoked as `sh <file>` it dies mid-run
+# with a raw syntax error and exit 2, and a caller grepping the output for "FAIL" then reads zero
+# and calls it green (observed 2026-08-28). Probe the CAPABILITY, not the shell name: on macOS
+# /bin/sh IS bash, so $BASH_VERSION is set while POSIX mode still disables the feature.
+if ! (eval 'cat < <(echo probe)') >/dev/null 2>&1; then
+  echo "ERROR: process substitution unavailable (POSIX mode?) — run: bash $0"; exit 2
+fi
+
 set -uo pipefail
 PAY="$(cd "$(dirname "${BASH_SOURCE[0]}")/payload" && pwd)/setup.sh"
 VAULT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"

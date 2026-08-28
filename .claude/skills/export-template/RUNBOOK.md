@@ -29,6 +29,7 @@ Produces `template-export/` per `SPEC.md`.
   cd ..
   ```
 - **setup.sh test**: in a copy, `bash setup.sh` creates `index.md`/`log.md`; `--with-example` loads the demo.
+- **`audited:` policy (decided 2026-08-27)**: the `setup.sh` seeders stamp `audited:` at seed time (creation-with-assignment is the check, §4.6); the shipped example pages deliberately carry **none** — stamping them would backfill a badge nobody checked, and "absent = pre-rule" is their honest state. A future §4.1 field change must sweep both surfaces (CLAUDE.md §12, the emitting-surfaces rule).
 
 ## C. Publish (first time)
 1. **github.com → New repository** → name `obsidian-llm-wiki-assistant` → **Public** → do **not** add a README or

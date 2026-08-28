@@ -40,6 +40,15 @@ list_skills() {  # echo EVERY skill folder under $1/.claude/skills — auto-disc
   done
 }
 
+list_agents() {  # echo EVERY subagent definition FILE under $1/.claude/agents — same auto-discovery contract as
+  [ -d "$1/.claude/agents" ] || return 0   # list_skills, so a new definition ships with zero edits. FILES only:
+  for f in "$1/.claude/agents"/*.md; do    # a lane's `memory` directory is excluded by construction, never shipped.
+    [ -f "$f" ] || continue
+    f="${f##*/}"
+    printf '%s\n' "$f"
+  done
+}
+
 # ── vault-owned framework files: vault → $1  (build & push) ─────────────────────────────────
 copy_framework() {
   local D="$1" s STRAY
@@ -52,6 +61,12 @@ copy_framework() {
   for s in $(list_skills "$SRC"); do
     rm -rf "$D/.claude/skills/$s"; cp -R "$SRC/.claude/skills/$s" "$D/.claude/skills/"
   done
+  if [ -n "$(list_agents "$SRC")" ]; then    # known-issues 2026-08-27: the delegate skill's routing table
+    mkdir -p "$D/.claude/agents"             # named definitions the payload never shipped
+    for a in $(list_agents "$SRC"); do
+      rm -f "$D/.claude/agents/$a"; cp "$SRC/.claude/agents/$a" "$D/.claude/agents/"
+    done
+  fi
   mkdir -p "$D/.obsidian"
   for f in graph.json app.json core-plugins.json appearance.json; do
     [ -f "$SRC/.obsidian/$f" ] && cp "$SRC/.obsidian/$f" "$D/.obsidian/"
@@ -189,6 +204,9 @@ if [ "$WANT_PULL" = 1 ]; then
   for s in $(list_skills "$REPO"); do
     diff -rq -x __pycache__ -x '*.pyc' -x .DS_Store "$REPO/.claude/skills/$s" "$SRC/.claude/skills/$s" >/dev/null 2>&1 || { echo "  update  .claude/skills/$s"; CHG=1; }
   done
+  for a in $(list_agents "$REPO"); do
+    diff -q "$REPO/.claude/agents/$a" "$SRC/.claude/agents/$a" >/dev/null 2>&1 || { echo "  update  .claude/agents/$a"; CHG=1; }
+  done
   if [ "$WITH_GRAPH" = 1 ] && [ -f "$REPO/.obsidian/graph.json" ]; then
     diff -q "$REPO/.obsidian/graph.json" "$SRC/.obsidian/graph.json" >/dev/null 2>&1 || { echo "  update  .obsidian/graph.json"; CHG=1; }
   fi
@@ -208,6 +226,10 @@ if [ "$WANT_PULL" = 1 ]; then
   for s in $(list_skills "$REPO"); do                    # per-name copy, incl. export-template itself —
     rm -rf "$SRC/.claude/skills/$s"; cp -R "$REPO/.claude/skills/$s" "$SRC/.claude/skills/"   # replacing the running script is Unix-safe (old inode stays open; new version applies next run)
   done
+  if [ -n "$(list_agents "$REPO")" ]; then
+    mkdir -p "$SRC/.claude/agents"
+    for a in $(list_agents "$REPO"); do cp "$REPO/.claude/agents/$a" "$SRC/.claude/agents/"; done
+  fi
   [ "$WITH_GRAPH" = 1 ] && [ -f "$REPO/.obsidian/graph.json" ] && cp "$REPO/.obsidian/graph.json" "$SRC/.obsidian/graph.json"
   refresh_local "$REPO"
   echo "DONE — vault framework updated from $REPO. Re-read CLAUDE.md; reopen Obsidian if skills/graph changed."
@@ -223,6 +245,9 @@ if [ "$WANT_PUSH" = 1 ]; then
   for d in "$REPO/.claude/skills"/*/; do            # repo-side dirs the vault retired (known-issues 2026-08-22)
     s="$(basename "$d")"
     [ -d "$SRC/.claude/skills/$s" ] || echo "STALE repo-side skill '$s' (vault has none) — propose at the diff gate:  git -C \"$REPO\" rm -r .claude/skills/$s"
+  done
+  for a in $(list_agents "$REPO"); do               # same rule for a vault-retired agent definition
+    [ -f "$SRC/.claude/agents/$a" ] || echo "STALE repo-side agent '$a' (vault has none) — propose at the diff gate:  git -C \"$REPO\" rm .claude/agents/$a"
   done
   copy_packaging "$REPO"     # publish files: README/LICENSE + screenshot from the vault; machinery from payload
   make_skeleton  "$REPO"     # idempotent (re-touches .gitkeep); creates the skeleton on a first publish
@@ -242,6 +267,7 @@ apply_fixes    "$OUT"
 
 # ── verify ───────────────────────────────────────────────────────────────────────────────
 echo "--- shipped skills (auto-discovered, incl. export-template) ---"; ls "$OUT/.claude/skills" | tr '\n' ' '; echo
+echo "--- shipped agent definitions (auto-discovered) ---"; ls "$OUT/.claude/agents" 2>/dev/null | tr '\n' ' '; echo
 echo "--- wiki/raw ship empty (only .gitkeep)? ---"; find "$OUT/wiki" "$OUT/raw" -type f ! -name .gitkeep | sed 's/^/  STRAY: /' || true
 echo "--- top-level ---"; ls -1A "$OUT"
 echo "DONE → $OUT   (next: see .claude/skills/export-template/RUNBOOK.md → Publish)"

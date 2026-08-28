@@ -23,7 +23,7 @@ You maintain a **persistent, compounding wiki** (see `CLAUDE.md`). `raw/` root i
 2. **`/ingest <path>`** → process just that file (or a YouTube/web URL the user gives you).
 3. **Implicit** → user says "add this to my wiki" / "ingest this" / "file this source".
 
-## Pacing: auto (default), one-by-one, or batch
+## Pacing: auto (default), one-by-one, batch, or parallel
 Read the **pacing** from the user's words; **if they don't specify, default to `auto` and decide yourself.**
 Do not ask which *pacing* to use unless the choice is genuinely risky. (This is pacing only — **depth**
 is a separate axis with its own rules; see Depth. `auto` names a default on both, so never read a
@@ -37,6 +37,12 @@ pacing sentence as licence on depth, or a depth rule as licence on pacing.)
   - Either way, **pause immediately** if a genuine knowledge conflict surfaces.
 - **`one-by-one`** — user says "one at a time" / "let me review each", or names a single file.
 - **`batch`** — user says "all at once" / "batch them" / "do them all".
+- **`parallel [N]`** — user says `--parallel` (optionally a lane count), or `auto` proposes it when the
+  inbox holds **≥6 independent sources** (threshold set by judgement, unmeasured — recalibrate on batch
+  metering; ≤5 stays the small-batch boundary above). **Owner-go gate, knob-invariant:** compile lanes
+  are never spawned without the owner's explicit go on the echoed spawn record — the `pre-report` knob
+  switches reporting only, never this consent (delegate skill §3 slot 0); under the `light` effort tier
+  a fan-out needs an explicit owner ask. Mechanics: **Parallel mode** below.
 
 ### Token-efficiency rules (especially in batch — avoid redundant repetition)
 - Read each source **once**; never re-read the whole wiki per file.
@@ -62,8 +68,10 @@ anything other than the default, and resolve an ambiguous phrase to the **narrow
 - **T1 · Reuse** — does it carry original figures, a reimplementable method, or wording where a
   paraphrase would falsify the claim?
 - **T2 · Proximity** — does it bear on a topic named in `wiki/user/`, or on an open question already in
-  the wiki (a `## Conflicts / Open Questions` block, a `flagged:` page)? *Fresh-vault fallback*: if
-  `wiki/user/` is absent or empty, read T2 as "a topic with ≥3 source pages in `index.md`"; if the wiki
+  the wiki (a `## Conflicts / Open Questions` block, a `flagged:` page)? *Fallback*: if
+  `wiki/user/` is absent, empty, **or outside the reader's scoped reading list** (a delegated compile
+  lane — two №103 lanes resolved this opposite ways, one probing off-scope, one forced down to
+  `standard`; cross-reflection P3, 2026-08-28), read T2 as "a topic with ≥3 source pages in `index.md`"; if the wiki
   is too small for even that, say so once and work in concise/standard only.
 - **T3 · Novelty** — does it add anything not already on an existing page?
 
@@ -103,6 +111,7 @@ title: "Paper: <Title>"
 type: source
 depth: research
 confidence: high   # authoritative if peer-reviewed/published; see CLAUDE.md §4.6
+audited: <YYYY-MM-DD>   # today — assignment with the source in context is the check (§4.6)
 tags: [paper, <field>]
 authors: [<First Author>, <…>]
 year: <YYYY>
@@ -139,7 +148,104 @@ replace the paper-shaped middle sections (Research Question … Limitations) wit
 equivalents (e.g. Scope & Applicability · Requirements & Thresholds · Deadlines & Milestones ·
 Governance). The obligations never flex — exact figures, verbatim quotes with §/page refs,
 `## Relation to Wiki`, `## Related` — and the substitution is declared on the page and in the run
-report. Precedent: [[oxford-cs-research-student-handbook-2025]] (2026-08-26).
+report. First exercised 2026-08-26 on an institutional research-degree handbook, where the exact
+thresholds and term-relative deadlines are precisely what a paraphrase would falsify.
+
+## Run ledger (persistence — every run, serial or parallel)
+
+Every ingest run appends an event log under the agent home `~/.llm-wiki/`:
+`~/.llm-wiki/ingest-runs/run-<YYYYMMDD-HHMM-id>.jsonl` — one JSON
+event per line via shell append (`printf '%s\n' '<json>' >> <ledger>`), the same primitive that makes
+`log.md` race-safe. **Never read-modify-write it**; resume state is a fold over events (`grep`/`jq`).
+No helper script — primitives first (§12), until a real run shows hand-rolled appends failing.
+(Design record: `wiki/developments/ingest-persistence-parallelism-design.md`.)
+
+**Events** (extra fields are free): `run_open` (run id · pacing · authorised depth range · inbox
+listing as `inbox: [{file, sha256 prefix}]`) · `lane_open` / `lane_close` (lane id · definition ·
+model · effort) · per-source `checkpoint` (`source` + `stage` + stage fields) · `conflict` (page ·
+both statements' locators · disposition) · `merged` (per merge target, parallel mode) · `run_close`
+(tallies mirroring the Step 5 log entry). **Serial runs use lane id `head`** — one schema serves both.
+
+**Checkpoint stages, mapped to the pipeline** (append as each source passes the step):
+`deduped` (pre-flight) → `converted` (Step 0; skipped for native `.md`) → `read` (Step 1) →
+`compiled` (Steps 2–4: pages created/updated · depth + locator · confidence tiers) →
+`claims_emitted` (parallel lanes only) → `registered` (Step 5) → `sorted` (Step 6).
+
+**The ledger is evidence, never authority — disk is truth.** Resume re-verifies every ledger claim
+against disk before acting — content, not existence (torn-write check: frontmatter closes,
+`## Related` present). A 0-hit disk probe shortly after a crash gets one retry before it is believed
+(phantom-zero rule). Ledger-vs-disk mismatch → reconcile from disk and append a correction event;
+ledger missing mid-run → fall back to the raw-root convention (root = unprocessed) and say so. A
+malformed line never blocks a fold: skip it and report it.
+
+**Resume pre-flight (start of every run, before the inbox scan):** one cheap check —
+`grep -L run_close ~/.llm-wiki/ingest-runs/run-*.jsonl 2>&1` (dir absent / no files → proceed fresh,
+silently). Any open run → report it (each source's last checkpoint, plus the **age of the last
+event**) and offer resume before scanning the inbox fresh. Last event under **~60 minutes** old →
+flag "possibly live in another session" and let the owner decide (concurrent sessions are routine
+against this vault; resuming a live run would create a dual-writer race). The 60-minute line is
+judgement, loosely anchored to a once-observed ~30-minute cloud-sync materialisation lag.
+
+**Completion gating (ungated mid-pipeline duties measure at 4% compliance here — so gate, don't
+trust habit):** the Step 8 report carries one mandatory line — `Run: <id> · <n> ledger events ·
+closed` — and the Step 5 log entry names the run id. A silent zero surfaces in the reply the
+completion gate already requires; the warn-only Stop hook (`.claude/hooks/ingest-ledger-check.sh`)
+additionally flags stale open runs at turn end.
+
+## Parallel mode (compile lanes + entity merge)
+
+The serial pipeline is unchanged; parallel adds lanes and a merge stage. Run it through the delegate
+skill (routing, spawn slots, `brief-compile` template). Full rationale:
+`wiki/developments/ingest-persistence-parallelism-design.md`.
+
+1. **Partition (head agent; planner lane where used — its output is a proposal, §2.2).** Disjoint
+   source sets, balanced by size/likely depth; related sources deliberately co-assigned to one lane so
+   shared-entity claims cluster. **Verified, never assumed:** before any spawn, a mechanical
+   disjointness assert — every inbox source in exactly one lane; pairwise-empty file whitelists — plus
+   a head review of every brief.
+2. **Owner go on the echoed spawn record** — this skill's own approval gate, whatever `pre-report`
+   says (a reporting knob, never a consent switch).
+3. **Lane shape.** `wiki-compile` under `brief-compile` + two added duties: **ledger appends**
+   (`lane_open` · per-source checkpoints · `lane_close`) and **claims instead of shared-page writes**.
+   Per-lane whitelist: its raw pairs (conversion writes — disjoint files), its source pages (sole
+   writer), the run ledger (append-only), and its own `index.md` source-heading lines + its own
+   `log.md` entry under the §2.2 ingest exception (anchored per-heading `Edit` + grep-verify).
+   Everything else: propose-don't-write.
+4. **Lanes never write shared-type pages** (entity/concept/model/benchmark — the true race surface).
+   Each lane emits **claims** in its report AND **in full inside the `claims_emitted` checkpoint** —
+   the event carries the claim objects themselves, never just their names: lane reports die with
+   their sessions, so a name-only mirror leaves the run unresumable if the head dies before merge
+   (gate evidence 2026-08-28: lanes mirrored inconsistently; the head's plan artefact had to carry
+   the load). Claim schema:
+   `{name · type · kind: create|update · target (canonicalised against index.md/existing pages —
+   GPT-4o arrives as an update to the GPT page, §4.5) · facts[] with per-fact source locators · links[] ·
+   appears_in[] · confidence (lane-assigned, §4.6) · from: source-page}`; shaky facts marked
+   `unverified`. The claims consumer is the head LLM — report framing is tolerated; no parser exists.
+5. **Lanes do NOT sort — they end at `registered`.** Sorting before merge would mark sources processed
+   while their entity claims were still unapplied, silently breaking root-state truth (the §2
+   fallback invariant). The head sorts at merge-close.
+6. **Merge stage (head agent, after all lanes close). Open it by persisting the plan:** write the
+   deduped merge plan (targets · kinds · fact sources · tiers · close-out steps) to a scratch file
+   and append a `merge_open` event naming it BEFORE the first page write — with the full claims in
+   the ledger this is belt-and-braces, and together they are what makes a mid-merge crash honestly
+   resumable (the leg-2 gate drill resumed from exactly these two artefacts). Then: dedupe claims cross-lane by canonical target
+   (two lanes' names for one new entity → one page + aliases) · merge facts · write each shared page
+   **once** (create per schema, or anchored incremental merge — never clobber), appending a per-target
+   `merged` event as it goes · **reconcile lane-page links** (apply the canonical-name map back to
+   lane source pages whose `## Related` named a losing variant — safe, all lanes are closed) · index
+   each merged page · sort each fully-merged source's raw pair (`sorted` checkpoints) · append the
+   head's batch `log.md` entry naming lanes and models (§5 attribution). Run log composition: N lane
+   entries + 1 head batch entry.
+7. **Confidence at merge (§4.6):** the lane that read the source assigns the tier; merge *combines* —
+   corroboration across claims may lift a compiled page toward its `high` cap, never above — and never
+   re-grades a reading lane's tier without reading the source. The head's §4.6 spot-check rides the
+   merge pass; `audited:` stamps at merge write.
+8. **Step 7 splits.** A claims-mode lane checks: every link resolves to a real page **or to a target
+   in my emitted claims**. The head re-runs the full Step 7 over the batch's pages post-merge — the
+   final gate before `run_close`.
+9. **Conflicts under parallelism.** A lane never pauses the batch: it keeps both statements in its
+   claim (§4.4) and appends a `conflict` event; the head surfaces every conflict in the batch report,
+   and high-stakes ones pause the **merge** — the single point where a pause still has leverage.
 
 ## Pipeline (per source)
 
@@ -275,6 +381,7 @@ title: "Source: <Human Title>"
 type: source
 depth: concise | standard | research   # the depth you chose (Depth) — required on every source page
 confidence: medium   # per CLAUDE.md §4.6 — reflects the source: peer-reviewed/expert→authoritative · preprint/official-doc/owner-work(default)→high · secondary→medium · promo/social/transcript→low (a user instruction can override the tier)
+audited: <YYYY-MM-DD>   # today — assignment with the source in context is the check (§4.6); on updating an existing page, re-check its badge and re-stamp
 tags: [topic]
 sources: [raw/2-papers/report.md, raw/2-papers/report.pdf]   # converted .md AND original; one entry if native .md or URL
 source_url: "<original web URL if a clip — else omit>"        # de-dup
@@ -335,7 +442,9 @@ gets a `## Related` section.
   the user to reload Obsidian with the graph view closed. This runs **only** here (registries missing),
   never on a normal ingest. Then proceed.
 - **`wiki/index.md`** → add each new page under its type heading (Sources / Entities / Tools / Models /
-  Benchmarks / Concepts / Syntheses / …) with a one-line desc. **Mechanism: anchored `Edit` (or append)
+  Benchmarks / Concepts / Syntheses / …) with a one-line desc; sections are **thematically clustered,
+  not alphabetical** — place the new line beside its nearest relations, not at the section tail.
+  **Mechanism: anchored `Edit` (or append)
   per heading — NEVER a whole-file read-modify-write** (a rewrite writes back a stale snapshot and
   silently drops entries a concurrent session added; CLAUDE.md §5, incident 2026-08-23).
 - **`wiki/log.md`** → append **via shell** (`cat >> wiki/log.md …`; never Read the whole file — it grows unbounded):
@@ -346,6 +455,7 @@ gets a `## Related` section.
   - **Depth**: <tally, e.g. research 2 · standard 9 · concise 1>   (note the range if it was narrowed or pinned)
   - **Confidence**: <level(s) assigned, e.g. high>   (note any override of the §4.6 default)
   - **Conflicts**: none (or: conflict [[Page]], flagged/paused)
+  - **Run**: <ledger run id>   (parallel runs also name lanes + models — §5 attribution)
   ```
 
 ### Step 6 — Sort the raw source (this vault's archive design)
@@ -377,7 +487,7 @@ Before reporting done, verify your own output so a later `/lint` would find noth
 2. Every `[[wikilink]]` you wrote resolves to a real page — or you created that page.
 3. Every page you created has a `## Related` section and ≥1 inbound link from another page (no orphans).
 4. Each `sources:` path points to the file's **post-sort** location.
-5. Every page you created carries a valid `confidence` (except `map`), assigned per §4.6.
+5. Every page you created carries a valid `confidence` (except `map`), assigned per §4.6, and every page you created **or updated** carries today's `audited:` stamp (§4.6 write-time self-audit — an update re-checks the badge, not just the content).
 
 Fix any gap immediately. Scope this to the pages you touched — don't re-scan the whole wiki (efficiency).
 
@@ -398,6 +508,7 @@ Confidence:
 - [[some-paper-slug]] — authoritative  (peer-reviewed)
 - [[Some Concept]] — medium
 - [[Some Entity]] — low  (single promo source)
+Run: run-20260827-2330-a1 · 14 ledger events · closed
 Re-grade a depth or a confidence and I'll fix it.
 ```
 
@@ -405,8 +516,8 @@ A depth cell with an empty locator is a defect — go back and name the evidence
 **re-grade a depth upward** later, re-run `/ingest --research <sorted path>`: the de-dup pre-flight
 recognises it as a deeper-depth request and takes the UPDATE path.
 
-**Completion gate:** an ingest is not done until this report — **both** the depth lines and the
-confidence lines — has appeared in the reply. Deliver it in
+**Completion gate:** an ingest is not done until this report — the depth lines, the confidence lines
+**and the `Run:` ledger line** — has appeared in the reply. Deliver it in
 the same reply that declares the run complete — never deferred to a later turn, and never displaced by
 the self-check or other verification running long. A batch run reports every page of the batch in one
 table; an interrupted run reports the pages compiled so far at the point it stops. If zero pages were
@@ -415,6 +526,10 @@ created, one line saying so satisfies the gate.
 ## Hard constraints
 - **Pace via the Pacing section** (default = `auto`). Keep the human in the loop for conflicts and
   large/uncertain batches; don't ask permission for small, low-risk, on-topic batches.
+- **Every run keeps a ledger** (Run ledger): `run_open` → checkpoints → `run_close`, evidence-only,
+  disk is truth. The Step 8 `Run:` line is part of the completion gate.
+- **Parallel mode never spawns without the owner's go** on the echoed spawn record; lanes emit claims
+  for shared-type pages and never sort — the head merges, sorts and closes the run.
 - **Never** modify or delete the text inside an existing raw file. The only permitted `raw/` writes
   are *relocating* a file (Step 6) and *adding* a MarkItDown-converted `.md` beside its original (Step 0).
 - Convert every non-`.md` source with `markitdown` before reading it; never guess a binary file's contents.

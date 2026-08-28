@@ -9,12 +9,16 @@ cd "$(dirname "$0")"
 mkdir -p wiki raw attic
 
 mk_index() {
-  cat > wiki/index.md <<'IDX'
+  # frontmatter heredoc unquoted so $(date) expands — keep backtick-free; quoted body below
+  cat > wiki/index.md <<IDX
 ---
 title: "Wiki Index"
 type: index
 confidence: high
+audited: $(date +%F)
 ---
+IDX
+  cat >> wiki/index.md <<'IDX'
 
 # Wiki Index
 
@@ -35,12 +39,16 @@ IDX
 }
 
 mk_log() {
-  cat > wiki/log.md <<'LOG'
+  # same two-heredoc pattern as mk_index: unquoted frontmatter (expansion), quoted body
+  cat > wiki/log.md <<LOG
 ---
 title: "Wiki Log"
 type: log
 confidence: high
+audited: $(date +%F)
 ---
+LOG
+  cat >> wiki/log.md <<'LOG'
 
 # Wiki Log
 

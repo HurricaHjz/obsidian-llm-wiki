@@ -86,6 +86,7 @@ Sources live in `raw/`; compiled notes live in `wiki/`, organised by type, with 
 | `deep-lint` | Heavier ~monthly pass, token-bounded: audit confidence levels, flag stale claims, and re-check a capped set of sources against their live online versions. |
 | `attic` | Retire notes into cold storage, or restore them — only ever on your explicit instruction. |
 | `reflect` | Capture what a working session taught — insight, method lessons, defects — and file what you approve. Only on your explicit instruction. |
+| `delegate` | The agent's own runbook for handing work to subagents: which lane, what it may write, how its findings get checked. You never call it; it shapes how larger jobs are run. |
 | `qmd-search` | *(optional)* Local semantic search over the wiki via qmd; dormant unless installed. |
 | `export-template` | Sync with the framework repo: `--pull` updates your copy from upstream; `--push` is the maintainer's publish path. See the [Manual](MANUAL.md). |
 

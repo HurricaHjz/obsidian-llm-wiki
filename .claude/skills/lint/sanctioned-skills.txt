@@ -6,6 +6,7 @@
 # Adding a skill is a conscious CLAUDE.md §12 act: add its line here in the same pass.
 vault:attic
 vault:deep-lint
+vault:delegate
 vault:export-template
 vault:gather
 vault:ingest

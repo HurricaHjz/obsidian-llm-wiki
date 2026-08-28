@@ -17,7 +17,8 @@
 | `attic/` | **Your cold storage** — retired files kept "just in case", each listed in `attic/MANIFEST.md`. The agent never opens it unless you explicitly ask; archived notes show **grey** in the graph. |
 | `CUSTOMISATION.md` | **How your agent behaves** (vault root, seeded on first setup) — its name, output styles, task roles, and any standing preferences you add. Edit it, or just ask the agent. Definitions of the non-default styles and roles live next door in `CUSTOMISATION-definitions.md`, which the agent reads only when you switch to one — keeping every session's always-on context lean. |
 | `CLAUDE.md` | The rule-book the agent follows (you don't normally touch it). |
-| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `reflect`, `lint`, `deep-lint`, `attic`, and `qmd-search` (plus `export-template` for framework updates). |
+| `.claude/skills/` | The commands: `ingest`, `gather`, `query`, `output`, `reflect`, `lint`, `deep-lint`, `attic`, and `qmd-search` (plus `export-template` for framework updates, and `delegate`, which the agent reads itself rather than you calling it). |
+| `.claude/agents/` | The subagent definitions `delegate` routes to: a critic that argues against a plan, a verifier that checks claims against files, a compile lane, a memory lane, a planner and a cross-session reflector. Each one is a small Markdown file naming what that lane may read and write. |
 
 Every note in `wiki/` (except the navigational maps) also carries a **confidence level**, so you can see at a glance how far to trust it:
 
@@ -51,6 +52,7 @@ Type these to the agent, in the Claudian panel or Claude Code.
 
 **`/reflect` — keep what a session taught you**
 - `/reflect` — at the end of a working session, the agent sweeps the conversation for research insight, method lessons and any faults it found, then shows you a table of what it proposes to record and where. Nothing is written until you approve it. A critic subagent tries to knock down each proposal before you see it (`--no-critic` skips), and the report names how much of the session's record it could still see.
+- `/reflect --cross <session>` — the same sweep run over another, usually finished, session's transcript by a separate read-only agent. That agent is an independent witness: it can catch what the original session never noticed about itself. It only proposes; you still approve every write line by line. After a large multi-agent job the agent may offer one such pass itself, once, with the cost stated; it runs only on your yes.
 - It only ever runs when you ask. The agent already files findings as it works, and that carries on unchanged; this is your own trigger for the times it didn't.
 - It tells you how far back it can still see, since a long session may have dropped its earliest turns, and it never claims to have swept the whole thing.
 - Add `--yes` to let it write without waiting. It still shows you everything it wrote, and it may only add new pages or append to existing ones inside `wiki/` — never your own pages in `wiki/user/`, and never the rule-book.

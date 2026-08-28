@@ -54,6 +54,17 @@ exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the c
   outside backticks/comments — Obsidian parses them as HTML (CLAUDE.md §1); (b) correction-narrative
   phrases in `wiki/developments/` (e.g. "owner revision", "no longer", "earlier wording", "was removed") —
   development docs read forward-facing (CLAUDE.md §12). Fix on confirmation.
+- **`updated:` accuracy sweep (one pass over frontmatter + body):** for every page with a parseable
+  `updated:`, flag any `YYYY-MM-DD` in its **body** that is later than that field and not in the future.
+  A date can only be written on or after the day it names, so a later body date proves the page was
+  edited after `updated:` claims — the field understates when the page last changed. This is not
+  cosmetic: **Step 3 partitions its entire audit on `updated:`**, so a stale value hides an edited page
+  in the cold tail. Report each as `old → latest-body-date`; fix on confirmation by setting `updated:`
+  to that date. Skip `wiki/log.md`. §11 control before trusting a zero: plant a past `updated:` on one
+  page, confirm the sweep catches it, revert. Prevention lives in the `updated-stamp.py` Stop hook
+  (`.claude/hooks/`), which is vault-local and never ships; this sweep is the belt that still works on a
+  fresh machine where the hook is absent. Baseline 2026-08-28: 17 found on the sweep's first run, 16
+  corrected (`wiki/developments/known-issues.md`, closed entry).
 - **Always-on prefix reconciliation (shell-only):** measure every always-on context layer —
   `wc -c CLAUDE.md` · each skill's `SKILL.md` frontmatter (the ever-loaded `name:`/`description:`
   block between the `---` markers), per skill · `wc -c CUSTOMISATION.md` (§13 imports it on every
@@ -116,14 +127,19 @@ The ledger is the run's first LLM-read priority.
       a 60-page ceiling, ~25% above a figure a real run has carried. **Absolute, never a fraction of N** —
       the cost must stop growing with write volume (at 2026-08-26 rates the cap reads ~19% of a run's
       changed set; under higher volume it reads less, and the report says so).
-  - **Pool B — the unaudited tail** (everything else), ordered by `updated` ascending: sample **up to 20**
-    from the **oldest third** (the whole tail when it holds < 60 pages). **Relative, not a fixed age:** the
-    retired ">90 days" definition selected **zero** pages on 2026-08-26 against a 71-day-old vault and the
-    run had to improvise. A relative ordering behaves correctly at every vault age.
+  - **Pool B — the unaudited tail** (everything else), ordered **least-recently-audited first**: sort key
+    `audited:` where present, else `updated:` (pre-rule pages, §4.1; an unparseable `audited:` is ignored
+    and the fallback keys it). Sample **up to 20** from the **oldest third** (the whole tail when it holds
+    < 60 pages). **Relative, not a fixed age:** the retired ">90 days" definition selected **zero** pages
+    on 2026-08-26 against a 71-day-old vault and the run had to improvise. A relative ordering behaves
+    correctly at every vault age — and as `audited:` coverage grows the key converges on the property the
+    sampling wants: time since a badge was last actually checked, not since the page last changed.
   - **Reporting is part of the rule, not a courtesy** (CLAUDE.md §11 — no silent caps). Print every stratum,
     empty ones included as `0 of 0`; an omitted line reads as "not checked":
     `changed: audited k of N — flagged f (Step 2) · authoritative a of A · compiled/derived-high b of B · other c of C · not audited N−k`
-    `tail: sampled j of M oldest (of T unchanged)`
+    `re-tiers per stratum: flagged f′ · authoritative a′ · compiled/derived-high b′ · other c′ · tail t′` (the ⅔ split's own evidence)
+    `tail: sampled j of M least-recently-audited (of T unchanged)`
+    `audited: coverage n of E eligible pages (x%) — stamped this run: s`
   - **When the premise fails** (§12 — attack the guard):
     - *No baseline* (first run, or the log grep finds no prior `deep-lint` entry) → say so, treat the whole
       vault as one pool, draw the same stratified sample at the cap. Never "everything", never zero.
@@ -142,6 +158,9 @@ The ledger is the run's first LLM-read priority.
       2026-08-26). More than a capful is a Step 1 structural finding, not an audit pool.
   - Prefer reading only frontmatter + the summary unless a fuller read is needed. Keep one consistent
     standard; on a tie pick the lower tier.
+  - **Stamp what you check** (§4.6 write-time self-audit): every page whose badge this step actually
+    judged — flagged, changed-sample, tail-sample, unclassifiable — gets `audited: <today>` in the same
+    pass, confirmed and re-tiered alike. Never stamp a page the run did not judge; never mass-backfill.
 - Apply the same rule everywhere: peer-reviewed/expert/verified → `authoritative`; preprint/owner/
   official-doc → `high`; reputable secondary → `medium`; promo/social/listing/transcript → `low`;
   agent-speculative → `very-low`. Compiled pages cap at `high`.
@@ -218,11 +237,14 @@ refreshed/skipped, qmd status.
 - known-issues register: N open · M closed this run · fix candidates ranked severity × age, each ready-to-issue (or: register empty)
 ### Structural
 - N dead links · N orphans · N unindexed · N unresolved conflicts (fixed: …)
+- `updated:` accuracy: N pages with a body date later than the field (control planted+caught) — corrected: M
 - prefix budget: CLAUDE.md N B · skills M B (per-skill) · customisation K B · MCP k · total ≈T tok/request — every Δ annotated (new skill / logged change / user-space / UNEXPLAINED)
 ### Confidence
 - N pages missing a level (assigned) · N re-tiered (e.g. [[X]] high→authoritative)
 - changed: audited k of N — flagged f (Step 2) · authoritative a of A · compiled/derived-high b of B · other c of C · not audited N−k
-- tail: sampled j of M oldest (of T unchanged) · re-tiers per stratum (the split's own evidence) · unclassifiable: n
+- re-tiers per stratum: flagged f′ · authoritative a′ · compiled/derived-high b′ · other c′ · tail t′ (the split's own evidence)
+- tail: sampled j of M least-recently-audited (of T unchanged) · unclassifiable: n
+- audited: coverage n of E eligible pages (x%) — stamped this run: s
 ### Staleness
 - N stale high/authoritative claims flagged: [[..]] · N attic candidates suggested as ready `/attic` invocations (user decides)
 ### Freshness
