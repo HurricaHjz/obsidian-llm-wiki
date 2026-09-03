@@ -106,7 +106,7 @@ If the answer is more than ~2 paragraphs or is comparative/analytical, ask:
 
 On yes, create `wiki/syntheses/<slug>.md` (kebab-case) with synthesis frontmatter, a
 `## Sources Used` section listing every cited `[[page]]`, and register it under **Syntheses** in `index.md`.
-Give it a **conservative inherited `confidence`** (a synthesis caps at `medium` as agent-derived; drop to
+Give it a **conservative inherited `confidence`** (a synthesis *defaults* to `medium` as agent-derived and *caps* at `high`, per §4.6; drop to
 `low` if it rests mainly on `low` sources); never crystallise a `low`/`unverified` claim as asserted fact.
 **Report the filed page and its `confidence`** to the user — every newly added wiki file states its level
 (as `ingest` Step 8 does), so you can review and re-grade it. **Refresh on write:** the new page's qmd

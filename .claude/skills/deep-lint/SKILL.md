@@ -28,6 +28,15 @@ integrity is `/lint`'s job; `deep-lint` is the periodic deep clean.
 ## Pipeline (read/scan first; confirm before large changes)
 
 ### 1 — Structural pass (everything `lint` does)
+**Routing (M0, scripted at Phase 2, logged `framework` 2026-09-02; no gate applies to script work — `wiki/developments/fable-minimising-routing.md`):** every probe in this step is a script (`.claude/skills/lint/*.py`, `.claude/skills/deep-lint/*.py`); the agent reads their reports and never re-derives a count by hand.
+**Three scripts do the mechanical half of this step and print their own §11 controls; read their
+output, never re-derive it by hand.** `python3 .claude/skills/deep-lint/sweeps.py --vault .` covers
+the hard-wrap, raw-tag and correction-narrative sweeps below;
+`python3 .claude/skills/deep-lint/prefix-budget.py --vault . --diff-log wiki/log.md` covers the
+prefix reconciliation; `python3 .claude/skills/deep-lint/audit-pools.py --vault . --baseline <date>`
+covers the `updated:` accuracy sweep here and every pool, stratum and sample of Step 3. Exit 0 means
+the probe ran (findings or none); exit 2 means a premise failed and its line says which. Suite:
+`bash .claude/skills/deep-lint/test_deep_lint_scripts.sh`.
 Run the full `lint` pipeline: index consistency, link health (dead links, orphans — `maps/`/`index`/`log`
 exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the cheap, unambiguous issues
 (register unindexed pages, etc.) after the report.
@@ -60,26 +69,36 @@ exempt), unresolved `## Conflicts / Open Questions`, and the gap scan. Fix the c
   edited after `updated:` claims — the field understates when the page last changed. This is not
   cosmetic: **Step 3 partitions its entire audit on `updated:`**, so a stale value hides an edited page
   in the cold tail. Report each as `old → latest-body-date`; fix on confirmation by setting `updated:`
-  to that date. Skip `wiki/log.md`. §11 control before trusting a zero: plant a past `updated:` on one
-  page, confirm the sweep catches it, revert. Prevention lives in the `updated-stamp.py` Stop hook
+  to that date. Skip `wiki/log.md`. §11 control before trusting a zero: `audit-pools.py` runs this sweep and prints its own control (a
+  copy of `index.md` planted, in memory, at a date derived from the vault's own oldest body date, and
+  caught), so the plant never touches disk. Prevention lives in the `updated-stamp.py` Stop hook
   (`.claude/hooks/`), which is vault-local and never ships; this sweep is the belt that still works on a
-  fresh machine where the hook is absent. Baseline 2026-08-28: 17 found on the sweep's first run, 16
+  fresh machine where the hook is absent.
+  The same step reads the №115 context hooks' logs where present — `~/.llm-wiki/handoffs/events.log` (every `PreCompact` and `SessionStart` event with its source) and `~/.llm-wiki/handoffs/context-watermark.log` (per-turn head context; report each session's peak) — and cross-checks any `compact_boundary` record in the session transcripts against a `PreCompact` line: a compaction without one is the finding, and a second compaction datum re-derives the bands on `wiki/developments/context-length-resilience-n115.md`. Baseline 2026-08-28: 17 found on the sweep's first run, 16
   corrected (`wiki/developments/known-issues.md`, closed entry).
-- **Always-on prefix reconciliation (shell-only):** measure every always-on context layer —
+- **Always-on prefix reconciliation (`prefix-budget.py`):** measure every always-on context layer —
   `wc -c CLAUDE.md` · each skill's `SKILL.md` frontmatter (the ever-loaded `name:`/`description:`
-  block between the `---` markers), per skill · `wc -c CUSTOMISATION.md` (§13 imports it on every
-  request) · the count of always-on MCP servers (`.mcp.json` / project settings; 0 when absent) —
-  and report the absolute total as ≈ tokens/request (bytes ÷ 4). Then **reconcile composition —
-  never threshold the total** (CLAUDE.md §12: a growth threshold converts sanctioned change into
-  alarm; the retired >10% flag fired on 2 of its 3 runs and moved nothing). Diff each layer against
-  the per-file figures in the previous deep-lint entry (`grep "prefix budget:" wiki/log.md | tail -1`;
-  first run, or first after a format change, = baseline — say so) and annotate every delta with its
-  cause: **new/retired skill** (sanctioned — §12 logs it) · **matches a `framework |` log entry**
-  since the last run (sanctioned) · **`CUSTOMISATION.md` delta** (user-space: report the number,
-  never "unexplained" — owner edits need no log) · **UNEXPLAINED — the only flag** (report-only;
-  trimming is never automatic, §12 governs any cut). Record this run's figures per skill so the next
-  run can reconcile:
-  `prefix budget: CLAUDE.md <N> B · skills <M> B (<name> <n> · …) · customisation <K> B · MCP <k> · total ≈<T> tok/request`.
+  block between the `---` markers), per skill · **each `.claude/agents/*.md` frontmatter, per
+  definition** (the harness surfaces every definition's name and description in the system prompt of
+  every session, exactly as it does for skills; measure the whole frontmatter block, the same
+  convention as the skill arm — **markers included**: the `---` lines are 8 B per file, and measuring
+  them inconsistently produced a phantom uniform −8 B across 8 skills on 2026-08-28 that took a
+  re-measurement to attribute) · `wc -c CUSTOMISATION.md` (§13 imports it on every request) · the
+  count of **project-declared** MCP servers (`.mcp.json` / project settings; report `0 declared`, not
+  a bare `0` — user-level servers load into the session too and this probe does not see them, so a
+  bare zero would overstate what was checked) — and report the absolute total as ≈ tokens/request
+  (bytes ÷ 4). Then **reconcile composition — never threshold the total** (CLAUDE.md §12: a growth
+  threshold converts sanctioned change into alarm; the retired >10% flag fired on 2 of its 3 runs and
+  moved nothing). Diff each layer against the per-file figures in the previous deep-lint entry
+  (`grep "prefix budget:" wiki/log.md | tail -1`; first run, or first after a format change, =
+  baseline — say so; **the agents layer and the `declared` MCP wording were added 2026-08-28, so the
+  first run after that date is a format baseline for those two fields and cannot diff them**) and
+  annotate every delta with its cause: **new/retired skill or agent definition** (sanctioned — §12
+  logs it) · **matches a `framework |` log entry** since the last run (sanctioned) ·
+  **`CUSTOMISATION.md` delta** (user-space: report the number, never "unexplained" — owner edits need
+  no log) · **UNEXPLAINED — the only flag** (report-only; trimming is never automatic, §12 governs any
+  cut). Record this run's figures per skill and per definition so the next run can reconcile:
+  `prefix budget: CLAUDE.md <N> B · skills <M> B (<name> <n> · …) · agents <A> B (<name> <n> · …) · customisation <K> B · MCP <k> declared · total ≈<T> tok/request`.
 
 ### 2 — Flag-ledger reconciliation (Tier 2 → Tier 3)
 Collect the query-time freshness flags accumulated since the last run — one cheap global grep:
@@ -96,8 +115,13 @@ The ledger is the run's first LLM-read priority.
   ready-to-issue instruction naming its design doc where one exists (e.g. "fix the X defects per
   their design doc under `wiki/developments/`") — mirroring the ready-to-issue `/attic` suggestions
   in Step 4. Fixes themselves stay propose-only under CLAUDE.md §12.
+- **Routing (parity gate G6a, 2026-09-02).** The liveness check itself (is each `## Open` entry still live against its surface?) runs in a `verifier` lane with an explicit per-entry claim list and the two §11 controls; the head reads the verdicts, moves entries and keeps the fix-shape review. Gate evidence: two blind lanes reproduced the head's review of the 17 open entries (15 confirmed, 2 upstream-harness behaviours unverifiable from disk, 0 refuted).
 
 ### 3 — Confidence coverage & correctness (per CLAUDE.md §4.6)
+**`audit-pools.py` computes this step's pools, strata, cap, tail and sample, and prints the three
+report lines below verbatim.** The judging is routed (Routing note below): two blind `gate-judge` lanes assign, the head adjudicates and reads in full every disputed page and every page whose tier a lane would raise, re-tiers,
+and stamps `audited:`. An absent `.claude/agents/` and a log with no dated entry yet are legitimate
+states that report `n/a`, not failures.
 - **Coverage:** every non-`map` page must carry a valid `confidence`. Cheap check:
   `grep -rL "^confidence:" wiki --include='*.md'` then drop `map`/`index`/`log`. Assign any missing ones.
 - **Correctness — a capped, stratified sample; NEVER the whole changed set.** Two pools partition the
@@ -140,6 +164,9 @@ The ledger is the run's first LLM-read priority.
     `re-tiers per stratum: flagged f′ · authoritative a′ · compiled/derived-high b′ · other c′ · tail t′` (the ⅔ split's own evidence)
     `tail: sampled j of M least-recently-audited (of T unchanged)`
     `audited: coverage n of E eligible pages (x%) — stamped this run: s`
+    (the script prints the first three lines and the coverage line up to the percentage; the agent
+    appends `— stamped this run: s` and the `re-tiers per stratum:` line, since only it knows what it
+    judged and stamped)
   - **When the premise fails** (§12 — attack the guard):
     - *No baseline* (first run, or the log grep finds no prior `deep-lint` entry) → say so, treat the whole
       vault as one pool, draw the same stratified sample at the cap. Never "everything", never zero.
@@ -162,8 +189,9 @@ The ledger is the run's first LLM-read priority.
     judged — flagged, changed-sample, tail-sample, unclassifiable — gets `audited: <today>` in the same
     pass, confirmed and re-tiered alike. Never stamp a page the run did not judge; never mass-backfill.
 - Apply the same rule everywhere: peer-reviewed/expert/verified → `authoritative`; preprint/owner/
-  official-doc → `high`; reputable secondary → `medium`; promo/social/listing/transcript → `low`;
+  official-doc/faithful-summary → `high`; reputable secondary, or grounding primary only for something adjacent → `medium`; promo/social/listing/transcript → `low`;
   agent-speculative → `very-low`. Compiled pages cap at `high`.
+- **Routing (parity gate G1, 2026-09-02 — `wiki/developments/fable-minimising-routing.md` protocol item 1).** The sample's tier judgements run in **two blind `gate-judge` lanes** (opus · max), each given the same fixture copy of the sampled pages with badges, `audited:` stamps and tier rationale stripped, the rubric (§4.6 plus `wiki-confidence-levels.md`), one **content plant** (a page whose evidence the head altered to demand a different tier, with two-sided controls) and the per-page form `pNN · tier · rubric ground · evidence`; each lane also returns an `## Anomalies` list. The head adjudicates: agreement = the tier; a one-step split = the lower tier unless the head's own read of that page settles it (the head reads only the disputed pages); a two-step split or a missed plant = that lane's batch re-judged by a third blind lane. A lane tier that would raise a page's badge is never applied unread: the head reads that page in full first (§4.6, delegation never raises a tier). Before any stamp, the verify leg runs — `tier-cap-check.py` over every verdict plus a `verifier` lane over the lanes' claim forms — and the head judges the flagged and `authoritative` strata itself (the head slice); the log entry names all three as the stamp's basis (design items 3, 4, 9). Stamping (`audited:`, re-tiers) stays head-side. Gate evidence: 61 pages, two lanes 0 misses each, one content plant caught by both, a third lane 0 misses on the 20 disputed, verify legs 61/0/0 and 60/1/0; the rubric reading it settled is the 2026-09-02 row of the rubric page.
 
 ### 4 — Staleness
 Flag `authoritative`/`high` pages whose `updated` is old or that a newer page supersedes; down-weight or
@@ -184,6 +212,7 @@ changed**, cheapest signal first, and re-ingest **only** when it did:
 - **On a real change → re-ingest through the normal pipeline** (defuddle / `curl` / markitdown per §3.1).
   **Never WebFetch for re-ingest** (it returns a summary, not the source). Merge updates into the existing
   pages (don't duplicate), refresh that page's `confidence` and `updated`, and note the change.
+- **Routing (parity gate G2, 2026-09-02).** The probes, recaptures and content compares run in `verifier` lanes on opus (read-only, per-URL claim lists, §11 controls); the head decides what to re-ingest from their findings. Two method upgrades the gate surfaced bind every lane: (1) validate a "moved/removed" verdict against the site's sitemap or platform API before believing a 404 or a redirect; (2) when a re-extraction would justify deleting a claim from a page, cross-check with a direct fetch of the live page first (an extractor gap once dropped a mkdocs tab's content and read as a deletion). Gate evidence: seven probes and two controls, zero misses on both blind lanes, which beat the head on four probes.
 - **Bound and prioritise:** cap fetches per run, ordering candidates by **confidence × age ×
   inbound-link degree** (hub pages first — a stale hub misleads more queries than a stale leaf), and
   state anything skipped, so "checked" never overstates coverage.
@@ -219,6 +248,7 @@ explicit-instruction-only contract. For each Monitor caution: gather current vau
 happen only after this run's normal confirmation, land as appended "(agent)" annotations (the
 owner's wording is content-immutable), and **every IDEAS.md write is reported in the reply's change
 table** (mirroring CLAUDE.md §12 system-file reporting) and listed in this run's log entry.
+**Routing (parity gate G6b, 2026-09-02):** the evidence gathering (counts, log history, flag volume per caution) runs in `memory-hunter` lanes on opus returning evidence tables; the status call, the proposal wording and the IDEAS.md write stay with the head. Gate evidence: two blind hunter lanes surfaced every evidence item the head had used across the 12 cautions.
 
 ### 7 — qmd refresh (only if qmd is installed and enabled)
 If qmd is in use, run `qmd update && qmd embed` so the search index reflects the month's changes
@@ -238,7 +268,7 @@ refreshed/skipped, qmd status.
 ### Structural
 - N dead links · N orphans · N unindexed · N unresolved conflicts (fixed: …)
 - `updated:` accuracy: N pages with a body date later than the field (control planted+caught) — corrected: M
-- prefix budget: CLAUDE.md N B · skills M B (per-skill) · customisation K B · MCP k · total ≈T tok/request — every Δ annotated (new skill / logged change / user-space / UNEXPLAINED)
+- prefix budget: CLAUDE.md N B · skills M B (per-skill) · agents A B (per-definition) · customisation K B · MCP k declared · total ≈T tok/request — every Δ annotated (new skill or definition / logged change / user-space / UNEXPLAINED)
 ### Confidence
 - N pages missing a level (assigned) · N re-tiered (e.g. [[X]] high→authoritative)
 - changed: audited k of N — flagged f (Step 2) · authoritative a of A · compiled/derived-high b of B · other c of C · not audited N−k

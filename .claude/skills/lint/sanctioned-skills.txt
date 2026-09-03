@@ -1,9 +1,16 @@
-# Sanctioned agent-skill directories (lint Step 2e — skill-injection guard).
-# One entry per line: "vault:<name>" = <vault>/.claude/skills/<name>.
-# A directory on disk but not listed here is a FINDING (third-party installers target these roots —
+# Sanctioned auto-loading entries (lint Step 2e — injection guard). Covers BOTH roots the harness
+# loads into every session. Filename kept as -skills for compatibility (the export payload and
+# test_token_isolation reference it by name); it is the registry for skills AND agents.
+# One entry per line:
+#   "vault:<name>"      = <vault>/.claude/skills/<name>      (a DIRECTORY)
+#   "agent:<file.md>"   = <vault>/.claude/agents/<file.md>   (a FILE — note the asymmetry)
+# An entry on disk but not listed here is a FINDING (third-party installers target these roots —
 # e.g. Agent Reach's SKILL.md auto-install; see wiki/developments/agent-reach-adoption-design.md).
-# The machine-local baseline for ~/.claude/skills lives OUTSIDE the vault at ~/.claude/skills/.sanctioned.txt (one name per line) — never shipped.
-# Adding a skill is a conscious CLAUDE.md §12 act: add its line here in the same pass.
+# Machine-local baselines live OUTSIDE the vault, never shipped: ~/.claude/skills/.sanctioned.txt
+# and ~/.claude/agents/.sanctioned.txt (one name per line each).
+# Adding a skill or an agent definition is a conscious CLAUDE.md §12 act: add its line here in the
+# same pass. The 2026-08-27 `delegate` skill and the six agent definitions both missed this; both
+# were caught by the guard and the 2026-08-28 deep-lint respectively (known-issues, closed).
 vault:attic
 vault:deep-lint
 vault:delegate
@@ -15,3 +22,11 @@ vault:output
 vault:qmd-search
 vault:query
 vault:reflect
+agent:critic.md
+agent:memory-hunter.md
+agent:planner.md
+agent:reflector.md
+agent:verifier.md
+agent:wiki-compile.md
+agent:builder.md
+agent:gate-judge.md

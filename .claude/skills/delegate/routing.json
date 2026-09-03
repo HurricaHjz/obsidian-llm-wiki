@@ -1,0 +1,10 @@
+{"order": {"model": ["haiku", "sonnet", "opus", "fable"], "effort": ["low", "medium", "high", "xhigh", "max"]},
+ "roles": {
+  "critic":        {"model": ["opus", "opus", "fable"],     "effort": ["xhigh", "max"]},
+  "planner":       {"model": ["opus", "opus", "fable"],     "effort": ["high", "max"]},
+  "reflector":     {"model": ["opus", "opus", "fable"],     "effort": ["high", "max"]},
+  "verifier":      {"model": ["sonnet", "sonnet", "fable"], "effort": ["high", "max"]},
+  "gate-judge":    {"model": ["opus", "opus", "opus"],      "effort": ["max", "max"]},
+  "wiki-compile":  {"model": ["sonnet", "opus", "fable"],   "effort": ["medium", "max"]},
+  "builder":       {"model": ["sonnet", "opus", "fable"],   "effort": ["high", "max"]},
+  "memory-hunter": {"model": ["sonnet", "sonnet", "fable"], "effort": ["high", "max"]}}}

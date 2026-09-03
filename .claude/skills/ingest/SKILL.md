@@ -39,9 +39,10 @@ pacing sentence as licence on depth, or a depth rule as licence on pacing.)
 - **`batch`** — user says "all at once" / "batch them" / "do them all".
 - **`parallel [N]`** — user says `--parallel` (optionally a lane count), or `auto` proposes it when the
   inbox holds **≥6 independent sources** (threshold set by judgement, unmeasured — recalibrate on batch
-  metering; ≤5 stays the small-batch boundary above). **Owner-go gate, knob-invariant:** compile lanes
+  metering; ≤5 stays the small-batch boundary above). **Owner-go gate, knob-invariant:** parallel compile lanes
   are never spawned without the owner's explicit go on the echoed spawn record — the `pre-report` knob
-  switches reporting only, never this consent (delegate skill §3 slot 0); under the `light` effort tier
+  switches reporting only, never this consent (delegate skill §3 slot 0); a routed single-source lane's
+  go is the `/ingest` invocation itself (Routing note, Step 3; 2026-09-03); under the `light` breadth tier
   a fan-out needs an explicit owner ask. Mechanics: **Parallel mode** below.
 
 ### Token-efficiency rules (especially in batch — avoid redundant repetition)
@@ -94,6 +95,9 @@ take the lower rung** (the §4.6 tie-goes-lower principle, applied to depth).
 - **research** — primary material the owner will need to reuse exactly. At research depth:
   - Preserve exact figures (no rounding); quote critical claims verbatim with §/page refs; mark
     anything not directly stated as `unverified`; never infer numbers.
+  - **Quote discipline, all depths:** short critical quotes as above stay mandatory; *long-form
+    block quotes* stay in the raw file — link, never transplant — so compiled pages stay quotable
+    from their source (a refusal while reading is handled reactively, CLAUDE.md §11).
   - Replace the Step 3 source page with the **literature-note template** below.
   - Add academic frontmatter (`authors`, `year`, `venue`, `doi`, `depth: research`).
   - Cross-check findings against existing pages and flag confirmations/contradictions explicitly.
@@ -157,14 +161,15 @@ Every ingest run appends an event log under the agent home `~/.llm-wiki/`:
 `~/.llm-wiki/ingest-runs/run-<YYYYMMDD-HHMM-id>.jsonl` — one JSON
 event per line via shell append (`printf '%s\n' '<json>' >> <ledger>`), the same primitive that makes
 `log.md` race-safe. **Never read-modify-write it**; resume state is a fold over events (`grep`/`jq`).
-No helper script — primitives first (§12), until a real run shows hand-rolled appends failing.
+No helper script — primitives first (§12), until a real run shows hand-rolled appends failing. *(Status 2026-09-02: that condition has fired twice — five fabricated clocks in run 20260901-batch112107, then a hard-coded stamp in run 20260901-mp2i despite a brief mandate — so a helper or a mechanical ledger check is now the owner's call, recorded in known-issues; `ts` is `date +%FT%R%z`, one offset format — head-written events included.)*
 (Design record: `wiki/developments/ingest-persistence-parallelism-design.md`.)
 
 **Events** (extra fields are free): `run_open` (run id · pacing · authorised depth range · inbox
 listing as `inbox: [{file, sha256 prefix}]`) · `lane_open` / `lane_close` (lane id · definition ·
 model · effort) · per-source `checkpoint` (`source` + `stage` + stage fields) · `conflict` (page ·
-both statements' locators · disposition) · `merged` (per merge target, parallel mode) · `run_close`
-(tallies mirroring the Step 5 log entry). **Serial runs use lane id `head`** — one schema serves both.
+both statements' locators · disposition) · `merge_open` (plan artefact named, parallel mode) · `merged` (per merge target, parallel
+mode) · `verify` (Verify step: lane · definition · model · effort · `scores:` line · verdict · fixes) ·
+`run_close` (tallies mirroring the Step 5 log entry). **Serial runs use lane id `head`** — one schema serves both.
 
 **Checkpoint stages, mapped to the pipeline** (append as each source passes the step):
 `deduped` (pre-flight) → `converted` (Step 0; skipped for native `.md`) → `read` (Step 1) →
@@ -241,11 +246,66 @@ skill (routing, spawn slots, `brief-compile` template). Full rationale:
    re-grades a reading lane's tier without reading the source. The head's §4.6 spot-check rides the
    merge pass; `audited:` stamps at merge write.
 8. **Step 7 splits.** A claims-mode lane checks: every link resolves to a real page **or to a target
-   in my emitted claims**. The head re-runs the full Step 7 over the batch's pages post-merge — the
-   final gate before `run_close`.
+   in my emitted claims**. The head runs the Verify step (below) over each lane's pages and claims
+   BEFORE merge (a lane whose leg finds a fabrication or plant hit has its claims quarantined, never
+   merged), then the full Step 7 over the batch post-merge — the final gate before `run_close`.
 9. **Conflicts under parallelism.** A lane never pauses the batch: it keeps both statements in its
    claim (§4.4) and appends a `conflict` event; the head surfaces every conflict in the batch report,
    and high-stakes ones pause the **merge** — the single point where a pause still has leverage.
+
+## Verify step (every compile a lane did — the routed single-source path and each parallel lane's pages)
+
+Runs head-side after the lane closes and before the head accepts the run (Step 7 and the close-out).
+Design: `wiki/developments/fable-minimising-routing.md`, protocol items 3, 4, 5, 6 and 9 (item 4's
+single-source form and item 3's mechanism delta are dated status facts there). **Routing (shipped
+2026-09-03, critic C15 folded):** the scripts run in the head's shell (M0), the scoring runs in a
+`verifier` lane on opus (a judgement claim set — delegate skill §2), the verdict stays with the head (M2).
+
+1. **Output set by manifest, never by report.** Before the run's first spawn, `touch` a marker file
+   beside the run ledger (`~/.llm-wiki/ingest-runs/<run>.marker`) — once per run, never re-touched on a
+   resume; after the lane closes, `find <vault>/wiki -name '*.md' -newer <marker>` (absolute path) is the
+   candidate set, **intersected with the lane's file whitelist from its brief**: a candidate off the
+   whitelist is reported as an "unexpected writer" (a concurrent session, a sync, a lane off its
+   contract) and is never scored or rewritten. Controls: the source page the lane reports must be in
+   the set — an empty set against a reported page is a broken probe, not a clean one; where the lane's
+   durable transcript exists, its Write/Edit/redirect paths (the parity store's scope parser lists
+   them) must equal the set. Parallel mode takes the set per lane, before merge.
+2. **M0 pre-checks, head shell, stdout only** — their lines go into the verify brief verbatim:
+   `python3 .claude/skills/lint/tier-cap-check.py --format json` (vault-wide — paste only the lines that
+   name set pages; a clean vault implies a clean set); `python3 .claude/skills/lint/anomaly-lister.py
+   --pages <set>` (the page-visible list the lane's `## Anomalies` is checked against); `python3
+   .claude/skills/lint/check-links.py` (dead links). A breach here is a miss before the verifier runs.
+3. **Verifier lane** from `.claude/skills/delegate/templates/brief-ingest-verify.md`, which also
+   receives the compile brief's CONTEXT NOTES verbatim, the plant, and (parallel mode) the lane's
+   emitted claims: claim list and warranted set from the raw first, then eight counts — fabrication ·
+   plant · coverage · tier · structure · integration · language · anomalies — evidence per non-zero,
+   both controls, the plant grep's own positive control, and the last line `scores: …` (`plant -`
+   when its control could not run). One lane per compile; a second only where the head disputes a
+   call, and the lane's evidence, never its verdict, decides.
+4. **Verdict (head, M2).** Fabrication 0 and plant 0 are required; `plant -` (no plant, a placeholder,
+   or a plant that hits in the raw) means the leg did not run — re-plant and re-run it, or the compile
+   reverts. A fabrication or plant hit reverts that compile to the head for the run: the head corrects
+   or rewrites the pages itself, appends a `known-issues` entry, and the step's next use needs a brief
+   or rubric change first (protocol item 1's retry rule). Every other non-zero item the head settles
+   from the cited evidence: a coverage, structure or language miss is fixed on the page; an integration
+   miss on both pages; a tier dispute — and every tier the lane raised above an existing page's badge —
+   is read in full by the head (§4.6: delegation never raises a tier unread); an anomaly the lane
+   omitted is judged and, where real, written as a §4.4 block. **Head slice (protocol item 4):**
+   whatever the scores, the head reads the source page and up to two more set pages in full against
+   the raw (the larger of three items or ten per cent); the per-run empirical re-compile is withdrawn
+   for single-source compiles (design page, dated status) — every fifth routed run the head also
+   compiles the source in a fixture and diffs. The head never edits a lane's page on a verdict alone —
+   it reads the cited line first.
+5. **Record.** One `verify` ledger event (lane id · definition · model · effort · the `scores:` line ·
+   verdict · fixes applied), appended with a shell clock; the spawn record carries the plant and the
+   full meter; **a routed-run register row on the design page every run** (misses, reverts, fable
+   share). Then Step 7 runs head-side over the set (its controls are the head's, not the lane's); the
+   lane's `audited:` stamps stand, with the mechanism (lane check · verify leg · head slice) named in
+   the head's close-out log entry (protocol item 9) — always written for a routed run beside the lane's
+   own entry, carrying the verdict line, the `fable share:` meter line (protocol item 8;
+   `fable-share.py`) and wikilinks to the network pages the head accepted (the lane's entry names them
+   in code font); the Step 8 report carries the `scores:` line and the verdict beside the depth and
+   confidence lines.
 
 ## Pipeline (per source)
 
@@ -380,7 +440,7 @@ Pull out: **core thesis** (1–2 sentences), **entities** (people/companies), **
 title: "Source: <Human Title>"
 type: source
 depth: concise | standard | research   # the depth you chose (Depth) — required on every source page
-confidence: medium   # per CLAUDE.md §4.6 — reflects the source: peer-reviewed/expert→authoritative · preprint/official-doc/owner-work(default)→high · secondary→medium · promo/social/transcript→low (a user instruction can override the tier)
+confidence: medium   # per CLAUDE.md §4.6 — reflects the source: peer-reviewed/expert→authoritative · preprint/official-doc/owner-work/faithful-summary(default)→high · secondary or adjacent-only grounding→medium · promo/social/transcript→low (grounding strength, not source count; a user instruction can override the tier)
 audited: <YYYY-MM-DD>   # today — assignment with the source in context is the check (§4.6); on updating an existing page, re-check its badge and re-stamp
 tags: [topic]
 sources: [raw/2-papers/report.md, raw/2-papers/report.pdf]   # converted .md AND original; one entry if native .md or URL
@@ -404,6 +464,8 @@ updated: <YYYY-MM-DD>
 the original (file path, or the URL for web/YouTube). Predict the post-sort paths (Step 6) so the
 links don't break after the move.
 
+**Routing (parity gates G3 and G4, 2026-09-02 — `wiki/developments/fable-minimising-routing.md`).** Gate evidence: G4 passed with both lane arms cleaner than the head arm (the lanes kept the paper's internal contradictions the head had restated) and carries the flag "passed against a head arm the record cannot certify as strong"; G3 passed on its second attempt, after two brief clauses, without that flag. The routed step is in force — its carriers shipped 2026-09-03: (a) `.claude/skills/delegate/templates/brief-compile.md` carries the two gate-added clauses (the source page states the source's own provenance — publisher, date, URL; any sentence about a linked page uses only that page's or the raw's words), the CONTEXT NOTES fidelity-plant slot and the `## Anomalies` report section; (b) the Verify step above scores every lane compile against the raw — fabrication · plant · coverage · tier · structure · integration · language · anomalies — before the head accepts it. Default executor for a single-source compile: a `wiki-compile` lane on opus (the definition's default since 2026-09-02) at the run's authorised depth range — standard and research are gated (G3, G4); concise is ungated (a lane that chooses it is covered by the verify leg and the plant; the design page records the residual); every compile clears the design's ≈30k leave-the-head threshold by construction, since a compile loads `wiki/index.md` (≈27k tokens) before the source and its network pages, and the fresh-session head arm of 2026-09-03 spent 44k Fable output tokens on a 3.8 kB source — the derivation the cost rule requires; a 2–5 source `auto` batch routes one lane at a time (two routed lanes writing network pages concurrently is Parallel mode's race surface, and that shape takes Parallel mode's claims); the head keeps the resume pre-flight, the spawn record with its plant (echoed per `pre-report`; under `auto` the owner's `/ingest` invocation is the go for this single lane, whose whitelist is the ingest's own output — delegate skill §3 slot 0, dated clause), the Verify step and the close-out. When routed: the lane runs with the shape the gates tested — it writes the source page and the warranted network pages, its own index line and log entry under the §2.2 ingest exception, and sorts the raw; the head's post-lane check is the verify step plus Step 7's controls plus a full read of every page whose tier the lane raised (§4.6: delegation never raises a tier unread); §4.4 conflict settlement and the research-depth key-claim spot-check stay head-side; the head's close-out log entry, always written for a routed run beside the lane's, carries the verify verdict, the stamp mechanism and the `fable share` meter line; the spawn record keeps the plant and the full meter. **Re-gate runbook (rule 7; the G4 flag):** the second routed use at each depth re-runs the paired fixture form — the parity store's `g34v2` fixture builder, scope parser, verify-dir stager and verdict script — with a fresh-session head arm (`claude -p --model <fable id> --effort max` in a snapshot-equal fixture, its transcript effort confirmed) against two routed lanes on the current carriers; the routed-run register on the design page is the use counter. Standard depth's re-gate **passed 2026-09-03** (G3r, second attempt, after FIDELITY clause 3 was added; detail on the design page), so the routed default stands at standard depth; research depth's re-gate, carrying G4's flag, is the next research-depth compile.
+
 ### Step 4 — Network the knowledge (entities · tools · concepts · models · benchmarks)
 For each entity → `wiki/entities/`, **tool** (software/app/plugin/skill/library/service) →
 `wiki/tools/`, concept → `wiki/concepts/`, **model** (any LLM named — e.g. Qwen,
@@ -411,7 +473,7 @@ GPT, Llama) → `wiki/models/`, **benchmark** (any eval dataset named — e.g. A
 `wiki/benchmarks/` (Title Case filenames; a tool keeps its canonical lowercase where applicable):
 1. **Page missing** → create it per the `CLAUDE.md` frontmatter + required sections (`## Definition /
    ## Key Points / ## Related`; model & benchmark pages also carry `## Appears in`); set its
-   `confidence` per §4.6 (compiled pages **cap at `high`** — judge by corroboration across their sources).
+   `confidence` per §4.6 (compiled pages **cap at `high`**). Judge by **grounding strength, not source count** (the rubric's settled reading, 2026-09-02): one strong source that is *primary for the page's own claims* grounds `high` on its own; a strong source primary only for something adjacent, or reputable-secondary grounding, is `medium`; conflicting corroboration stays `medium` by the tie rule; "thin" (one paragraph in one witness) is `low`. The cap is a ceiling, never a demotion (G3r evidence 2026-09-03: five blind scorings, every arm including the head tiered a single-source entity page `medium` citing source count).
 2. **Page exists** → read it, then **incrementally merge** new info (don't clobber).
 3. **Conflict found** → **pause**, report the conflict to the user, ask how to handle it
    (keep both under `## Conflicts / Open Questions`, overwrite, or skip), then continue.

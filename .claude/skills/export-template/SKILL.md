@@ -110,6 +110,7 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
    folder): every allowlisted line carries its justification and must itself be public-safe. Any
    **unallowlisted** hit HALTS the publish for inspection; a hit adjudicated benign is added to the
    allowlist with its reason, once, permanently. Zero unallowlisted hits + control > 0 = gate passed.
+   **Throttle gate (mandatory, before the recap):** `python3 .claude/skills/delegate/throttle.py check --require default` must exit 0 on the vault — a template is never published with floor definitions, drifted tiers or a description naming a current tier; a `PROBE FAILED` halts the publish like any other gate failure.
    **Candidate recap — mandatory final confirmation:** before committing, present the **candidate's
    row** — `Ver | Feature | What it does | What it achieves` — verified against the actual files/tests
    (never from memory). **Derive the version number from evidence, not memory**: read

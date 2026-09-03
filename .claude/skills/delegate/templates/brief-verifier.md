@@ -38,3 +38,5 @@ REPORT
 <!-- Spawner: when gating a new lane or template, PLANT at least one false claim among the
 real ones and do not mark it; a verifier that confirms the plant fails its gate. Record
 the plant in the spawn record BEFORE sending. -->
+
+<!-- Fabrication boundary (2026-09-02): a restatement of a page that adds an attribute the page does not state is a fabrication; an imprecise restatement of something the page does state is not. State which when scoring. -->

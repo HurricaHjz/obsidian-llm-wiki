@@ -33,6 +33,15 @@ MEDIA_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".pdf", ".mp3", "
 files = sorted(glob.glob(os.path.join(wiki, "**", "*.md"), recursive=True))
 stems = {os.path.splitext(os.path.basename(p))[0] for p in files}
 
+
+def read_text(path):
+    """UTF-8 with a BOM dropped and CRLF normalised; bad bytes replaced, never fatal.
+    A BOM or a CRLF line ending defeats the frontmatter match, so the page's aliases go
+    uncollected and every link through them reads as dead."""
+    with open(path, "rb") as fh:
+        raw = fh.read()
+    return raw.decode("utf-8-sig", "replace").replace("\r\n", "\n")
+
 # Obsidian's resolver (uniqueFileLookup) is keyed on each visible file's basename INCLUDING the
 # extension, across the whole vault; dot-folders are invisible to it. Model the same surface or
 # valid links read as dead. Ambiguous basenames are treated as resolving: for a dead-link checker,
@@ -46,7 +55,7 @@ for _dir, _subdirs, _names in os.walk(root):
 
 aliases = {}
 for p in files:
-    head = open(p, encoding="utf-8").read()   # full read — a byte-capped head can silently drop aliases past the cap (§12: a bound needs stated headroom; the link pass re-reads every file in full anyway)
+    head = read_text(p)   # full read — a byte-capped head can silently drop aliases past the cap (§12: a bound needs stated headroom; the link pass re-reads every file in full anyway)
     fm = re.match(r"\A---\n(.*?)\n---", head, re.S)
     if not fm:
         continue
@@ -96,7 +105,7 @@ links_checked = embeds_checked = 0
 for p in files:
     if os.path.basename(p) == "log.md":
         continue
-    body = strip_noise(open(p, encoding="utf-8").read())
+    body = strip_noise(read_text(p))
     for is_embed, target in re.findall(r"(!?)\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]", body):
         target = target.strip().rstrip("\\")   # [[page\|alias]] table-escaped pipes leave a trailing backslash
         ext = os.path.splitext(target.split("#", 1)[0])[1].lower()

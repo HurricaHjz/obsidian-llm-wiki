@@ -59,7 +59,7 @@ Collect candidates of four kinds. The first two matter most often; the last is t
 boundary against the on-disk session transcript instead of asserting it: `echo` a fresh nonce in shell,
 then grep for it under the harness transcript directory (Claude Code: `~/.claude/projects/<vault path,
 separators as dashes>/*.jsonl`). The single file containing the nonce IS this session's record — the
-transcript logs the probe itself, which is the positive control (CLAUDE.md §11). Count its human turns
+transcript logs the probe itself, which is the positive control (CLAUDE.md §11). A **negative** control here needs a needle the transcript has not already recorded: assemble it at runtime rather than typing the literal (a typed literal matches because the command logging it is part of the medium), or state the baseline count of self-hits. A control that fires against its own stated expectation is repaired, never narrated past (2026-09-03: one printed `exit=0` where it declared `1 = correctly none`, and the run continued). Count its human turns
 with a filter **verified against the visible span** (every visible human turn must be matched; beware:
 tool results AND harness task-notifications also carry `"type":"user"` and must both be excluded — the
 notification miss overcounted 9 turns as 27, №103 cross-reflection P1, 2026-08-28), and report
@@ -82,7 +82,10 @@ A candidate survives only if all three hold:
    generality with no event behind it.
 2. **Not already recorded** — check *everywhere* it could already live before proposing it: the
    destination page, `known-issues.md`, the relevant `developments/` doc, and a `grep` of `wiki/` for
-   the claim. This is also what stops repeat runs re-proposing the same thing; there is no session
+   the claim. **Open every hit.** A `grep -l` answers "does this string occur", never "is this idea
+   recorded", and the filename it returns often looks unrelated to the candidate — on 2026-09-03 a dedup
+   hit was the one page already carrying the candidate's entire argument, and it went unopened, so the
+   candidate was proposed as novel. A hit that is not opened leaves the candidate *unresolved*, not clear. This is also what stops repeat runs re-proposing the same thing; there is no session
    cursor, and none can be built (the log carries no clock).
 3. **Load-bearing** — one decidable question: *would a future session do the work worse without it?*
    That covers both halves — repeating a mistake, redoing work or answering wrongly, **and** missing a
@@ -180,7 +183,8 @@ open recommends nothing — no forced next.
 
 **Trigger, explicit only:** `/reflect --cross <transcript-path | session-id>`, or the owner accepting
 a workflow-end proposal (the delegate skill §5 owns that policy: the head may propose once, cost
-declared first, never auto-run). **Target:** a finished session's transcript, or the current
+declared first, never auto-run; the run's log entry records whether one was proposed — `proposed`
+or `not eligible`, 2026-08-30 — an accepted proposal being traced by the cross run's own entry). **Target:** a finished session's transcript, or the current
 session's transcript as of spawn — the live-write race is declared in the report; the pilot tested
 the finished case only (dated caveat: `wiki/developments/cross-reflection-pilot.md`).
 

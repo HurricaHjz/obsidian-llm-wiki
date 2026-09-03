@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: Read-only claim checker — spawn with an explicit claim list to verify each against actual files, schemas or command output. Returns CONFIRMED / REFUTED / UNVERIFIABLE per claim with evidence; mandatory positive and negative controls. Routing (owner-set 2026-08-27) sonnet · max effort; per-call opus for genuinely hard claim sets, fable where the judgement is framework-critical.
+description: Read-only claim checker — spawn with an explicit claim list to verify each against actual files, schemas or command output. Returns CONFIRMED / REFUTED / UNVERIFIABLE per claim with evidence; mandatory positive and negative controls. Routing range (admitted 2026-08-27): model sonnet–fable, effort high–max; the active throttle sets the current values (delegate skill §2); per-call opus for genuinely hard claim sets, fable where the judgement is framework-critical.
 model: sonnet
 effort: max
 disallowedTools: Edit, Write, NotebookEdit, Agent, SendMessage

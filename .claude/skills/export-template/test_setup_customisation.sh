@@ -45,6 +45,8 @@ DUP=$(comm -12 <(grep '^### ' "$ROOT/$CUST" 2>/dev/null | sort) <(grep '^### ' "
 [ -z "$DUP" ]                                 && ok "no ### heading duplicated across the pair" || no "duplicated heading(s): $DUP"
 grep -q '\[\[About Me\]\]'    "$ROOT/$CUST" 2>/dev/null && ok "Related links [[About Me]] (no orphan)" || no "missing ## Related backlink"
 grep -q '^- \*\*role\*\*: generalist' "$ROOT/$CUST" 2>/dev/null && ok "role knob seeded in ## Settings" || no "role knob missing from ## Settings"
+grep -q '^- \*\*throttle\*\*: default' "$ROOT/$CUST" 2>/dev/null && ok "throttle knob seeded in ## Settings" || no "throttle knob missing from ## Settings"
+grep -q '^- \*\*breadth\*\*: standard' "$ROOT/$CUST" 2>/dev/null && ok "breadth knob seeded in ## Settings" || no "breadth knob missing from ## Settings"
 grep -q '^## Roles'           "$ROOT/$CUST" 2>/dev/null && ok "Roles section present"                  || no "Roles section missing"
 grep -q "^### generalist" "$ROOT/$CUST" 2>/dev/null && ok "role seeded in core: generalist (default)" || no "role missing from core: generalist"
 for r in researcher engineer tutor examiner; do

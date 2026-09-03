@@ -32,6 +32,7 @@ REPORT
 ## Confirmations · ## Controls
 ```
 
-<!-- Spawner: do NOT state your own view of the artefact anywhere in the brief. Fable
-escalation (framework-changing decisions) is bounded by CLAUDE.md §11: owner confirms
-before a fable lane reads trigger-prone verbatim source — every time. -->
+<!-- Spawner: do NOT state your own view of the artefact anywhere in the brief. A fable lane
+takes any source the task needs; a refusal in the lane is handled reactively (CLAUDE.md §11:
+that task falls back one model step, the owner is notified once). Grep every positive-control
+phrase you name in the brief against the artefact before spawning (live miss 2026-09-02). -->

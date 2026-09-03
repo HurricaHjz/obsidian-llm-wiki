@@ -5,7 +5,8 @@ description: >
   user runs /lint, /health, /scan, or asks to "check the wiki", "find broken links", "clean up the
   wiki", or "find gaps/orphans/conflicts". Read-only scan that reports dead links, dead media
   embeds, orphan pages, pages missing from index.md, unresolved knowledge conflicts, live links
-  leaking into the attic, and the count of pending `flagged:` freshness flags (≥5 suggests a deep-lint). Also restores the graph colour
+  leaking into the attic, wikilinks from shipped skill or agent files into wiki pages that never ship, and the
+  count of pending `flagged:` freshness flags (≥5 suggests a deep-lint). Also restores the graph colour
   palette on request (on-demand only, never on a routine scan). Proposes fixes but only applies them
   after the user confirms.
 user-invocable: true
@@ -44,7 +45,9 @@ and root-doc targets resolve; `wiki/log.md` is exempt as a source (append-only h
 embeds `![[name.png|pdf|…]]` are checked against `assets/`** — a missing target is a **dead embed**,
 reported separately (they are checked, not skipped). The script prints its scan totals as its own
 positive control (§11): zero findings with zero links scanned is a broken probe, not a clean vault.
-- Orphans are agent-checked (not part of the script): a page with **no inbound links** from any other page → **orphan** — but **exempt** `index`, `log`, and `maps/` pages (Maps of Content are navigational entry points, not orphans).
+- Orphans are scripted too: `python3 .claude/skills/lint/check-orphans.py --vault .` reports a page with **no inbound links** from any other page as an **orphan**, exempting `index`, `log`, and `maps/` pages (Maps of Content are navigational entry points, not orphans). It applies this directory's link rules, prints its own inbound-link control (zero orphans with a zero control is a broken probe, §11), and additionally lists the pages `index.md` alone reaches — information, not a finding.
+- Two further helpers in this directory serve deep-lint and the routing design's verify leg, not routine lint: `tier-cap-check.py` (§4.6 type caps and boundaries; a documented override on the `confidence:` line is reported separately, never as a violation) and `anomaly-lister.py` (page-visible anomalies: open conflict blocks, `flagged:` lines, thin-page notes, `unverified` markers). Suite for all three: `bash .claude/skills/lint/test_lint_phase2.sh`.
+- **Routing (M0, 2026-09-02):** every lint check except Step 1's index-consistency comparison is a script; the agent reads reports and never re-derives a scripted count (orphans became `check-orphans.py`, Phase 2 of the routing design). Step 1 remains an agent comparison until it is scripted (recorded residue).
 
 ### 2b — Pending freshness flags (count only — reconciling them is deep-lint's job)
 `grep -rl "^flagged:" wiki --include='*.md' | wc -l` — with the engine control
@@ -74,27 +77,43 @@ The script carries its own §11 control (`index.md`, deliberately kept, must be 
 `PROBE FAILED` rather than "clean" when its own premise breaks. Exit 1 = finding; the fix is to
 restore `ignore: ["**/log.md"]` on the `wiki` collection and re-run `qmd update`.
 
-### 2e — Skill-injection guard (names only — no skill contents are read)
-Third-party installers write skill directories into agent skill roots (a user-level skill loads into
-**every** session — e.g. Agent Reach's documented SKILL.md auto-install; two register incidents prove
-the class: `wiki/developments/known-issues.md` 2026-08-21/22). Diff both roots against the sanctioned
-baseline `.claude/skills/lint/sanctioned-skills.txt`:
+### 2e — Injection guard (names only — no skill or definition contents are read)
+Third-party installers write into the roots the harness auto-loads, and anything landing there reaches
+**every** session (Agent Reach's documented SKILL.md auto-install; two register incidents prove the
+class: `wiki/developments/known-issues.md` 2026-08-21/22). **Two roots, four arms.** Skills are
+**directories** under `.claude/skills/`; agent definitions are **files** under `.claude/agents/`, and
+each is auto-loaded — a definition names a lane's model, tools and write scope, so an unsanctioned one
+is the same exposure as an unsanctioned skill. The asymmetry is real: `ls` yields names in one case and
+filenames in the other, so the `comm` inputs differ. Both diff against the same baseline,
+`.claude/skills/lint/sanctioned-skills.txt` (its `-skills` filename is kept for compatibility; it is the
+registry for both).
 ```bash
-b=".claude/skills/lint/sanctioned-skills.txt"    # ships with the framework: vault-skill names only
-h="$HOME/.claude/skills/.sanctioned.txt"         # machine-local baseline: user-level skill names
-[ -s "$b" ] || { echo "PROBE FAILED: vault baseline missing/empty"; }   # premise guard, never "clean"
+b=".claude/skills/lint/sanctioned-skills.txt"    # ships: vault skill names + agent definition filenames
+hs="$HOME/.claude/skills/.sanctioned.txt"        # machine-local baselines, never shipped
+ha="$HOME/.claude/agents/.sanctioned.txt"
+[ -s "$b" ] || echo "PROBE FAILED: vault baseline missing/empty"            # premise guard, never "clean"
+# vault skills (directories)
 comm -13 <(grep '^vault:' "$b" | cut -d: -f2 | sort) <(ls .claude/skills | sort)
-[ -d ~/.claude/skills ] || echo "PROBE FAILED: ~/.claude/skills missing"   # premise guard, never "clean"
-[ -s "$h" ] && [ -d ~/.claude/skills ] && comm -13 <(sort "$h") <(ls ~/.claude/skills | sort)
+# vault agent definitions (FILES — list everything, do not filter to *.md: a stray file here is the finding)
+[ -d .claude/agents ] && comm -13 <(grep '^agent:' "$b" | cut -d: -f2 | sort) <(ls .claude/agents | sort) \
+                      || echo "agents-guard: n/a (no .claude/agents in this vault)"
+# user-level roots
+[ -d ~/.claude/skills ] || echo "PROBE FAILED: ~/.claude/skills missing"    # premise guard, never "clean"
+[ -s "$hs" ] && [ -d ~/.claude/skills ] && comm -13 <(sort "$hs") <(ls ~/.claude/skills | sort)
+[ -s "$ha" ] && [ -d ~/.claude/agents ] && comm -13 <(sort "$ha") <(ls ~/.claude/agents | sort)
 ```
-Any name printed = an **unsanctioned skill directory** (finding: report it; the fix — owner-confirmed —
-is removal, or a conscious baseline addition in the same pass that sanctions it). No machine-local
-baseline yet (fresh machine) → report the current `~/.claude/skills` list as info and propose seeding
-`$h` from it after the owner reviews — never a finding, never auto-seeded. Baseline entries missing on
-disk are reported as info (drift), not findings. §11 control before trusting an empty result: re-run
-one `comm` with a known-absent name injected into the disk side (`printf 'zzz-ctrl\n'`) and confirm it
-prints. A missing/empty vault baseline or an unreadable root reports `PROBE FAILED`, never "clean".
+Any name printed = an **unsanctioned entry** (finding: report it; the fix — owner-confirmed — is removal,
+or a conscious baseline addition in the same pass that sanctions it). **Premise failures never read as
+clean, each in its own way:** a missing/empty vault baseline reports `PROBE FAILED`; an absent
+`.claude/agents/` reports `n/a` (a vault may legitimately have none, so absence is not a finding and not
+a pass either); an absent user-level root reports `PROBE FAILED`; no machine-local baseline yet (fresh
+machine) → report that root's current listing as info and propose seeding it after the owner reviews,
+never a finding, never auto-seeded. Baseline entries missing on disk are info (drift), not findings.
+§11 control before trusting any empty result: re-run **each** arm's `comm` with a known-absent name
+injected into the disk side (`printf 'zzz-ctrl\n'`) and confirm it prints — one arm's control does not
+vouch for another's.
 (Deep-lint inherits this via its structural pass.)
+- **Throttle check (delegate skill §2, 2026-09-02):** `python3 .claude/skills/delegate/throttle.py check` — each `DRIFT` / `MISSING` / `UNROUTED` / `DESCRIPTION-TIER` line is a finding (the fix is `throttle.py set <active>` for drift, a definition or routing entry for the other two, the range wording for a description); `PROBE FAILED` (unreadable `routing.json`, unknown throttle name, absent `.claude/agents/`) never reads as clean. The script prints its own §11 control (a planted-drift comparator) on every run.
 
 ### 2f — Customisation pairing (cheap greps — no preference content is judged)
 The preference layer is two files: always-on `CUSTOMISATION.md` (core: contracts + default style/role
@@ -112,6 +131,26 @@ switch). Core absent (fresh vault) → report `customisation-pairing: n/a` and s
 - Definitions file missing while core exists → **warning** (switches beyond the defaults will run
   without their definitions): propose recreating it from the private backup or the template seed
   (the `mk_custom_defs` function in the shipped `setup.sh`). Never fatal, never auto-created.
+
+### 2g — Shipped-surface wikilinks (one scripted check — the publish gate's test suite calls the same script)
+Every `.md` under `.claude/skills/` and `.claude/agents/` ships with the public framework; a `[[wikilink]]`
+in one of them that resolves in this vault but not in the published copy is dead for every installer — the
+class the 2026-08-30 delegate-skill finding proved. Run `python3 .claude/skills/lint/check-shipped-links.py .`
+and copy its first line into the report verbatim. Scope is keyed on the export's auto-discovery contract
+(`list_skills`/`list_agents`), minus vault-shaped content bundled inside a skill (any `wiki/` or `raw/`
+segment, i.e. the shipped seed demo); names that ship are never findings (`index`, `log`, and the seed's own
+pages); links inside code spans, fenced blocks and HTML comments are not links; targets resolve as Obsidian
+does, frontmatter aliases included; root docs are out of scope (their `[[…]]` are naming examples by design —
+CLAUDE.md §12's ship-safe-citation rule governs citations there). A link dead in both copies is counted on
+the control line, never flagged: shipped skills use placeholders such as `[[topic]]`. The script carries its
+own §11 control (a synthetic surface linking a synthetic page must be caught) and tells legitimate absence
+from a broken premise: an empty `wiki/` (a fresh install, the published copy itself) reports `n/a`; a missing
+`wiki/`, no surfaces, an unreadable surface or a silent self-control reports `PROBE FAILED`, never "clean".
+Exit 1 = findings: the fix (owner-confirmed) is rewriting the citation in ship-safe wording — the page name
+in code font, no link — never deleting the reference. The publish gate's test suite runs the same script
+(its leg 14), so an edit-time miss here is caught there; regression fixtures live beside the script
+(`bash .claude/skills/lint/test_check_shipped_links.sh`). Design record:
+`wiki/developments/shipped-surface-wikilink-guard.md`.
 
 ### 3 — Conflict audit
 Find pages containing `## Conflicts / Open Questions`. List each unresolved conflict (the two sides)
@@ -163,7 +202,7 @@ never on a routine lint.
 
 ### ⏳ Flags
 - **N pages carry `flagged:`** (engine control OK) — ≥5 → consider `/deep-lint`
-- `<the qmd-registry line, verbatim from the script>` · `attic-leak: none / n/a / N leaks` · `skill-guard: clean / N unsanctioned (control OK)` · `customisation-pairing: ok / n/a / N findings`
+- `<the qmd-registry line, verbatim from the script>` · `attic-leak: none / n/a / N leaks` · `skill-guard: clean / N unsanctioned (control OK)` · `customisation-pairing: ok / n/a / N findings` · `throttle-check: clean (N of M diffed, control OK) / N findings / PROBE FAILED` · `shipped-links: clean / n/a / N dead / PROBE FAILED`
 
 ### 🛠️ Proposed next steps
 1. Auto-register unindexed pages? (y/n)

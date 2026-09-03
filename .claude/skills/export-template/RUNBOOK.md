@@ -11,11 +11,16 @@ Produces `template-export/` per `SPEC.md`.
 
 ## B. Verify (script prints most of this — confirm)
 - Skills = **every directory under `.claude/skills/`** (auto-discovered by `list_skills()`; check with `ls .claude/skills` — never a hand-kept list, which has gone stale twice: v0.7.6 and the 2026-08-23 `attic` omission). export-template ships too — users need its `--pull` to update.
-- **Suites — run all seven; green = `0 failed` printed by each suite itself** (never compare against a historical count — assertion totals grow):
+- **Suites — run all eight, then the build-side re-run; green = `0 failed` printed by each suite itself** (never compare against a historical count — assertion totals grow):
   ```bash
   for t in capture_write funnel_knobs gather_links run_ledger; do (cd .claude/skills/gather && python3 test_$t.py) || echo "SUITE FAILED: $t"; done
   for t in export_template setup_customisation token_isolation; do (cd .claude/skills/export-template && bash test_$t.sh) || echo "SUITE FAILED: $t"; done
+  (cd .claude/skills/lint && bash test_check_shipped_links.sh) || echo "SUITE FAILED: check_shipped_links"
+  (cd template-export/.claude/skills/export-template && bash test_export_template.sh) || echo "SUITE FAILED: export suite INSIDE the build"
   ```
+  The build-side re-run exists because the copy's premises differ from the vault's (`wiki/` is empty by
+  construction): a guard can pass here and fail there — the 2026-08-30 empty-wiki regression is the class
+  it catches, found only because that run was done ad hoc; this line makes it repeat.
 - `template-export/wiki` & `/raw` hold only `.gitkeep` (no seed, no `index.md`/`log.md`); the demo is in
   `template-export/examples/seed/`.
 - No personal leak: grep the build for **your own** name / handle / affiliation

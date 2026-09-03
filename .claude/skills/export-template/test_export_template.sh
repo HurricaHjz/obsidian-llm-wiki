@@ -210,23 +210,15 @@ for img in $IMGS; do
   chk "export copies it (readme_images matches): $img" "grep -oE 'assets/[A-Za-z0-9._-]+\\.(png|jpg|jpeg|gif|webp)' \"$VAULT_ROOT/README.md\" | grep -qx '$img'"
 done
 
-echo "== 14) shipped skills carry no wikilink to a page that does not ship =="
+echo "== 14) shipped surfaces carry no wikilink to a page that does not ship (shared script: lint/check-shipped-links.py) =="
+# One implementation, two callers: lint Step 2g runs this at edit time, this leg at publish — they cannot
+# drift. Scope, exclusions and premise guards live in the script (design record:
+# wiki/developments/shipped-surface-wikilink-guard.md). Exit 0 clean · 1 findings · 2 PROBE FAILED.
 VROOT="$(cd "$REALSKILL/../../.." && pwd)"
-DEADLINKS=$(python3 - "$VROOT" <<'PYEOF'
-import os,glob,re,sys
-v=sys.argv[1]
-pages={os.path.splitext(os.path.basename(f))[0] for f in glob.glob(os.path.join(v,"wiki","**","*.md"),recursive=True)}
-out=[]
-for f in glob.glob(os.path.join(v,".claude","skills","*","SKILL.md")):
-    for m in re.findall(r"\[\[([^\]]+)\]\]", open(f,encoding="utf-8").read()):
-        if m.split("|")[0].split("#")[0].strip() in pages:
-            out.append(os.path.basename(os.path.dirname(f))+":"+m)
-print(" ".join(out))
-PYEOF
-)
-chk "control: vault has wiki pages to link against" '[ -d "$VROOT/wiki" ]'
-chk "no skill links to a non-shipping wiki page"    '[ -z "$DEADLINKS" ]'
-[ -n "$DEADLINKS" ] && echo "      dead: $DEADLINKS"
+SL_RC=0; SL_OUT="$(python3 "$VROOT/.claude/skills/lint/check-shipped-links.py" "$VROOT" 2>&1)" || SL_RC=$?
+chk "control: shipped-links probe ran (exit 0/1, never PROBE FAILED)" '[ "$SL_RC" -ne 2 ]'
+chk "no shipped surface links a non-shipping wiki page"               '[ "$SL_RC" -eq 0 ]'
+[ "$SL_RC" -ne 0 ] && echo "      $SL_OUT"
 
 echo "== 15) every shipped skill is documented in README + MANUAL =="
 SKDIR15="$(cd "$REALSKILL/.." && pwd)"            # the real .claude/skills/
