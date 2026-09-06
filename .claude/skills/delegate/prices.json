@@ -1,0 +1,52 @@
+{
+  "_": "prices.json — the one price home for fable-share.py's billed line. List prices only: a proxy for plan accounting, never billing truth, which is why the meter prints token quantities beside every dollar figure. Edit this file to re-price; nothing else in the skill carries a rate.",
+
+  "prices_date": "2026-09-03",
+
+  "source": "List prices as recorded in the corrected price snapshot of the vault development page on token cost levers (wiki/developments/token-cost-levers-2026-09-03.md, section 'Three corrections'): $10/$50 per MTok Fable, $5/$25 Opus, $2/$10 Sonnet; cache reads 0.025x input on Fable and 0.1x elsewhere; cache writes 1.25x input at the 5-minute tier and 2x at the 1-hour tier. That page cites the harness-bundled claude-api reference (shared/prompt-caching.md, section Economics; shared/model-migration.md) for the Fable read rate, cached 2026-06-24. The Haiku row is not in that snapshot; it comes from the vendor pricing snapshot compiled in the vault (wiki/sources/claude-api-pricing-docs.md, July 2026).",
+
+  "matching": "A model id is matched to a family by substring: the id is lower-cased and the first family name it contains, in the order fable, opus, sonnet, haiku, wins. An id matching no family is a broken premise — the meter prints 'billed: unbilled (<reason>)' and exits 2 — never a guessed or zero price.",
+
+  "family_order": ["fable", "opus", "sonnet", "haiku"],
+
+  "families": {
+    "fable": {
+      "input": 10.0,
+      "output": 50.0,
+      "read_mult": 0.025,
+      "write_5m_mult": 1.25,
+      "write_1h_mult": 2.0,
+      "source": "levers page price snapshot, 2026-09-03 (read rate 0.025x per its correction 3)"
+    },
+    "opus": {
+      "input": 5.0,
+      "output": 25.0,
+      "read_mult": 0.1,
+      "write_5m_mult": 1.25,
+      "write_1h_mult": 2.0,
+      "source": "levers page price snapshot, 2026-09-03"
+    },
+    "sonnet": {
+      "input": 2.0,
+      "output": 10.0,
+      "read_mult": 0.1,
+      "write_5m_mult": 1.25,
+      "write_1h_mult": 2.0,
+      "source": "levers page price snapshot, 2026-09-03 (see conflicts below: this is the introductory rate)"
+    },
+    "haiku": {
+      "input": 1.0,
+      "output": 5.0,
+      "read_mult": 0.1,
+      "write_5m_mult": 1.25,
+      "write_1h_mult": 2.0,
+      "source": "vendor pricing snapshot compiled in the vault (July 2026); not stated by the levers snapshot, so a Haiku-priced run should re-check it"
+    }
+  },
+
+  "conflicts": [
+    "Sonnet: the levers snapshot of 2026-09-03 prices Sonnet 5 at $2/$10, the introductory rate, while the vendor pricing snapshot records that rate as introductory until 31 August 2026 and $3/$15 after it. The table follows the levers page, the source this file was built from; a Sonnet-heavy run should confirm the rate before its dollars are quoted. Recorded rather than resolved, so the disagreement stays visible."
+  ],
+
+  "units": "input and output are US dollars per million tokens; the three multipliers apply to the family's input rate, giving $/MTok for cache reads, 5-minute cache writes and 1-hour cache writes."
+}

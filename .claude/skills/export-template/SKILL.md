@@ -105,11 +105,15 @@ framework"), do it end-to-end but **pause once for confirmation before anything 
    personal string, plus one positive control (a string known to exist, e.g. `wiki`). **Derive the
    strings at runtime, never hardcode them here** (they must not ship): the `agent_name` from
    `CUSTOMISATION.md` frontmatter, the git handle/email local-part from the repo's config,
-   the vault's absolute-path components, and any extra lines in `output/publish-gate-strings.txt`
+   every component of the vault's absolute path (the `@`-led and other punctuation-led ones included:
+   a 2026-09-06 scan omitted them and missed a fixture hit), and any extra lines in `output/publish-gate-strings.txt`
    (optional, owner-local, never shipped). Filter hits against `publish-allowlist.md` (in this skill
    folder): every allowlisted line carries its justification and must itself be public-safe. Any
    **unallowlisted** hit HALTS the publish for inspection; a hit adjudicated benign is added to the
-   allowlist with its reason, once, permanently. Zero unallowlisted hits + control > 0 = gate passed.
+   allowlist with its reason, once, permanently; a provisional entry (an owner-ruled deferral of a class
+   fix to a named release) names its per-file counts and its expiry release, is removed by the release
+   that fixes its class, and a hit outside its files or above its counts stays unallowlisted. Zero
+   unallowlisted hits + control > 0 = gate passed.
    **Throttle gate (mandatory, before the recap):** `python3 .claude/skills/delegate/throttle.py check --require default` must exit 0 on the vault — a template is never published with floor definitions, drifted tiers or a description naming a current tier; a `PROBE FAILED` halts the publish like any other gate failure.
    **Candidate recap — mandatory final confirmation:** before committing, present the **candidate's
    row** — `Ver | Feature | What it does | What it achieves` — verified against the actual files/tests

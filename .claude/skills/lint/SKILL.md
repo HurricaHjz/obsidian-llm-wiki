@@ -115,6 +115,18 @@ vouch for another's.
 (Deep-lint inherits this via its structural pass.)
 - **Throttle check (delegate skill §2, 2026-09-02):** `python3 .claude/skills/delegate/throttle.py check` — each `DRIFT` / `MISSING` / `UNROUTED` / `DESCRIPTION-TIER` line is a finding (the fix is `throttle.py set <active>` for drift, a definition or routing entry for the other two, the range wording for a description); `PROBE FAILED` (unreadable `routing.json`, unknown throttle name, absent `.claude/agents/`) never reads as clean. The script prints its own §11 control (a planted-drift comparator) on every run.
 
+**Register arm (2026-09-05; names only, both directions).** `wiki/developments/capability-register.md` lists every
+user-level skill as one row (`| \`name\` |`) under `## User-level skills`; the directory and the register must agree:
+```bash
+reg="wiki/developments/capability-register.md"
+[ -s "$reg" ] || echo "register-arm: n/a (no register page yet — a fresh vault; /adopt seeds it)"
+[ -s "$reg" ] && rows=$(awk '/^## User-level skills/{f=1} /^## Plugins/{f=0} f' "$reg" | grep -oE '^\| `[a-z0-9-]+`' | tr -d '|` ' | sort -u) \
+  && { echo "installed, no row:"; comm -13 <(printf '%s\n' "$rows") <(ls ~/.claude/skills | sort); echo "row, not installed:"; comm -23 <(printf '%s\n' "$rows") <(ls ~/.claude/skills | sort); }
+```
+Either list non-empty = a finding (the fix, owner-confirmed, is a row or an install, never a silent delete). Control before
+trusting two empty lists: re-run with one real row name filtered out of `rows` and see it appear under "installed, no row".
+
+
 ### 2f — Customisation pairing (cheap greps — no preference content is judged)
 The preference layer is two files: always-on `CUSTOMISATION.md` (core: contracts + default style/role
 blocks + `customised`) and on-demand `CUSTOMISATION-definitions.md` (the other definitions; read on

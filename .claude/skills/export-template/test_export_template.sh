@@ -42,6 +42,16 @@ build_fake_vault(){
     mkdir -p "$V/.claude/skills/$s"; printf '# %s skill\n' "$s" > "$V/.claude/skills/$s/SKILL.md"
   done
   cp -R "$REALSKILL" "$V/.claude/skills/export-template"
+  # a 'delegate' skill shaped like the real one: a python wrapper, a JSON routing table, a template
+  # and a nested slice directory — the shapes the thin-lane path added under .claude/skills/ (2026-09-04).
+  # Phase 16 checks they reach the build and stay committable; the skill count above rises with it.
+  mkdir -p "$V/.claude/skills/delegate/templates" "$V/.claude/skills/delegate/lane-home-src/compile-core"
+  printf '# delegate skill\n'                        > "$V/.claude/skills/delegate/SKILL.md"
+  printf '#!/usr/bin/env python3\nprint("wrapper")\n' > "$V/.claude/skills/delegate/lane.py"
+  printf '#!/usr/bin/env python3\nprint("fence")\n'   > "$V/.claude/skills/delegate/lane-fence.py"
+  printf '{ "schema": 2 }\n'                          > "$V/.claude/skills/delegate/routing.json"
+  printf '# lane core\n'                              > "$V/.claude/skills/delegate/templates/lane-core.md"
+  printf '# compile-core slice\n'                     > "$V/.claude/skills/delegate/lane-home-src/compile-core/SKILL.md"
   # "knowledge" that must NEVER ship or be touched by pull
   printf '# secret note\npersonal data here\n' > "$V/wiki/sources/secret.md"
   printf 'raw source\n' > "$V/raw/source1.md"
@@ -74,7 +84,7 @@ chk "build: no legacy no-ext LICENSE"       '[ ! -f "$BUILT/LICENSE" ]'
 chk "build: CONTRIBUTING NOT shipped (retired)" '[ ! -f "$BUILT/CONTRIBUTING.md" ]'
 chk "build: .gitignore present"             '[ -f "$BUILT/.gitignore" ]'
 chk "build: setup.sh present + executable"  '[ -x "$BUILT/setup.sh" ]'
-chk "build: 8 skills shipped (auto-discovered)" '[ "$(ls "$BUILT/.claude/skills" | wc -l | tr -d " ")" = 8 ]'
+chk "build: 9 skills shipped (auto-discovered)" '[ "$(ls "$BUILT/.claude/skills" | wc -l | tr -d " ")" = 9 ]'
 chk "build: NEW skill auto-shipped (dynamic)"   '[ -d "$BUILT/.claude/skills/newskill" ]'
 chk "build: export-template IS shipped"     '[ -f "$BUILT/.claude/skills/export-template/export_template.sh" ]'
 chk "build: export-template payload shipped" '[ -d "$BUILT/.claude/skills/export-template/payload/example" ]'
@@ -235,6 +245,42 @@ chk "every shipped skill is named in MANUAL"           "[ -z \"$MISS_M15\" ]"
 [ -n "$MISS_R15" ] && echo "      README missing:$MISS_R15"
 [ -n "$MISS_M15" ] && echo "      MANUAL missing:$MISS_M15"
 chk "control: probe fails on a fabricated skill" "! grep -qF '| \`no-such-skill\` |' \"$VROOT15/README.md\""
+
+echo "== 16) a skill's nested wrapper, config and slices ship and stay committable =="
+# The thin-lane path (2026-09-04) put a python wrapper, a JSON routing table, a template and a
+# nested slice tree inside the delegate skill. They ship by the same auto-discovery as any skill
+# file; this phase pins that, and pins that no .gitignore rule (a bare *.json, say) quietly drops one.
+build_fake_vault
+B16="$ROOT/built16"
+bash "$SCRIPT" "$B16" >/dev/null 2>&1
+( cd "$B16" && $GIT init -q && $GIT add -A ) >/dev/null 2>&1
+chk "build: skill wrapper script shipped"        '[ -f "$B16/.claude/skills/delegate/lane.py" ]'
+chk "build: skill fence script shipped"          '[ -f "$B16/.claude/skills/delegate/lane-fence.py" ]'
+chk "build: skill JSON config shipped"           '[ -f "$B16/.claude/skills/delegate/routing.json" ]'
+chk "build: skill template shipped"              '[ -f "$B16/.claude/skills/delegate/templates/lane-core.md" ]'
+chk "build: nested slice directory shipped"      '[ -f "$B16/.claude/skills/delegate/lane-home-src/compile-core/SKILL.md" ]'
+chk "git: wrapper tracked"                       '( cd "$B16" && git ls-files | grep -qx ".claude/skills/delegate/lane.py" )'
+chk "git: JSON config tracked"                   '( cd "$B16" && git ls-files | grep -qx ".claude/skills/delegate/routing.json" )'
+chk "git: nested slice tracked"                  '( cd "$B16" && git ls-files | grep -qx ".claude/skills/delegate/lane-home-src/compile-core/SKILL.md" )'
+# §11 control: the same check-ignore probe must FIRE on a path that is meant to be ignored, in the
+# same directory — otherwise "not ignored" above would also be the answer on a broken probe.
+chk "control: check-ignore fires on ignored junk in that same directory" \
+    '( cd "$B16" && mkdir -p .claude/skills/delegate/__pycache__ && : > .claude/skills/delegate/__pycache__/x.pyc && git check-ignore -q .claude/skills/delegate/__pycache__/x.pyc )'
+chk "build: no lane home (agent state) inside the shipped tree" '[ -z "$(find "$B16" -type d -name "lane-home" -not -name "lane-home-src")" ]'
+
+echo "== 17) the real vault's delegate skill still carries every file the lane path ships =="
+DLG17="$(cd "$REALSKILL/.." && pwd)/delegate"
+chk "control: the real delegate skill is present" '[ -d "$DLG17" ]'
+for f in lane.py lane-fence.py test_lane.sh prices.json routing.json templates/lane-core.md \
+         lane-home-src/README.md lane-home-src/compile-core/SKILL.md lane-home-src/reflect-slice/SKILL.md; do
+  chk "delegate carries $f" "[ -f \"$DLG17/$f\" ]"
+done
+chk "control: the same probe fails on a file that does not exist" '[ ! -f "$DLG17/no-such-lane-file.py" ]'
+# The lane home is machine-local state, so setup.sh must build it rather than the payload shipping one.
+chk "shipped setup.sh invokes the wrapper"       'grep -q "skills/delegate/lane.py" "$REALSKILL/payload/setup.sh"'
+chk "shipped setup.sh runs its init step"        'grep -q "init_lane_home" "$REALSKILL/payload/setup.sh"'
+chk "shipped setup.sh names the lane home in its output" 'grep -qi "lane home" "$REALSKILL/payload/setup.sh"'
+chk "control: the same grep misses a step setup.sh does not have" '! grep -q "init_lane_home_v99" "$REALSKILL/payload/setup.sh"'
 
 echo
 echo "================  RESULT: $PASS passed, $FAIL failed  ================"

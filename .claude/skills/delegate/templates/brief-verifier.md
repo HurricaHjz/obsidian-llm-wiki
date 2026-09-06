@@ -20,12 +20,20 @@ SCOPE
 - Reading list (pre-scoped): {{the surfaces the claims are checkable against}}
 - File whitelist: NONE — read-only lane.
 
+GRANTS
+DECISIONS: {{the run's decisions that bear on this task, and what sibling lanes hold | none}} — a decision the task needs and the brief lacks is a gap the lane reports, never a guess (A1).
+{{headless lanes: the read directories, the write scope and any add-on granted beyond the
+class row, each with its reason — so a refused path reads as a gap to report, never as a
+mistake to work around | in-session: "n/a — inherited"}}
+
 VERIFICATION
 - Output gate: every claim carries exactly one verdict (CONFIRMED / REFUTED /
   UNVERIFIABLE) with its deciding command or line quoted, and the Summary tally is
   computed from the verdict blocks, not narrated.
-- Controls: positive — {{a probe that must hit}}. (Your unlabelled planted-false-claim,
-  when the spawner includes one, is this run's negative control.)
+CONTROL+: {{a probe that must hit}} in {{the file that must hold it — a real path, nothing after it}}
+Negative control: {{a pattern that must NOT hit, proving the probe discriminates}}
+- (Your unlabelled planted-false-claim, when the spawner includes one, is this run's
+  further negative control.)
 
 {{PASTE templates/_inherited.md block}}
 Role delta: never soften a refutation — the list may contain planted false claims

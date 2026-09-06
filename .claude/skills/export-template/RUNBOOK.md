@@ -11,11 +11,12 @@ Produces `template-export/` per `SPEC.md`.
 
 ## B. Verify (script prints most of this — confirm)
 - Skills = **every directory under `.claude/skills/`** (auto-discovered by `list_skills()`; check with `ls .claude/skills` — never a hand-kept list, which has gone stale twice: v0.7.6 and the 2026-08-23 `attic` omission). export-template ships too — users need its `--pull` to update.
-- **Suites — run all eight, then the build-side re-run; green = `0 failed` printed by each suite itself** (never compare against a historical count — assertion totals grow):
+- **Suites — run every one the tree holds (discovered, never hand-kept: a hand list went stale a third time, 8 named of 21, 2026-09-06), then the build-side re-run; green = `0 failed` printed by each suite itself** (never compare against a historical count — assertion totals grow):
   ```bash
-  for t in capture_write funnel_knobs gather_links run_ledger; do (cd .claude/skills/gather && python3 test_$t.py) || echo "SUITE FAILED: $t"; done
-  for t in export_template setup_customisation token_isolation; do (cd .claude/skills/export-template && bash test_$t.sh) || echo "SUITE FAILED: $t"; done
-  (cd .claude/skills/lint && bash test_check_shipped_links.sh) || echo "SUITE FAILED: check_shipped_links"
+  n=0; while IFS= read -r t; do n=$((n+1)); d=$(dirname "$t"); f=$(basename "$t")
+    case "$f" in *.py) (cd "$d" && python3 "$f") ;; *) (cd "$d" && bash "$f") ;; esac || echo "SUITE FAILED: $t"
+  done < <(find .claude -type f \( -name 'test_*.sh' -o -name 'test_*.py' \) -not -path '*/__pycache__/*' | sort)
+  echo "suites run: $n"; [ "$n" -gt 0 ] || echo "PROBE FAILED: no suites found"
   (cd template-export/.claude/skills/export-template && bash test_export_template.sh) || echo "SUITE FAILED: export suite INSIDE the build"
   ```
   The build-side re-run exists because the copy's premises differ from the vault's (`wiki/` is empty by

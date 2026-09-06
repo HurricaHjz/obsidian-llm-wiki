@@ -22,12 +22,17 @@ SCOPE
   proposed diffs instead.
 - Boundary: report off-scope findings without fixing them.
 
+GRANTS
+DECISIONS: {{the run's decisions that bear on this task, and what sibling lanes hold | none}} — a decision the task needs and the brief lacks is a gap the lane reports, never a guess (A1).
+{{headless lanes: the read directories, the write scope and any add-on granted beyond the
+class row, each with its reason — so a refused path reads as a gap to report, never as a
+mistake to work around | in-session: "n/a — inherited"}}
+
 VERIFICATION
 - Output gate: pack has ≥1 slice OR a Gaps section whose search-probe control hit — an empty
   pack with no evidenced gap is a failed run.
-- Controls: positive — {{a page that must appear in the pack if the search ran, e.g. the
-  spec's obvious anchor page}}; negative — {{a named plausible-looking but irrelevant page
-  that must be excluded with a reason}}.
+CONTROL+: {{a page that must appear in the pack if the search ran, e.g. the spec's obvious anchor page}} in {{the file that must hold it — a real path, nothing after it}}
+Negative control: {{a named plausible-looking but irrelevant page that must be excluded with a reason}}
 
 {{PASTE templates/_inherited.md block}}
 Role delta: the pack carries sources and reasons, never conclusions on the consumer's

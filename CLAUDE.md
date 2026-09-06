@@ -125,7 +125,12 @@ hijacks or silently strips it.
 │
 ├── attic/                     ← 🗄️ owner's COLD STORAGE: retired-but-kept files + MANIFEST.md. Explicit user instruction ONLY (§2.1); in the graph (grey); NOT knowledge
 │
-└── .claude/skills/            ← custom workflow skills: ingest, gather, delegate, query, lint, deep-lint, attic, reflect, qmd-search, output, export-template
+├── .claude/skills/            ← custom workflow skills: ingest, gather, delegate, query, lint, deep-lint, attic, reflect, qmd-search, output, export-template, adopt
+│                                 (`delegate` also holds `lane.py`, the wrapper that spawns a headless lane)
+│
+└── ~/.llm-wiki/lane-home/     ← 🧰 OUTSIDE the vault, machine-local: the directory a headless lane runs from —
+                                  lane-side settings, the shell fence, contract + skill slices. Built by `setup.sh`
+                                  (`lane.py init`). NOT knowledge: never shipped, never in the graph, never cited.
 ```
 
 ### Permission rules (non-negotiable)
@@ -164,9 +169,29 @@ file whitelist, link whitelist and boundary clause. Three write classes:
   explicit ingest contract appends its own entries and grep-verifies them back.
 - **Everything else** — propose-don't-write: the lane returns the diff; the head agent applies it.
 
+**The instrument rule.** The head chooses the cheapest instrument that achieves the task at the
+required quality: a script for a mechanical step; itself where the step is short, needs its own
+context, or its add-ons suffice; a lane only where a named reason holds — (a) a contract requires
+independence or blindness, (b) parallel breadth one context cannot hold, (c) context isolation the
+watermark bands demand, (d) a task longer than the head can afford at its current context — and then
+the minimum number. The reason enters the spawn record **before** the spawn; a spawn without one is a
+defect for the register. Design: `wiki/developments/thin-lanes-design.md`.
+
+**A lane's context is assigned per call, never inherited.** A headless lane, spawned through `lane.py`
+from the machine-local lane home (§2 map), sees its brief, the appended lane core and class slices,
+and exactly the directories the head grants for that call — no `CLAUDE.md`, no vault skill listing.
+The harness refuses reads outside the grants and returns them as denials; the head reads a denial as a
+re-brief signal, and re-spawns with the grant rather than negotiating with the running lane. An
+in-session lane spawned with the Agent tool still inherits this contract in full. Both shapes are
+bound by the write classes above.
+
 Which steps route to lanes and which stay with the head is decided per skill under the parity-gate
 protocol of `wiki/developments/fable-minimising-routing.md`; a routed skill carries a **Routing** note at
-the step it routes.
+the step it routes, and the note applies under the `multi` regime (in `single` the head runs the step unless an
+instrument-rule reason holds). The regime is the `delegation` knob's value, `auto` by default: the head
+resolves each run into `single` or `multi`, records why in the run's spawn record, and the status line
+shows `auto→multi` for a head-chosen run; a hand-set `single` or `multi` is never re-resolved (delegate
+skill §1).
 
 A subagent's effective permissions are the **intersection** of every layer above it — delegation only
 ever restricts, never grants; this whole contract binds every lane, and subagent output is findings,
@@ -326,7 +351,7 @@ A query answered **inline** (no file written) and a **read-only** lint scan are 
 
 | Trigger | Skill | What it does |
 |---------|-------|--------------|
-| `/ingest` or "add this to my wiki" | **ingest** | Compile inbox files → wiki pages; update index+log; sort the raw file into its category subfolder. |
+| `/ingest` or "add this to my wiki" | **ingest** | Compile inbox files → wiki pages; update index+log; sort the raw file into its category subfolder. A skill's **Routing** notes send steps to lanes only under the `multi` regime (owner-set, or head-resolved per run under delegation `auto`); in `single` the head does the step itself unless an instrument-rule reason holds (Parallel mode and its verify legs qualify in both regimes). |
 | `/gather <url…>` · `/gather --search "<topic>"` or "gather sources on X" | **gather** | *(opt-in)* Web capture into `raw/` — seed mode (URLs ± cited links) or search mode (topic → approved shortlist); preview-and-approve, capped; hands to `ingest`. |
 | `/query <question>` or "what do my notes say about X" | **query** | Read `index.md` → relevant pages → cited answer; offer to file high-value answers into `syntheses/`. |
 | `/lint` or "health-check the wiki" | **lint** | Cheap frequent scan (dead links, orphans, unindexed pages, unresolved conflicts); report; fix only after confirmation. |
@@ -367,8 +392,8 @@ step. In `query`, `research` stays **opt-in or ask-first, never silent**.
 Each skill's own description surfaces automatically — below is just *when to reach for which*:
 - **Capture / convert**: `defuddle` for web page → Markdown; **`markitdown`** for any non-`.md` source; WebFetch only for throwaway lookups, **never to capture a source** (§3.1).
 - **Vault I/O**: prefer **`obsidian-cli`** (cheaper/safer than raw file ops); `obsidian-markdown` for Obsidian-flavoured syntax; `obsidian-bases` (`.base` views) · `json-canvas` (`.canvas` maps).
-- **Deliverable graphics** (user-level installs, machine-local, never shipped): **`lieflat-charts`** — HTML/interactive charts, dashboards and full-page HTML reports (the `output/` lane; browser-viewed, some templates need CDN network). **`scientific-figure-making`** (from figures4papers) — publication-grade matplotlib figures for papers, theses and slides (PDF/PNG for LaTeX). Rule of thumb: web-viewed → lieflat-charts; print/venue-bound → scientific-figure-making. Adoption records: `wiki/tools/lieflat-charts.md` · `wiki/tools/figures4papers.md`.
-- **Custom (this vault)**: `ingest` · `gather` (opt-in web capture: seed or search mode) · `delegate` (head-agent delegation runbook + spawn-brief templates, agent-internal) · `reflect` (explicit-only session capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `attic` (explicit-only cold-storage archive/restore) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `output` · `export-template` (publish/update the public framework repo) — see §6.
+- **Adopted add-ons** (user-level skills, plugins, CLI tools, connectors; machine-local, never shipped): each has a use level, `auto` · `propose-first` · `by-name`, with its pin and grant wording in `wiki/developments/capability-register.md`; consult it before using an adopted add-on the owner did not name and before writing a hands-off grant. On a fresh vault the page is absent: every add-on is then `auto` under its own description until `/adopt` seeds it. Design: `wiki/developments/capability-register-design.md`.
+- **Custom (this vault)**: `ingest` · `gather` (opt-in web capture: seed or search mode) · `delegate` (head-agent delegation runbook + spawn-brief templates, agent-internal) · `reflect` (explicit-only session capture) · `query` · `lint` · `deep-lint` (heavy ~monthly maintenance) · `attic` (explicit-only cold-storage archive/restore) · `qmd-search` (opt-in semantic search; dormant until qmd is installed) · `output` · `export-template` (publish/update the public framework repo) · `adopt` (owner-triggered add-on adoption; the register's only writer) — see §6.
 - **Version control / backup**: the **Obsidian Git** plugin backs up the *whole vault* (knowledge included) to a *private* remote (history + multi-device sync); `export-template` publishes the *framework only* to the *public* repo. Two repos, never crossed (§11).
 
 ---
@@ -428,6 +453,12 @@ Each skill's own description surfaces automatically — below is just *when to r
     a **verified candidate recap**; the recap spec and the version-family rules live in the
     `export-template` skill. The user's approval of the presented recap *is* the publish approval.
 - ⚠️ **Token cost** — pushing many linked pages + this schema into context on every op is expensive. Read selectively (index first), not the whole wiki.
+- ⚠️ **The raw ladder.** An agent holding the wiki view answers from the compiled layer first and
+  escalates one rung at a time — the page, then its source page, then the raw file — whenever the
+  compiled layer cannot answer (a gap, a claim needing its source, a compile whose input is the raw
+  file). The ladder orders consultation and never caps volume: escalate as often as the task needs,
+  and name each raw consultation with its reason in the report or the spawn record. A lane without
+  the wiki view reads raw only where the head granted it.
 - ⚠️ **Hallucination is the cardinal risk.** A fabricated fact compiled into the wiki becomes a
   permanent "fact" that poisons future reasoning. When unsure, mark it `unverified` and cite the
   source. Prefer quoting the raw source over paraphrasing claims you can't ground.
@@ -438,7 +469,8 @@ Each skill's own description surfaces automatically — below is just *when to r
 - ⚠️ **Destructive git is guarded — vault-locally only.** A `PreToolUse` hook in `.claude/settings.json`
   turns `git checkout|restore|clean` and `reset --hard` into ask-first (branch-create and the public
   framework clone exempt). The hook never ships and `--pull` never restores it — on a fresh machine,
-  recreate it before trusting git cleanup commands.
+  recreate it before trusting git cleanup commands. The same holds for the spawn-record guard (a
+  `PreToolUse` hook on the `Agent` tool): no recorded lane with a reason and a regime, no spawn.
 - ⚠️ **Compaction and long sessions.** A compaction summary must keep each decision with its reason,
   the next step and its gate, and the pointer to the latest `~/.llm-wiki/handoffs/` file, which the
   head re-reads before continuing. The per-turn `context:` line (a vault-local hook like the git guard
@@ -448,7 +480,10 @@ Each skill's own description surfaces automatically — below is just *when to r
   §4; design and derivation: `wiki/developments/context-length-resilience-n115.md`.
 - ⚠️ **Human in the loop.** Default ingest pacing is `auto` (the `ingest` skill chooses batch,
   one-by-one or parallel — see its Pacing section; parallel always gets the owner's go first); always surface conflicts and large/uncertain changes for
-  review rather than committing silently.
+  review rather than committing silently. A **hands-off long run** starts only after a pre-flight the owner can
+  check in one message: the grants it will need and may need, its stop conditions, its spend
+  envelope and its context hand-off expectation, recorded verbatim in the hand-off document
+  (the `delegate` skill §4).
 - ⚠️ **Local retrieval is ordinary work.** The placement rules here govern where data is *stored*,
   never whether the owner may retrieve what their own vault and stores already hold. Asked for
   something local (a credential, a personal fact, a private note), locate it and answer — check the
@@ -483,6 +518,13 @@ Each skill's own description surfaces automatically — below is just *when to r
   there as a dated status fact).
 
 ---
+
+- ⚠️ **Account limits and logins are the owner's alone (owner ruling 2026-09-06).** No agent
+  investigates, probes, predicts or works around an account's usage limit or a login switch, and
+  none adjusts its behaviour to them beyond the recorded stop-and-resume rule: a limit stop waits
+  for the reset time the stop text names, and a resume follows the design's rule. Any change to
+  that handling, and any inquiry into why a limit fell when it did, needs the owner's explicit
+  approval first (design record: `wiki/developments/hands-off-mode-design.md`, §Account plan).
 
 ## 12. Framework / self-modification policy
 When you change *how the system works* (this `CLAUDE.md`, a skill, the folder layout, conventions):
@@ -535,12 +577,14 @@ When you change *how the system works* (this `CLAUDE.md`, a skill, the folder la
   case behave sensibly — a guard that fires on its own broken premise is worse than no guard. Key a
   guard on the observable property it tests, not a named instance (a specific model, a magic number):
   an instance constant silently excludes the next instance that should fire it — a failure the
-  premise check above will not catch.
+  premise check above will not catch. A check on a finished reply warns and logs; it does not hold
+  or rewrite the reply, and no warning asks for a correction (owner ruling 2026-09-04; a hold only
+  behind an owner switch, `wiki/developments/per-reply-contract-enforcement.md`).
 - **A framework-changing plan takes an independent critic review before the owner gate**, whatever
   the active role and whether or not any skill is loaded (routing: the `delegate` skill §2 table);
-  findings are folded or rebutted with evidence, and the owner sees the disposition, never just a
-  verdict. Any plan for substantial work also states the lane shape it chose — including why it
-  stays single-agent where it does (owner ruling 2026-08-29).
+  findings are folded or rebutted with evidence, filed where the owner can read them, and the
+  owner sees the disposition, never just a verdict. Any plan for substantial work also states the lane shape it chose — including why it
+  stays single-agent where it does (owner ruling 2026-08-29). **Adoption clause (2026-09-05):** adopting an add-on under the reviewed pattern (`wiki/developments/capability-register-design.md`) with its scripted acceptance legs clean takes the owner's report gate without a critic; an adoption that changes a contract, a hook or a skill takes the critic like any other plan.
 - **Consult and record in `wiki/developments/`** — the framework's own self-upgrade memory. **Before**
   a framework change, read the relevant `developments/` docs (build on prior decisions, never
   re-derive or contradict them); **after**, file the design/plan/rollout there (`type: development`,

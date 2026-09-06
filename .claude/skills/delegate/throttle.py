@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""throttle.py — the subagent routing throttle: one record, three verbs.
+"""throttle.py — the subagent routing throttle: one record, four verbs.
 
 The throttle is the owner's constraint knob for delegated work. It is vault-global,
 never per session, because the definitions it rewrites are shared by every session and
@@ -16,20 +16,42 @@ its ranges live in `routing.json` beside this file; its effect is the `model:` a
          description misroutes whoever reads it. A lint leg and the publish gate run this;
          the gate passes `--require default`.
   set    write the Settings line and every routed definition in one pass.
+  resolve  (schema 2 only) print one class's whole resolved row — model, effort, tools,
+         grants, writes, skills, mcp, cache — under a throttle. This is the spawn
+         wrapper's entry point: the wrapper composes `--model`, `--effort`, `--tools`,
+         `--add-dir` and the lane home's skill slices from this output, so the record
+         stays the one home for what a lane may use.
+
+Two record schemas, both read (the vault never breaks between a delivery and its install)
+
+  schema 1 (no `schema` key, or `schema: 1`) — `roles`, each a model triple
+  (floor · default · ceiling) and an effort pair (floor · ceiling).
+  schema 2 (`schema: 2`) — `classes`, each an option SET with a marked default per axis,
+  plus grants, writes, tools, skills, mcp, cache, gate and dated (design:
+  wiki/developments/thin-lanes-design.md, "The class table"). Strength on both axes is
+  read from `order` by index, never from a list's position, so an unsorted options list
+  still resolves correctly.
 
 Resolution rule (design: wiki/developments/throttle-routing-design.md, "The selection rule")
 
-  throttle      model                     effort
-  top           ceiling                   ceiling
-  default       per-role default          ceiling
-  cheap         floor                     ceiling
-  fast          per-role default          floor
-  cheap-fast    floor                     floor
+  throttle      model (v1 · v2)               effort (v1 · v2)
+  top           ceiling · strongest option    ceiling · strongest option
+  default       role default · row default    ceiling · row default
+  cheap         floor · weakest option        ceiling · strongest option
+  fast          role default · row default    floor · weakest option
+  cheap-fast    floor · weakest option        floor · weakest option
 
   Effort is the ceiling unless the owner names a constraint, and setting a below-default
   throttle IS the owner naming one. Under `default` and `fast` the head may still choose
   a different in-range model per call; the definition holds the default so that
   `set default` can restore it after `top` has written the ceilings.
+
+  One axis moves between the schemas: under `default`, v1 writes the effort CEILING (no
+  discretion, C5 F1, 2026-09-02) while v2 writes the row's marked default. The class table
+  of 2026-09-04 marks an effort default per class and amends the owner's "max on every
+  lane" ruling for closed-task classes, each downgrade gated once and metered every run;
+  `cheap` keeps the ceiling effort because the constraint the owner named there is spend,
+  which the model axis carries.
 
 Where the ranges come from (a deciding number carries its derivation)
 
@@ -44,9 +66,12 @@ Where the ranges come from (a deciding number carries its derivation)
 
 Guards, each keyed on a premise that can fail
 
-  A missing, unreadable or invalid `routing.json`, a routing record that is not monotone
-  under its own order lists, an unknown throttle name, a definition whose frontmatter
-  cannot be parsed, or a missing `.claude/agents/` directory all print one
+  A missing, unreadable or invalid `routing.json`, a v1 routing record that is not monotone
+  under its own order lists, a v2 row whose default is outside its own options or whose
+  option is outside `order`, a v2 row missing a required field, a `schema` value other than
+  1 or 2, an unknown class passed to `resolve`, `resolve` against a v1 record, an unknown
+  throttle name, a definition whose frontmatter cannot be parsed, or a missing
+  `.claude/agents/` directory all print one
   `PROBE FAILED: <reason>` line and exit 2 — never "clean". The record is read from
   `<root>` and from nowhere else: an earlier draft fell back to this script's own sibling
   copy when the root had none, and a fixture whose record had been deleted then reported
@@ -68,14 +93,25 @@ Guards, each keyed on a premise that can fail
   PROBE FAILED rather than a clean report. A zero-findings run is a claim; this is its
   evidence.
 
-`show` and `check` are stdout-only: they never create, modify, move or delete a file.
-`set` writes, and only to `CUSTOMISATION.md` and the routed definitions under
+  Two findings exist only under schema 2, where the record carries a tool list to compare
+  against. SKILL-AVAILABLE: a definition whose `tools:` allowlist names `Skill`, or which
+  has no allowlist and no `Skill` in `disallowedTools`, leaves a lane able to load whole
+  skills into a thin context (levers L1, 2026-09-04) — keyed on that property, never on a
+  definition's name. TOOLS-WIDER: a definition whose `tools:` allowlist names a tool the
+  class row does not grant. A definition carrying only `disallowedTools:` is never
+  TOOLS-WIDER: the spawn's `--tools` flag is the outer bound, so a denylist can only
+  narrow what the row grants, and a narrower definition is fine — the head grants the
+  extras per call.
+
+`show`, `check` and `resolve` are stdout-only: they never create, modify, move or delete a
+file. `set` writes, and only to `CUSTOMISATION.md` and the routed definitions under
 `.claude/agents/`, through the single write helper below.
 
 Usage
   python3 throttle.py show  [--root DIR]
   python3 throttle.py check [--root DIR] [--require NAME]
   python3 throttle.py set NAME [--root DIR] [--dry-run]
+  python3 throttle.py resolve --class CLASS [--throttle NAME] [--json] [--root DIR]
   exit 0 = clean · exit 1 = findings (a drift, an unrouted or missing definition, a
   description naming a current tier, a failed --require) · exit 2 = broken premise
 """
@@ -86,10 +122,20 @@ import re
 import sys
 
 THROTTLES = ("top", "default", "cheap", "fast", "cheap-fast")
-# throttle -> (index into the model triple, index into the effort pair)
+# schema 1 · throttle -> (index into the model triple, index into the effort pair)
 #   model triple reads floor · default · ceiling ; effort pair reads floor · ceiling
 SELECT = {"top": (2, 1), "default": (1, 1), "cheap": (0, 1),
           "fast": (1, 0), "cheap-fast": (0, 0)}
+# schema 2 · throttle -> (model picker, effort picker) over the row's option set. The
+# pickers are names, not indices: an option set has no fixed width, and strength comes
+# from `order` (see pick_option below).
+SELECT_V2 = {"top": ("strongest", "strongest"), "default": ("default", "default"),
+             "cheap": ("weakest", "strongest"), "fast": ("default", "weakest"),
+             "cheap-fast": ("weakest", "weakest")}
+# The fields every schema-2 row must carry. Absence is a broken premise, not a default:
+# a row silently missing `tools` would spawn a lane with whatever the harness offers.
+V2_FIELDS = ("model", "effort", "grants", "writes", "tools", "skills", "mcp", "cache",
+             "gate", "dated")
 # The head's own tier under each throttle. A recommendation the head carries in its
 # hand-off line; the head's real model and effort are the owner's client settings.
 HEAD_LINE = {"top": "head: fable · max",
@@ -154,6 +200,16 @@ def load_routing(root):
     return rec
 
 
+def schema_of(rec, rel):
+    """1 or 2. An absent key is 1: the shipped v1 record carries none, and a template
+    vault pulled before the v2 install must keep working."""
+    val = rec.get("schema", 1)
+    if val not in (1, 2) or isinstance(val, bool):
+        _fail("%s: `schema` is %r — this script reads 1 (roles) and 2 (classes) only"
+              % (rel, val))
+    return val
+
+
 def validate_routing(rec, rel):
     """Shape, membership and monotonicity. Anything off here is a broken premise: a
     record whose floor sits above its ceiling would silently route outside its range."""
@@ -170,6 +226,8 @@ def validate_routing(rec, rel):
             _fail("%s: `order.%s` holds a non-string value" % (rel, axis))
         if len(set(vals)) != len(vals):
             _fail("%s: `order.%s` repeats a value" % (rel, axis))
+    if schema_of(rec, rel) == 2:
+        return validate_v2(rec, rel)
     roles = rec.get("roles")
     if not isinstance(roles, dict) or not roles:
         _fail("%s: no `roles` object, or it is empty" % rel)
@@ -193,13 +251,113 @@ def validate_routing(rec, rel):
                          axis, " ".join(vals)))
 
 
+def validate_v2(rec, rel):
+    """One class row per lane class: option sets with a marked default, plus the grant,
+    tool, skill, mcp, cache and provenance fields the wrapper spawns from."""
+    order = rec["order"]
+    classes = rec.get("classes")
+    if not isinstance(classes, dict) or not classes:
+        _fail("%s: no `classes` object, or it is empty" % rel)
+    for cls, spec in classes.items():
+        if not ROLE_NAME_RE.match(cls or ""):
+            _fail("%s: class name %r is not a plain definition stem" % (rel, cls))
+        if not isinstance(spec, dict):
+            _fail("%s: class `%s` is not an object" % (rel, cls))
+        for field in V2_FIELDS:
+            if field not in spec:
+                _fail("%s: class `%s` is missing `%s`" % (rel, cls, field))
+        for axis in ("model", "effort"):
+            ax = spec[axis]
+            if not isinstance(ax, dict) or "options" not in ax or "default" not in ax:
+                _fail("%s: class `%s` `%s` needs an `options` list and a `default`"
+                      % (rel, cls, axis))
+            opts = ax["options"]
+            if not isinstance(opts, list) or not opts:
+                _fail("%s: class `%s` `%s.options` is not a non-empty list"
+                      % (rel, cls, axis))
+            for v in opts:
+                if v not in order[axis]:
+                    _fail("%s: class `%s` %s option %r is not in `order.%s`"
+                          % (rel, cls, axis, v, axis))
+            if ax["default"] not in opts:
+                _fail("%s: class `%s` %s default %r is not one of its options (%s)"
+                      % (rel, cls, axis, ax["default"], " ".join(map(str, opts))))
+        for field, keys in (("grants", ("default", "extras")),
+                            ("skills", ("default", "extras")),
+                            ("mcp", ("default", "grantable"))):
+            val = spec[field]
+            if not isinstance(val, dict) or any(k not in val for k in keys):
+                _fail("%s: class `%s` `%s` needs %s"
+                      % (rel, cls, field, " and ".join("`%s`" % k for k in keys)))
+            for k in keys:
+                if not isinstance(val[k], list):
+                    _fail("%s: class `%s` `%s.%s` is not a list" % (rel, cls, field, k))
+        for field in ("writes", "tools"):
+            if not isinstance(spec[field], list):
+                _fail("%s: class `%s` `%s` is not a list" % (rel, cls, field))
+        if not spec["tools"]:
+            _fail("%s: class `%s` `tools` is empty — a lane with no tools cannot work"
+                  % (rel, cls))
+        for field in ("cache", "gate", "dated"):
+            if not isinstance(spec[field], str) or not spec[field].strip():
+                _fail("%s: class `%s` `%s` is not a non-empty string" % (rel, cls, field))
+
+
+def rows(rec):
+    """The per-lane rows, whichever schema wrote them. `roles` and `classes` name the same
+    thing: one row per definition stem."""
+    return rec["classes"] if rec.get("schema") == 2 else rec["roles"]
+
+
+def pick_option(order_list, opts, default, how):
+    """One option out of a set. Strength is the `order` index, never the list position, so
+    a row whose options are written out of order still resolves to the same values."""
+    if how == "default":
+        return default
+    ranked = sorted(opts, key=order_list.index)
+    return ranked[-1] if how == "strongest" else ranked[0]
+
+
 def resolve(rec, name):
-    """role -> (model, effort) under one throttle."""
+    """role/class -> (model, effort) under one throttle."""
     if name not in SELECT:
         _fail("unknown throttle %r (known: %s)" % (name, ", ".join(THROTTLES)))
+    if rec.get("schema") == 2:
+        mh, eh = SELECT_V2[name]
+        out = {}
+        for cls, spec in rec["classes"].items():
+            out[cls] = tuple(
+                pick_option(rec["order"][axis], spec[axis]["options"], spec[axis]["default"], how)
+                for axis, how in (("model", mh), ("effort", eh)))
+        return out
     mi, ei = SELECT[name]
     return {role: (spec["model"][mi], spec["effort"][ei])
             for role, spec in rec["roles"].items()}
+
+
+def resolve_row(rec, cls, name):
+    """One class's whole resolved row under one throttle — the wrapper's spawn inputs.
+    Schema 2 only: a v1 record carries no grants, tools, skills or cache, so resolving one
+    from it would mean inventing the fence."""
+    if rec.get("schema") != 2:
+        _fail("`resolve` needs a schema-2 record; this one is schema %d, which carries no "
+              "grants, tools, skills or cache" % rec.get("schema", 1))
+    if name not in SELECT:
+        _fail("unknown throttle %r (known: %s)" % (name, ", ".join(THROTTLES)))
+    spec = rec["classes"].get(cls)
+    if spec is None:
+        _fail("unknown class %r (known: %s)" % (cls, ", ".join(sorted(rec["classes"]))))
+    model, effort = resolve(rec, name)[cls]
+    return {"class": cls, "throttle": name, "model": model, "effort": effort,
+            "tools": list(spec["tools"]),
+            "grants": list(spec["grants"]["default"]),
+            "grants_extras": list(spec["grants"]["extras"]),
+            "writes": list(spec["writes"]),
+            "skills": list(spec["skills"]["default"]),
+            "skills_extras": list(spec["skills"]["extras"]),
+            "mcp": list(spec["mcp"]["default"]),
+            "mcp_grantable": list(spec["mcp"]["grantable"]),
+            "cache": spec["cache"], "gate": spec["gate"], "dated": spec["dated"]}
 
 
 # ------------------------------------------------------- the Settings record ----------
@@ -323,6 +481,51 @@ def set_field(lines, close, key, value):
     return out, close, old
 
 
+LIST_FIELD_RE = re.compile(r"^(?P<key>[A-Za-z_][A-Za-z0-9_-]*):(?P<val>[^\r\n]*)$")
+LIST_ITEM_RE = re.compile(r"^\s*-\s+(.+?)\s*$")
+
+
+def list_field(lines, close, key):
+    """A frontmatter field read as a list of names, or None where the key is absent. Two
+    YAML shapes are live in the definitions and both are read: an inline comma list
+    (`tools: Read, Grep, Glob`) and a block list (`skills:` then `  - ingest`)."""
+    for i in range(1, close):
+        match = LIST_FIELD_RE.match(lines[i].rstrip("\r\n"))
+        if not match or match.group("key") != key:
+            continue
+        inline = match.group("val").split("#", 1)[0].strip()
+        if inline:
+            return [part.strip() for part in inline.split(",") if part.strip()]
+        items = []
+        for j in range(i + 1, close):
+            item = LIST_ITEM_RE.match(lines[j].rstrip("\r\n"))
+            if not item:
+                break
+            items.append(item.group(1).strip())
+        return items
+    return None
+
+
+def skill_available(lines, close):
+    """True where the definition leaves the `Skill` tool usable. Keyed on the property the
+    harness applies — an allowlist wins over a denylist — never on a definition's name, so
+    the next definition added is checked by the same rule."""
+    allowed = list_field(lines, close, "tools")
+    if allowed is not None:
+        return "Skill" in allowed
+    return "Skill" not in (list_field(lines, close, "disallowedTools") or [])
+
+
+def wider_tools(lines, close, row_tools):
+    """The tools a definition's allowlist names that its class row does not grant. A
+    definition with no `tools:` allowlist returns none: the spawn's `--tools` flag bounds
+    it to the row, so a denylist can only narrow."""
+    allowed = list_field(lines, close, "tools")
+    if allowed is None:
+        return []
+    return [t for t in allowed if t not in row_tools]
+
+
 def description_text(text):
     """The frontmatter `description:` value, or None where there is no readable
     frontmatter. Deliberately tolerant: an arbitrary file dropped into `.claude/agents/`
@@ -352,17 +555,35 @@ def diff_definition(rel, text, want_model, want_effort):
 
 SYNTH_OK = "---\nname: synthetic\nmodel: opus\neffort: max\n---\n\nbody\n"
 SYNTH_BAD = "---\nname: synthetic\nmodel: haiku\neffort: low\n---\n\nbody\n"
+# Schema-2 controls: one definition that fails each new probe, one that passes it.
+SYNTH_SKILL_ON = "---\nname: synthetic\ntools: Read, Grep, Skill\n---\n\nbody\n"
+SYNTH_SKILL_OFF = "---\nname: synthetic\ndisallowedTools: Agent, Skill\n---\n\nbody\n"
+SYNTH_ROW_TOOLS = ["Read", "Grep"]
 
 
-def self_control():
-    """Positive control on the same run: the comparator must catch two planted drifts and
-    report none on a matching record. A miss makes every clean report worthless."""
+def self_control(schema=1):
+    """Positive control on the same run: every probe that can report clean must first
+    catch its own planted fault. A miss makes every clean report worthless."""
     caught = len(diff_definition("<synthetic>", SYNTH_BAD, "opus", "max"))
     quiet = len(diff_definition("<synthetic>", SYNTH_OK, "opus", "max"))
     if caught != 2 or quiet != 0:
         _fail("comparator self-control failed (%d/2 planted drifts caught, %d false on a "
               "matching record)" % (caught, quiet))
-    return "control: comparator caught 2/2 planted drifts"
+    note = "control: comparator caught 2/2 planted drifts"
+    if schema != 2:
+        return note
+    on_lines, on_close = frontmatter_bounds(SYNTH_SKILL_ON, "<synthetic-skill-on>")
+    off_lines, off_close = frontmatter_bounds(SYNTH_SKILL_OFF, "<synthetic-skill-off>")
+    hits = 0
+    hits += 1 if skill_available(on_lines, on_close) else 0
+    hits += 1 if wider_tools(on_lines, on_close, SYNTH_ROW_TOOLS) == ["Skill"] else 0
+    false_hits = 0
+    false_hits += 1 if skill_available(off_lines, off_close) else 0
+    false_hits += 1 if wider_tools(off_lines, off_close, SYNTH_ROW_TOOLS) else 0
+    if hits != 2 or false_hits != 0:
+        _fail("schema-2 self-control failed (%d/2 planted definitions caught, %d false on "
+              "a compliant one)" % (hits, false_hits))
+    return note + "; Skill and tools probes caught 2/2 planted definitions"
 
 
 # ------------------------------------------------------------------ the write ---------
@@ -391,6 +612,7 @@ def collect_findings(root, rec, name):
     """(findings, definitions diffed, fields compared, roles routed) for one throttle."""
     wanted = resolve(rec, name)
     on_disk = definition_paths(root)
+    schema = rec.get("schema", 1)
     findings, read, fields = [], 0, 0
     texts = {}
     for role, (model, effort) in wanted.items():
@@ -403,6 +625,20 @@ def collect_findings(root, rec, name):
         findings.extend(diff_definition(rel, texts[role], model, effort))
         read += 1
         fields += 2
+        if schema != 2:
+            continue
+        # Schema 2 carries the class row's tool grant, so two more properties are
+        # checkable here: the Skill tool must stay off (a thin lane that can load a whole
+        # skill is no longer thin), and a definition must not claim a tool its row does
+        # not grant. The wrapper's `--tools` is the fence; this is the declaration check,
+        # and it is what an in-session spawn of the same definition actually gets.
+        lines, close = frontmatter_bounds(texts[role], rel)
+        if skill_available(lines, close):
+            findings.append("SKILL-AVAILABLE %s" % rel)
+        extra = wider_tools(lines, close, rows(rec)[role]["tools"])
+        if extra:
+            findings.append("TOOLS-WIDER %s: %s beyond the `%s` row's tools"
+                            % (rel, ", ".join(extra), role))
     for stem in sorted(on_disk):
         if stem not in wanted:
             findings.append("UNROUTED %s" % os.path.join(AGENTS_REL, stem + ".md"))
@@ -432,7 +668,7 @@ def cmd_check(args):
     root = args.root
     rec = load_routing(root)
     name, reason = active_throttle(root)
-    control = self_control()
+    control = self_control(rec.get("schema", 1))
     note = throttle_note(reason, "check")
     if note:
         print("throttle: default (%s)" % note)
@@ -461,13 +697,46 @@ def cmd_show(args):
     for role, (model, effort) in wanted.items():
         print("%-*s  %-6s  %s" % (width, role, model, effort))
     findings, read, fields, total = collect_findings(root, rec, name)
-    control = self_control()
+    control = self_control(rec.get("schema", 1))
     for line in findings:
         print(line)
     print(summary_line(findings, read, fields, total, name, control))
     print(HEAD_LINE[name])
     print("(a recommendation for the head's own tier — the head's model and effort stay "
           "the owner's client settings, never this knob)")
+    return 0
+
+
+def cmd_resolve(args):
+    """One class's spawn inputs, on stdout, for the wrapper to compose flags from. Text
+    form for a human reading a spawn record; `--json` for the wrapper. The throttle comes
+    from the flag, else the Settings line, else `default` — the same order every verb uses,
+    so a spawn can never resolve against a throttle the vault does not hold."""
+    rec = load_routing(args.root)
+    if args.throttle:
+        name, source = args.throttle, "flag"
+        if name not in THROTTLES:
+            _fail("unknown throttle %r passed to --throttle (known: %s)"
+                  % (name, ", ".join(THROTTLES)))
+    else:
+        name, reason = active_throttle(args.root)
+        source = reason or "settings"
+    row = resolve_row(rec, args.cls, name)
+    if args.json:
+        row["throttle_source"] = source
+        print(json.dumps(row, ensure_ascii=False, sort_keys=True))
+        return 0
+    note = throttle_note(None if source in ("settings", "flag") else source, "show")
+    print("class: %s" % row["class"])
+    print("throttle: %s%s" % (name, " (%s)" % note if note else ""))
+    print("model: %s" % row["model"])
+    print("effort: %s" % row["effort"])
+    for label, key in (("tools", "tools"), ("grants", "grants"),
+                       ("grants-extras", "grants_extras"), ("writes", "writes"),
+                       ("skills", "skills"), ("skills-extras", "skills_extras"),
+                       ("mcp", "mcp"), ("mcp-grantable", "mcp_grantable")):
+        print("%s: %s" % (label, ", ".join(row[key]) if row[key] else "(none)"))
+    print("cache: %s" % row["cache"])
     return 0
 
 
@@ -538,12 +807,21 @@ def cmd_set(args):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="throttle.py", description="the subagent routing throttle: show, check, set")
+        prog="throttle.py",
+        description="the subagent routing throttle: show, check, set, resolve")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for verb, fn in (("show", cmd_show), ("check", cmd_check), ("set", cmd_set)):
+    for verb, fn in (("show", cmd_show), ("check", cmd_check), ("set", cmd_set),
+                     ("resolve", cmd_resolve)):
         p = sub.add_parser(verb)
         p.add_argument("--root", default=".", help="vault root (default: the current directory)")
         p.set_defaults(fn=fn)
+        if verb == "resolve":
+            p.add_argument("--class", dest="cls", required=True, metavar="CLASS",
+                           help="the lane class to resolve (a row of the schema-2 record)")
+            p.add_argument("--throttle", metavar="NAME",
+                           help="resolve under NAME instead of the vault's active throttle")
+            p.add_argument("--json", action="store_true",
+                           help="one JSON object on stdout, for the spawn wrapper")
         if verb == "check":
             p.add_argument("--require", metavar="NAME",
                            help="add a finding unless the active throttle is NAME")

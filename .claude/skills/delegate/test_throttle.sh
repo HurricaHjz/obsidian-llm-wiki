@@ -1,10 +1,21 @@
 #!/bin/sh
 # test_throttle.sh — regression suite for throttle.py (delegate skill, the routing throttle).
 #
-# Every fixture is a throwaway vault under one `mktemp -d`: a copy of routing.json, a synthetic
+# Every fixture is a throwaway vault under one `mktemp -d`: a routing record, a synthetic
 # CUSTOMISATION.md, and one definition per routed role (the live `.claude/agents/` copy where the
 # vault has one, a generated stand-in where it does not, so the suite also runs on a fresh clone
 # that ships no definitions). `set` is never run outside those fixtures.
+#
+# Three records, and which legs use which — the installed record moves under the suite (a v1→v2
+# install, and later a gate moving a carried default down), so no leg may assume its shape:
+#   * the v1 record, EMBEDDED below — every schema-1 leg. It is a fixture, not a snapshot to keep
+#     in step with anything: the v1 rules it exercises are frozen.
+#   * the v2 record, the suite's own hand-written copy of the design table (or ROUTING_V2=<file>)
+#     — every schema-2 resolution leg, pinned against the design's TARGET defaults.
+#   * the installed `routing.json` — only legs that hold by construction whatever it currently
+#     says: its option sets (pinned; a gate never moves those), its defaults against the
+#     definitions on disk (read, never pinned), and the rule that a carried default sits at or
+#     above the target its `dated` names.
 #
 # Controls (CLAUDE.md 11): every leg that asserts a clean or empty result is paired with a leg that
 # plants the fault and proves the same probe fires. The expected model/effort values are pinned as
@@ -70,6 +81,15 @@ import json, os, shutil, sys
 
 dest, vault = sys.argv[1], sys.argv[2]
 rec = json.load(open(os.path.join(dest, ".claude", "skills", "delegate", "routing.json")))
+# Both schemas build the same fixture: `roles` (v1 triples/pairs) and `classes` (v2 option
+# sets) name one row per definition stem, and a stand-in carries that row's default pair.
+rows = rec.get("classes") or rec["roles"]
+
+
+def defaults(spec):
+    if isinstance(spec["model"], dict):
+        return spec["model"]["default"], spec["effort"]["default"]
+    return spec["model"][1], spec["effort"][1]
 custom = """`CUSTOMISATION-LOADED-v1` — load marker.
 
 ## Settings
@@ -104,7 +124,7 @@ disallowedTools: Agent, SendMessage
 Body text the throttle must never touch.
 """
 live = os.path.join(vault, ".claude", "agents")
-for role, spec in rec["roles"].items():
+for role, spec in rows.items():
     dst = os.path.join(dest, ".claude", "agents", role + ".md")
     src = os.path.join(live, role + ".md")
     if os.path.isfile(src):
@@ -120,15 +140,34 @@ for role, spec in rec["roles"].items():
         with open(dst, "w", encoding="utf-8") as fh:
             fh.write("".join(out))
     else:
+        model, effort = defaults(spec)
         with open(dst, "w", encoding="utf-8") as fh:
-            fh.write(STAND_IN % (role, spec["model"][1], spec["effort"][1]))
+            fh.write(STAND_IN % (role, model, effort))
 MKFIX_SCRIPT_END
 
+# The schema-1 record every v1 leg runs against. Embedded, never read from the installed file:
+# the installed record moved to schema 2 on 2026-09-04, and a v1 leg pointed at it grades the v1
+# rules against a record that no longer has them (12 legs failed exactly that way).
+V1="$W/routing.v1.json"
+cat >"$V1" <<'V1_RECORD_PAYLOAD_END'
+{"order": {"model": ["haiku", "sonnet", "opus", "fable"], "effort": ["low", "medium", "high", "xhigh", "max"]},
+ "roles": {
+  "critic":        {"model": ["opus", "opus", "fable"],     "effort": ["xhigh", "max"]},
+  "planner":       {"model": ["opus", "opus", "fable"],     "effort": ["high", "max"]},
+  "reflector":     {"model": ["opus", "opus", "fable"],     "effort": ["high", "max"]},
+  "verifier":      {"model": ["sonnet", "sonnet", "fable"], "effort": ["high", "max"]},
+  "gate-judge":    {"model": ["opus", "opus", "opus"],      "effort": ["max", "max"]},
+  "wiki-compile":  {"model": ["sonnet", "opus", "fable"],   "effort": ["medium", "max"]},
+  "builder":       {"model": ["sonnet", "opus", "fable"],   "effort": ["high", "max"]},
+  "memory-hunter": {"model": ["sonnet", "sonnet", "fable"], "effort": ["high", "max"]}}}
+V1_RECORD_PAYLOAD_END
+
+# $1 fixture name · $2 the record to install (default: the embedded v1 record)
 mkfix() {
 	d="$W/$1"
 	rm -rf "$d"
 	mkdir -p "$d/.claude/agents" "$d/.claude/skills/delegate"
-	cp "$R" "$d/.claude/skills/delegate/routing.json"
+	cp "${2:-$V1}" "$d/.claude/skills/delegate/routing.json"
 	"$PY" "$W/mkfix.py" "$d" "$VAULT" || { echo "PROBE FAILED: fixture build for $1"; exit 2; }
 }
 
@@ -156,8 +195,8 @@ headline() {
 	esac
 }
 
-ROLES=$("$PY" -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["roles"]))' "$R")
-NROLES=$("$PY" -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["roles"]))' "$R")
+ROLES=$("$PY" -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["roles"]))' "$V1")
+NROLES=$("$PY" -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["roles"]))' "$V1")
 
 echo "throttle.py suite — $NROLES routed roles, fixtures under $W"
 
@@ -548,6 +587,424 @@ eq "L33b an absent .claude/agents directory is a broken premise, exit 2" "$RC" "
 has "L33c it says which directory is missing" "PROBE FAILED: no definitions directory at .claude/agents"
 run "$PY" "$S" set default --root "$d"
 eq "L33d set refuses the same way" "$RC" "2"
+
+# ============================================================ L34 Skill unavailable ======
+# Levers L1 (2026-09-04): every definition must leave the Skill tool unavailable to its lane --
+# either a `tools:` allowlist that omits Skill, or `disallowedTools:` that names it. Keyed on the
+# property, never on a definition's name (critic F9). Controls: planted definitions that fail it.
+skill_off() {  # $1 = definition path; prints yes|no
+    if grep -q '^tools:' "$1"; then
+        if grep '^tools:' "$1" | grep -q 'Skill'; then echo no; else echo yes; fi
+    elif grep '^disallowedTools:' "$1" | grep -q 'Skill'; then echo yes
+    else echo no; fi
+}
+BADDEF=""; NDEF=0
+for f in "$VAULT"/.claude/agents/*.md; do
+    [ -f "$f" ] || continue; NDEF=$((NDEF + 1))
+    [ "$(skill_off "$f")" = "yes" ] || BADDEF="$BADDEF $(basename "$f")"
+done
+eq "L34a every live definition leaves Skill unavailable ($NDEF checked)" "$BADDEF" ""
+if [ "$NDEF" -gt 0 ]; then ok "L34b the live definitions directory was non-empty ($NDEF)"; else no "L34b no definitions found at $VAULT/.claude/agents"; fi
+d="$W/l34"; mkdir -p "$d"
+printf -- '---\nname: planted\nmodel: opus\neffort: max\ndisallowedTools: Agent, SendMessage\n---\nbody\n' > "$d/planted.md"
+eq "L34c control: a definition with neither an allowlist nor Skill in disallowedTools is caught" "$(skill_off "$d/planted.md")" "no"
+printf -- '---\nname: planted2\ntools: Read, Grep, Skill\n---\nbody\n' > "$d/planted2.md"
+eq "L34d control: an allowlist that names Skill is caught" "$(skill_off "$d/planted2.md")" "no"
+
+# ======================================================= 17 · schema 2: the record ===
+# The v2 record under test is the suite's own hand-written copy of the design page's class
+# table (thin-lanes-design.md, "The class table"), so the code is never graded against the
+# same file it reads. `ROUTING_V2=<path> sh test_throttle.sh` swaps in a candidate record —
+# how a proposed or freshly installed routing.json is graded against the same hand-derived
+# pins before it goes live.
+V2="${ROUTING_V2:-$W/routing.v2.json}"
+if [ -n "${ROUTING_V2:-}" ]; then
+	[ -f "$V2" ] || { echo "PROBE FAILED: ROUTING_V2 names no file ($V2)"; echo "FAIL 1/1"; exit 2; }
+	SCH=$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1])).get("schema", 1))' "$V2" 2>&1)
+	[ "$SCH" = "2" ] || { echo "PROBE FAILED: ROUTING_V2 record is schema $SCH, not 2"; echo "FAIL 1/1"; exit 2; }
+	echo "v2 record under test: $V2 (ROUTING_V2)"
+else
+	cat >"$V2" <<'V2_RECORD_PAYLOAD_END'
+{"schema": 2,
+ "order": {"model": ["haiku", "sonnet", "opus", "fable"],
+           "effort": ["low", "medium", "high", "xhigh", "max"]},
+ "classes": {
+  "verifier": {
+    "model": {"options": ["sonnet", "opus", "fable"], "default": "sonnet"},
+    "effort": {"options": ["high", "xhigh", "max"], "default": "high"},
+    "grants": {"default": ["<claim files>"], "extras": ["wiki", "raw"]},
+    "writes": [], "tools": ["Read", "Grep", "Glob", "Bash"],
+    "skills": {"default": ["lane-core"], "extras": ["markitdown"]},
+    "mcp": {"default": [], "grantable": []},
+    "cache": "1h", "gate": "G6a; re-gate at high", "dated": "fixture row"},
+  "wiki-compile": {
+    "model": {"options": ["sonnet", "opus", "fable"], "default": "opus"},
+    "effort": {"options": ["medium", "high", "xhigh", "max"], "default": "xhigh"},
+    "grants": {"default": ["wiki", "<assigned raw files>"], "extras": ["assets"]},
+    "writes": ["wiki"], "tools": ["Read", "Grep", "Glob", "Bash", "Write", "Edit"],
+    "skills": {"default": ["lane-core", "compile-core"], "extras": ["markitdown"]},
+    "mcp": {"default": [], "grantable": []},
+    "cache": "1h", "gate": "G3/G4; re-gate thin at opus xhigh", "dated": "fixture row"},
+  "gate-judge": {
+    "model": {"options": ["opus"], "default": "opus"},
+    "effort": {"options": ["max"], "default": "max"},
+    "grants": {"default": ["<fixture>"], "extras": []},
+    "writes": [], "tools": ["Read", "Grep", "Glob"],
+    "skills": {"default": ["lane-core"], "extras": []},
+    "mcp": {"default": [], "grantable": []},
+    "cache": "1h", "gate": "it is the gate", "dated": "fixture row"}}}
+V2_RECORD_PAYLOAD_END
+	echo "v2 record under test: the suite's own hand-written class table"
+fi
+
+# Pinned as literals, hand-derived from the design page's class table (the default in bold
+# there, the weakest and strongest options its floor and ceiling by construction):
+#   verifier      models sonnet* opus fable   · efforts high* xhigh max
+#   wiki-compile  models sonnet opus* fable   · efforts medium high xhigh* max
+#   gate-judge    models opus (single)        · efforts max (single)
+# top = strongest/strongest · default = default/default · cheap = weakest/strongest
+# fast = default/weakest · cheap-fast = weakest/weakest
+rpins() { # $1 class · $2 throttle -> "model effort"
+	case "$1/$2" in
+	verifier/top) echo "fable max" ;;
+	verifier/default) echo "sonnet high" ;;
+	verifier/cheap) echo "sonnet max" ;;
+	verifier/fast) echo "sonnet high" ;;
+	verifier/cheap-fast) echo "sonnet high" ;;
+	wiki-compile/top) echo "fable max" ;;
+	wiki-compile/default) echo "opus xhigh" ;;
+	wiki-compile/cheap) echo "sonnet max" ;;
+	wiki-compile/fast) echo "opus medium" ;;
+	wiki-compile/cheap-fast) echo "sonnet medium" ;;
+	gate-judge/top) echo "opus max" ;;
+	gate-judge/cheap-fast) echo "opus max" ;;
+	*) echo "NO-PIN" ;;
+	esac
+}
+rgot() { awk '/^model: /{m=$2} /^effort: /{e=$2} END{print m, e}' "$OUT"; }
+
+D2="$W/v2"
+mkfix v2 "$V2"
+for T in top default cheap fast cheap-fast; do
+	run "$PY" "$S" resolve --class wiki-compile --throttle "$T" --root "$D2"
+	eq "L35.$T resolve wiki-compile under '$T'" "$(rgot)" "$(rpins wiki-compile "$T")"
+	run "$PY" "$S" resolve --class verifier --throttle "$T" --root "$D2"
+	eq "L36.$T resolve verifier under '$T'" "$(rgot)" "$(rpins verifier "$T")"
+done
+# A single-option row: every throttle resolves to the same pair, so min and max over a
+# one-element set are exercised rather than assumed.
+run "$PY" "$S" resolve --class gate-judge --throttle top --root "$D2"
+eq "L37a resolve gate-judge under 'top'" "$(rgot)" "$(rpins gate-judge top)"
+run "$PY" "$S" resolve --class gate-judge --throttle cheap-fast --root "$D2"
+eq "L37b resolve gate-judge under 'cheap-fast' (single-option row)" "$(rgot)" "$(rpins gate-judge cheap-fast)"
+
+# ======================================================= 18 · resolve's whole row =====
+run "$PY" "$S" resolve --class wiki-compile --throttle default --root "$D2"
+eq "L38a resolve exits 0" "$RC" "0"
+eq "L38b the tools line is the row's tool grant" \
+	"$(awk -F': ' '/^tools: /{print $2}' "$OUT")" "Read, Grep, Glob, Bash, Write, Edit"
+eq "L38c the grants line names the row's default reads" \
+	"$(awk -F': ' '/^grants: /{print $2}' "$OUT")" "wiki, <assigned raw files>"
+eq "L38d the skills line names the lane core and the compile slice" \
+	"$(awk -F': ' '/^skills: /{print $2}' "$OUT")" "lane-core, compile-core"
+eq "L38e an empty list prints as (none), never as a blank" \
+	"$(awk -F': ' '/^mcp: /{print $2}' "$OUT")" "(none)"
+eq "L38f the cache line is the headless 1-hour tier" \
+	"$(awk -F': ' '/^cache: /{print $2}' "$OUT")" "1h"
+run "$PY" "$S" resolve --class wiki-compile --throttle top --root "$D2" --json
+eq "L38g --json exits 0" "$RC" "0"
+eq "L38h --json is one parseable object carrying the same fields" \
+	"$("$PY" -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["class"], d["model"], d["effort"], len(d["tools"]), d["cache"])' "$OUT" 2>&1)" \
+	"wiki-compile fable max 6 1h"
+run "$PY" "$S" resolve --root "$D2"
+eq "L38i resolve without --class exits 2 rather than guessing one" "$RC" "2"
+
+# ======================================================= 19 · v1 and v2, one script ===
+mkfix v1read
+run "$PY" "$S" show --root "$W/v1read"
+eq "L39a the v1 record still resolves by its triple/pair rule" \
+	"$(awk '$1=="wiki-compile"{print $2, $3}' "$OUT")" "opus max"
+hasnot "L39b a v1 run claims no schema-2 control it did not run" "Skill and tools probes"
+run "$PY" "$S" set default --root "$D2"
+run "$PY" "$S" check --root "$D2"
+eq "L39c the v2 fixture checks clean after set" "$RC" "0"
+has "L39d and its control line names the schema-2 probes too" \
+	"Skill and tools probes caught 2/2 planted definitions"
+# `set` first, so the fixture's definitions hold the v1 record's own values: without it this leg
+# would be reading whatever the installed record last wrote to the live definitions it copied,
+# and it failed exactly that way in a simulated post-gate vault.
+run "$PY" "$S" set default --root "$W/v1read"
+"$PY" - "$W/v1read/.claude/skills/delegate/routing.json" <<'SCHEMA_ONE_END'
+import json, sys
+p = sys.argv[1]
+rec = json.load(open(p))
+rec["schema"] = 1          # the explicit form of what an absent key already means
+json.dump(rec, open(p, "w"))
+SCHEMA_ONE_END
+run "$PY" "$S" check --root "$W/v1read"
+eq "L39e an explicit \`schema: 1\` reads as the v1 record" "$RC" "0"
+hasnot "L39f and it took the v1 path — no schema-2 control claimed" "Skill and tools probes"
+
+# ======================================================= 20 · v2 broken premises ======
+d="$W/v2prem"
+mkfix v2prem "$V2"
+RJ2="$d/.claude/skills/delegate/routing.json"
+cp "$RJ2" "$W/rj2.keep"
+run "$PY" "$S" check --root "$d"
+eq "L41a control — the intact v2 fixture checks without a probe failure" \
+	"$(if [ "$RC" = "2" ]; then echo probe-failed; else echo ran; fi)" "ran"
+mutate() { # $1 = which premise to break, from the pristine copy each time
+	"$PY" - "$RJ2" "$W/rj2.keep" "$1" <<'MUTATE_V2_END'
+import json, sys
+path, keep, case = sys.argv[1], sys.argv[2], sys.argv[3]
+rec = json.load(open(keep))
+cls = sorted(rec["classes"])[0]
+if case == "baddefault":
+    rec["classes"][cls]["model"]["default"] = "haiku"      # in `order`, not in the options
+elif case == "badoption":
+    rec["classes"][cls]["effort"]["options"] = ["max", "turbo"]   # not in `order`
+elif case == "missingfield":
+    del rec["classes"][cls]["tools"]
+elif case == "emptyoptions":
+    rec["classes"][cls]["model"]["options"] = []
+elif case == "badschema":
+    rec["schema"] = 3
+else:
+    raise SystemExit("no such mutation: %s" % case)
+json.dump(rec, open(path, "w"))
+MUTATE_V2_END
+}
+mutate baddefault
+run "$PY" "$S" check --root "$d"
+eq "L41b a default outside its own options exits 2" "$RC" "2"
+has "L41c it names the default and the options" "is not one of its options"
+mutate badoption
+run "$PY" "$S" check --root "$d"
+eq "L41d an option outside \`order\` exits 2" "$RC" "2"
+has "L41e it names the axis" "is not in \`order.effort\`"
+mutate missingfield
+run "$PY" "$S" check --root "$d"
+eq "L41f a row missing a required field exits 2" "$RC" "2"
+has "L41g it names the field" "is missing \`tools\`"
+mutate emptyoptions
+run "$PY" "$S" check --root "$d"
+eq "L41h an empty options list exits 2" "$RC" "2"
+has "L41i it says the list is empty" "is not a non-empty list"
+mutate badschema
+run "$PY" "$S" check --root "$d"
+eq "L41j a schema value other than 1 or 2 exits 2" "$RC" "2"
+has "L41k it names the value it will not read" "\`schema\` is 3"
+cp "$W/rj2.keep" "$RJ2"
+run "$PY" "$S" check --root "$d"
+eq "L41l control — with the record restored the same check runs again" \
+	"$(if [ "$RC" = "2" ]; then echo probe-failed; else echo ran; fi)" "ran"
+run "$PY" "$S" resolve --class no-such-class --throttle top --root "$d"
+eq "L42a an unknown class exits 2" "$RC" "2"
+has "L42b it lists the classes the record does hold" "PROBE FAILED: unknown class 'no-such-class'"
+run "$PY" "$S" resolve --class gate-judge --throttle turbo --root "$d"
+eq "L42c an unknown --throttle exits 2" "$RC" "2"
+has "L42d it lists the known throttles" "unknown throttle 'turbo' passed to --throttle"
+
+# ======================================== 21 · definitions checked against their row ==
+# Two properties the record can only check under schema 2: the Skill tool stays off (a lane
+# that can load a whole skill is no longer thin — levers L1, 2026-09-04), and a definition
+# never claims a tool its class row does not grant. Keyed on the property, never on a
+# definition's name, so the next class added is checked by the same rule.
+d="$W/v2defs"
+mkfix v2defs "$V2"
+run "$PY" "$S" set default --root "$d"
+CLS=$("$PY" -c 'import json,sys; print(sorted(json.load(open(sys.argv[1]))["classes"])[0])' "$V2")
+mkdef() { # $1 = the frontmatter tool line (empty for none) — written at the row's defaults
+	"$PY" - "$d/.claude/agents/$CLS.md" "$V2" "$CLS" "$1" <<'MKDEF_END'
+import json, sys
+path, rec_path, cls, toolline = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+row = json.load(open(rec_path))["classes"][cls]
+open(path, "w", encoding="utf-8").write(
+    "---\nname: %s\ndescription: Routing range (admitted 2026-09-04); the active throttle "
+    "sets the current values.\nmodel: %s\neffort: %s\n%s---\n\nBody text.\n"
+    % (cls, row["model"]["default"], row["effort"]["default"],
+       toolline + "\n" if toolline else ""))
+MKDEF_END
+}
+mkdef "tools: Read"
+run "$PY" "$S" check --root "$d"
+eq "L43a control — a definition narrower than its row is clean" "$RC" "0"
+hasnot "L43b no TOOLS-WIDER on the narrower definition" "TOOLS-WIDER"
+mkdef "tools: Read, WebFetch"
+run "$PY" "$S" check --root "$d"
+eq "L43c a definition allowlisting a tool the row lacks exits 1" "$RC" "1"
+has "L43d it names the file and the tool" "TOOLS-WIDER .claude/agents/$CLS.md: WebFetch"
+hasnot "L43e and it does not fire the Skill finding on that plant" "SKILL-AVAILABLE"
+mkdef "disallowedTools: Agent, SendMessage"
+run "$PY" "$S" check --root "$d"
+eq "L44a a definition leaving Skill available exits 1" "$RC" "1"
+has "L44b it is named as SKILL-AVAILABLE" "SKILL-AVAILABLE .claude/agents/$CLS.md"
+hasnot "L44c a denylist definition is never TOOLS-WIDER (the spawn's --tools bounds it)" "TOOLS-WIDER"
+mkdef "tools: Read, Grep, Skill"
+run "$PY" "$S" check --root "$d"
+has "L44d an allowlist naming Skill is caught too" "SKILL-AVAILABLE .claude/agents/$CLS.md"
+mkdef "disallowedTools: Agent, SendMessage, Skill"
+run "$PY" "$S" check --root "$d"
+eq "L44e control — the denylist form that names Skill is clean" "$RC" "0"
+# The same two properties are silent under schema 1, which carries no tool list to compare.
+mkfix v1defs
+printf -- '---\nname: verifier\ndescription: Routing range (admitted 2026-09-04); the active throttle sets the current values.\nmodel: sonnet\neffort: max\ntools: Read, WebFetch, Skill\n---\n\nBody text.\n' >"$W/v1defs/.claude/agents/verifier.md"
+run "$PY" "$S" check --root "$W/v1defs"
+hasnot "L45a a schema-1 run reports no TOOLS-WIDER (no tool list in the record)" "TOOLS-WIDER"
+hasnot "L45b and no SKILL-AVAILABLE" "SKILL-AVAILABLE"
+
+# ======================================================= 22 · resolve is stdout-only ==
+d="$W/v2ro"
+mkfix v2ro "$V2"
+run "$PY" "$S" set default --root "$d"
+BEFORE=$(manifest "$d")
+chmod -R a-w "$d"
+run "$PY" "$S" resolve --class gate-judge --root "$d"
+RC1=$RC
+run "$PY" "$S" resolve --class gate-judge --root "$d" --json
+RC2=$RC
+chmod -R u+w "$d"
+eq "L46a resolve ran on a read-only copy, plain and --json" "$RC1$RC2" "00"
+eq "L46b the read-only copy is byte-identical afterwards" "$(manifest "$d")" "$BEFORE"
+
+# ============================================ 23 · the installed record, by construction ==
+# What this section may assume: nothing about the installed record's current defaults. A class
+# default moves down when its gate passes, so every leg here is either pinned to something a gate
+# never moves (the option sets), or read from the record and compared with disk.
+LIVE_SCHEMA=$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1])).get("schema", 1))' "$R")
+echo "installed record: schema $LIVE_SCHEMA"
+if [ "$LIVE_SCHEMA" = "1" ]; then
+	run "$PY" "$S" resolve --class critic --throttle top --root "$VAULT"
+	eq "L47a a schema-1 installed record refuses resolve, exit 2" "$RC" "2"
+	has "L47b it says what the record cannot give it" "needs a schema-2 record"
+	run "$PY" "$S" check --root "$VAULT"
+	eq "L47c control — check still runs against it" \
+		"$(if [ "$RC" = "2" ]; then echo probe-failed; else echo ran; fi)" "ran"
+else
+	# Option sets, pinned as literals hand-derived from the design page's class table. A gate
+	# moves a DEFAULT within its set; it never edits the set, so these hold across the phase-3
+	# moves. An install that quietly narrowed a class is exactly what this catches.
+	opts() { # $1 class -> "models|efforts"
+		case "$1" in
+		verifier) echo "sonnet,opus,fable|high,xhigh,max" ;;
+		memory-hunter) echo "sonnet,opus|high,xhigh,max" ;;
+		wiki-compile) echo "sonnet,opus,fable|medium,high,xhigh,max" ;;
+		builder) echo "sonnet,opus,fable|high,xhigh,max" ;;
+		critic) echo "opus,fable|xhigh,max" ;;
+		planner) echo "opus,fable|high,xhigh,max" ;;
+		reflector) echo "opus,fable|high,xhigh,max" ;;
+		gate-judge) echo "opus|max" ;;
+		*) echo "NO-PIN" ;;
+		esac
+	}
+	cat >"$W/rowopts.py" <<'ROWOPTS_END'
+import json, sys
+row = json.load(open(sys.argv[1]))["classes"][sys.argv[2]]
+print(",".join(row["model"]["options"]) + "|" + ",".join(row["effort"]["options"]))
+ROWOPTS_END
+	CLASSES=$("$PY" -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["classes"]))' "$R")
+	NCLASSES=$("$PY" -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["classes"]))' "$R")
+	optbad=""
+	for c in $CLASSES; do
+		got=$("$PY" "$W/rowopts.py" "$R" "$c")
+		[ "$got" = "$(opts "$c")" ] || optbad="$optbad $c[$got]"
+	done
+	eq "L47a every installed class carries the design table's option sets ($NCLASSES classes)" "$optbad" ""
+	eq "L47b control — the pin table covers every installed class" \
+		"$(for c in $CLASSES; do opts "$c"; done | grep -c NO-PIN)" "0"
+	run "$PY" "$S" check --root "$VAULT"
+	eq "L47c check against the installed record exits 0" "$RC" "0"
+	has "L47d it reports clean, with the count it diffed" "check: clean — $NCLASSES of $NCLASSES diffed"
+	has "L47e and its control line names the schema-2 probes it ran" \
+		"Skill and tools probes caught 2/2 planted definitions"
+	# Extremes: `top` and `cheap-fast` read the ends of the option sets, which no gate moves.
+	run "$PY" "$S" resolve --class wiki-compile --throttle top --root "$VAULT"
+	eq "L47f the installed record resolves wiki-compile under 'top'" "$(rgot)" "fable max"
+	run "$PY" "$S" resolve --class wiki-compile --throttle cheap-fast --root "$VAULT"
+	eq "L47g and under 'cheap-fast'" "$(rgot)" "sonnet medium"
+	# Consistency: what the wrapper would spawn under the vault's own throttle is what the
+	# definitions hold. Expected values are read from disk, never pinned, so a gate-driven move
+	# of a carried default keeps this green once `set` has run.
+	defbad=""
+	for c in $CLASSES; do
+		run "$PY" "$S" resolve --class "$c" --root "$VAULT"
+		want="$(fmval "$VAULT/.claude/agents/$c.md" model) $(fmval "$VAULT/.claude/agents/$c.md" effort)"
+		[ "$(rgot)" = "$want" ] || defbad="$defbad $c(resolved '$(rgot)' vs definition '$want')"
+	done
+	eq "L48a resolve under the active throttle matches every definition on disk" "$defbad" ""
+	# The gate rule: a default whose `dated` names a target is CARRIED — it sits at or above that
+	# target until the gate passes, never below it, and the target is one of its own options.
+	cat >"$W/carried.py" <<'CARRIED_END'
+"""Carried defaults: every `target <value>` a row's `dated` names, checked against that row.
+Its own positive control runs first on a synthetic line, so `carried=0` can never read as clean
+when the parser has simply stopped matching."""
+import json, re, sys
+
+rec = json.load(open(sys.argv[1]))
+order = rec["order"]
+
+
+def targets(text):
+    out = []
+    for token in re.findall(r"target ([A-Za-z0-9_-]+)", text or ""):
+        for axis in ("model", "effort"):
+            if token in order[axis]:
+                out.append((axis, token))
+    return out
+
+
+probe = order["effort"][0]
+if targets("carried as today's value until the gate — target %s per the table" % probe) \
+        != [("effort", probe)]:
+    print("carried=- control=FAILED verdict=parser did not match its own control")
+    raise SystemExit(2)
+
+bad, n = [], 0
+for cls, row in rec["classes"].items():
+    for axis, want in targets(row.get("dated", "")):
+        n += 1
+        have = row[axis]["default"]
+        if order[axis].index(have) < order[axis].index(want):
+            bad.append("%s %s default %s below target %s" % (cls, axis, have, want))
+        if want not in row[axis]["options"]:
+            bad.append("%s %s target %s is not one of its options" % (cls, axis, want))
+print("carried=%d control=ok verdict=%s" % (n, "; ".join(bad) if bad else "ok"))
+CARRIED_END
+	CARRIED=$("$PY" "$W/carried.py" "$R")
+	CN=$(echo "$CARRIED" | sed -n 's/.*carried=\([0-9-]*\).*/\1/p')
+	eq "L48b every carried default sits at or above the target its \`dated\` names ($CN carried)" \
+		"$(echo "$CARRIED" | sed -n 's/.*verdict=//p')" "ok"
+	eq "L48c control — the carried-default parser matched its own synthetic target first" \
+		"$(echo "$CARRIED" | grep -c 'control=ok')" "1"
+	# Control for the clean check above: the same comparison on a fixture copy of the installed
+	# record and the live definitions, one field moved. The live vault is never written to.
+	d="$W/livecopy"
+	mkfix livecopy "$R"
+	run "$PY" "$S" check --root "$d"
+	eq "L49a control — a fixture copy of the installed record checks clean" "$RC" "0"
+	cat >"$W/plantpick.py" <<'PLANTPICK_END'
+import json, sys
+rec = json.load(open(sys.argv[1]))
+for cls in sorted(rec["classes"]):
+    if len(rec["classes"][cls]["model"]["options"]) > 1:
+        print(cls)
+        break
+PLANTPICK_END
+	PCLS=$("$PY" "$W/plantpick.py" "$R")
+	[ -n "$PCLS" ] || { echo "PROBE FAILED: no installed class has a second model option to plant"; exit 2; }
+	"$PY" - "$d/.claude/agents/$PCLS.md" "$R" "$PCLS" <<'PLANT_LIVE_END'
+import json, re, sys
+path, rec_path, cls = sys.argv[1], sys.argv[2], sys.argv[3]
+axis = json.load(open(rec_path))["classes"][cls]["model"]
+other = [m for m in axis["options"] if m != axis["default"]][0]
+text = open(path, encoding="utf-8").read()
+open(path, "w", encoding="utf-8").write(
+    re.sub(r"(?m)^model: .*$", "model: %s" % other, text, count=1))
+PLANT_LIVE_END
+	run "$PY" "$S" check --root "$d"
+	eq "L49b a planted drift against the installed record is a finding" "$RC" "1"
+	has "L49c it names the file and the field" "DRIFT .claude/agents/$PCLS.md: model"
+fi
 
 # ================================================================== tally =============
 TOTAL=$((PASS + FAIL))

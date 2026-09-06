@@ -36,7 +36,7 @@ sed -n '/^---$/,/^---$/p' "$ROOT/$CUST" | grep -qE '^(style|role|agent_name|lang
 grep -q '^### balanced'       "$ROOT/$CUST" 2>/dev/null && ok "default style defined in CORE" || no "default style has no ### section in core"
 [ -f "$ROOT/$DEFS" ]                          && ok "init creates $DEFS (on-demand half)"  || no "init did not create $DEFS"
 grep -q '^### detailed'       "$ROOT/$DEFS" 2>/dev/null && ok "detailed style in definitions file" || no "detailed style missing from $DEFS"
-grep -q '^### summary'        "$ROOT/$DEFS" 2>/dev/null && ok "summary style in definitions file"  || no "summary style missing from $DEFS"
+grep -q '^### shortest'       "$ROOT/$DEFS" 2>/dev/null && ok "shortest style in definitions file" || no "shortest style missing from $DEFS"
 grep -q '^### brief'          "$ROOT/$DEFS" 2>/dev/null && ok "brief style in definitions file"    || no "brief style missing from $DEFS"
 grep -q '^### detailed'       "$ROOT/$CUST" 2>/dev/null && no "detailed leaked into core (split broken)" || ok "core carries no non-default style (split holds)"
 grep -q 'Definitions split'   "$ROOT/$CUST" 2>/dev/null && ok "Definitions-split rule seeded in core" || no "Definitions-split rule missing from core"
@@ -47,6 +47,7 @@ grep -q '\[\[About Me\]\]'    "$ROOT/$CUST" 2>/dev/null && ok "Related links [[A
 grep -q '^- \*\*role\*\*: generalist' "$ROOT/$CUST" 2>/dev/null && ok "role knob seeded in ## Settings" || no "role knob missing from ## Settings"
 grep -q '^- \*\*throttle\*\*: default' "$ROOT/$CUST" 2>/dev/null && ok "throttle knob seeded in ## Settings" || no "throttle knob missing from ## Settings"
 grep -q '^- \*\*breadth\*\*: standard' "$ROOT/$CUST" 2>/dev/null && ok "breadth knob seeded in ## Settings" || no "breadth knob missing from ## Settings"
+grep -q '^- \*\*delegation\*\*: auto' "$ROOT/$CUST" 2>/dev/null && ok "delegation knob seeded in ## Settings (auto is the default)" || no "delegation knob missing from ## Settings"
 grep -q '^## Roles'           "$ROOT/$CUST" 2>/dev/null && ok "Roles section present"                  || no "Roles section missing"
 grep -q "^### generalist" "$ROOT/$CUST" 2>/dev/null && ok "role seeded in core: generalist (default)" || no "role missing from core: generalist"
 for r in researcher engineer tutor examiner; do
@@ -58,10 +59,18 @@ grep -q 'no role may change the active style' "$ROOT/$CUST" 2>/dev/null && ok "r
 grep -q 'offer the full report' "$ROOT/$DEFS" 2>/dev/null && ok "examiner compression-notice line seeded" || no "notice line missing"
 grep -q 'status line'         "$ROOT/$CUST" 2>/dev/null && ok "status-line rule shipped"               || no "status-line rule missing"
 grep -q "never the agent's internal reasoning" "$ROOT/$CUST" 2>/dev/null && ok "reasoning-invariance clause shipped" || no "reasoning-invariance clause missing"
-grep -q 'how plainly it is put' "$ROOT/$CUST" 2>/dev/null && ok "plainness dimension seeded (two-dimension ladder, v0.8.8)" || no "plainness preamble missing"
+grep -q 'plainness and fluency hold on every style' "$ROOT/$CUST" 2>/dev/null && ok "plainness holds on every rung (one-dimension ladder, 2026-09-04)" || no "plainness preamble missing"
+grep -q 'two dimensions that move together' "$ROOT/$CUST" 2>/dev/null && no "retired two-dimension sentence still seeded" || ok "control: the retired two-dimension sentence is absent"
 grep -q '| depth | per request; ingest picks per source' "$ROOT/$CUST" 2>/dev/null && ok "depth axis row seeded (v0.8.8 vocabulary)" || no "depth axis row missing/stale"
 grep -q '^### customised' "$ROOT/$CUST" 2>/dev/null && ok "customised span seeded (№56)" || no "customised span missing"
 grep -q 'a claim, never a label' "$ROOT/$CUST" 2>/dev/null && ok "status-line claim rule seeded (№56)" || no "status-line claim rule missing"
+# Parity legs (2026-09-06, step 4): three always-on paragraphs of the seeded core must be byte-identical to the live vault's
+# line, so an edit to the live file that misses the seed fails here (the Roles line drifted from 2026-09-04 to 2026-09-06
+# unnoticed: its `mode` clause never reached the seed; critic CRIT-S4). Each leg first proves its live anchor hits.
+for anchor in 'The active role is the `role` value' '- **Plain and fluent in every reply to the owner' 'The four styles are one ladder along'; do
+  LIVE_LINE=$(grep -F -m1 -e "$anchor" "$VAULT/$CUST" 2>/dev/null); SEED_LINE=$(grep -F -m1 -e "$anchor" "$ROOT/$CUST" 2>/dev/null)   # -e: an anchor may start with "-"
+  if [ -z "$LIVE_LINE" ]; then no "parity premise: live anchor not found ($anchor)"; elif [ "$LIVE_LINE" = "$SEED_LINE" ]; then ok "seed parity: '$anchor…' byte-identical to the live vault"; else no "seed parity: '$anchor…' drifts from the live vault (seed v live)"; fi
+done
 T=$(( $(grep -c 'Test:' "$ROOT/$CUST" 2>/dev/null || echo 0) + $(grep -c 'Test:' "$ROOT/$DEFS" 2>/dev/null || echo 0) ))
 [ "$T" -ge 6 ] && ok "per-style Test clauses seeded across the pair ($T lines)" || no "Test clauses missing ($T lines across pair, need >=6)"
 RAW=$(python3 -c "
@@ -118,6 +127,36 @@ grep -q 'ignores this file in normal runs' "$ROOT/IDEAS.md" 2>/dev/null && ok "i
 printf '\n- my idea\n' >> "$ROOT/IDEAS.md"
 B=$(hash_of "$ROOT/IDEAS.md"); ( cd "$ROOT" && bash setup.sh >/dev/null 2>&1 ); A=$(hash_of "$ROOT/IDEAS.md")
 [ "$A" = "$B" ]                                            && ok "re-run preserves owner's IDEAS edits"   || no "re-run overwrote IDEAS.md"
+
+echo "== 9) setup.sh builds the lane home headless lanes run from =="
+# The lane home is machine-local state outside the vault, so setup builds it rather than the payload
+# shipping one. Three cases, because a step that runs a wrapper has three outcomes: no wrapper (a vault
+# on an older framework), the wrapper succeeding, the wrapper failing its own premise (a brand-new vault
+# has no confidence-rubric page to slice). In all three setup must finish and say what happened, since
+# a bootstrap that aborts on an optional extra leaves the user with no registries at all.
+LW=".claude/skills/delegate/lane.py"
+fresh; OUT9="$( cd "$ROOT" && bash setup.sh 2>&1 )"; RC9=$?
+[ "$RC9" = 0 ]                                 && ok "no wrapper: setup still succeeds"            || no "no wrapper: setup exited $RC9"
+echo "$OUT9" | grep -qi 'lane home skipped'    && ok "no wrapper: says the lane home was skipped"  || no "no wrapper: silent about the lane home"
+[ -f "$ROOT/wiki/index.md" ]                   && ok "no wrapper: the registries were still seeded" || no "no wrapper: registries missing"
+
+fresh; mkdir -p "$ROOT/.claude/skills/delegate"
+printf '#!/usr/bin/env python3\nimport sys\nprint("lane home: /tmp/fixture-lane-home")\nprint("  created      lane-fence.py")\nsys.exit(0)\n' > "$ROOT/$LW"
+OUT9B="$( cd "$ROOT" && bash setup.sh 2>&1 )"; RC9B=$?
+[ "$RC9B" = 0 ]                                && ok "wrapper ok: setup succeeds"                   || no "wrapper ok: setup exited $RC9B"
+echo "$OUT9B" | grep -q 'lane home ready'      && ok "wrapper ok: setup reports the lane home ready" || no "wrapper ok: no lane-home line in output"
+echo "$OUT9B" | grep -q 'fixture-lane-home'    && ok "wrapper ok: setup shows where it was built"    || no "wrapper ok: location not shown"
+
+fresh; mkdir -p "$ROOT/.claude/skills/delegate"
+printf '#!/usr/bin/env python3\nimport sys\nsys.stderr.write("lane.py: PROBE FAILED: cannot read the confidence rubric page\\n")\nsys.exit(2)\n' > "$ROOT/$LW"
+OUT9C="$( cd "$ROOT" && bash setup.sh 2>&1 )"; RC9C=$?
+[ "$RC9C" = 0 ]                                && ok "wrapper fails: setup still succeeds (exit 0)"  || no "wrapper fails: setup exited $RC9C"
+echo "$OUT9C" | grep -q 'lane home not created' && ok "wrapper fails: setup says so plainly"         || no "wrapper fails: failure swallowed"
+echo "$OUT9C" | grep -q 'PROBE FAILED'         && ok "wrapper fails: the wrapper's own reason is shown" || no "wrapper fails: reason hidden"
+echo "$OUT9C" | grep -q "python3 $LW init"     && ok "wrapper fails: the recovery command is printed" || no "wrapper fails: no recovery command"
+[ -f "$ROOT/wiki/index.md" ]                   && ok "wrapper fails: the registries were still seeded" || no "wrapper fails: registries missing"
+# §11 control: these greps must be able to miss — a line setup.sh never prints must not match.
+echo "$OUT9C" | grep -q 'lane home ready'      && no "control failed: 'ready' matched a failing run" || ok "control: the success line does not match a failing run"
 
 echo
 echo "================  RESULT: $PASS passed, $FAIL failed  ================"

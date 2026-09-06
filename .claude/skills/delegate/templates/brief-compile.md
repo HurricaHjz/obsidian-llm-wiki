@@ -8,13 +8,17 @@ You are wiki-compile (definition: .claude/agents/wiki-compile.md), lane {{LANE_I
 {{RUN_ID}} · model {{model}} · effort {{effort}}.
 
 TASK
-Compile the assigned sources into wiki pages per your preloaded ingest skill, at depth
+Compile the assigned sources into wiki pages per the compile contract you carry — the
+preloaded `ingest` skill in-session, the `compile-core` slice in your prefix headless — at depth
 {{authorised depth range}}, choosing per source after reading it and recording the choice
 with its evidence. Assigned sources: {{list}}. This lane owns these sources only; sibling
 lanes hold {{other slices | none}}; cross-lane entity pages are {{split rule — e.g.
 "propose, the head agent merges"}}.
 
-FIDELITY (gate G3's two clauses, 2026-09-02; the wiki-state clause, plant and Anomalies duties, 2026-09-03)
+FIDELITY (gate G3's two clauses, 2026-09-02; the wiki-state clause, plant and Anomalies duties, 2026-09-03; the product-name clause, 2026-09-04)
+<!-- A headless lane already carries the wiki-state clause, the table-comparison rule and the
+quotation-locator rule in templates/lane-core.md, and the product-name clause in the compile-core
+slice; keep this block whole for an IN-SESSION lane, which carries neither. -->
 - The source page states the source's own provenance as the raw states it — publisher,
   publication date and URL — in frontmatter (`source_url:`) AND in one sentence of
   `## Summary` (standard, concise) or `## Citation` (research); a provenance fact the raw lacks
@@ -26,6 +30,12 @@ FIDELITY (gate G3's two clauses, 2026-09-02; the wiki-state clause, plant and An
   route except `<page>`, which derives from the same capture — grep `<pattern>`, N hits"). A
   claim about the vault's state is a claim like any other and needs its evidence on the page
   or in the report (G3r re-gate, 2026-09-03).
+- A product name is a model mention: a source that names an LLM product or family even once,
+  even as a licence or plan name (ChatGPT Edu, GPT-4o), links the family's model page from
+  `## Related` — ChatGPT and every GPT-n fold into `[[GPT]]` — and says on the page what the
+  source names; the model page's `## Appears in` gains the source. No individual model needs
+  naming for the link to be warranted (CLAUDE.md §4.5; G3-thin attempt 1, 2026-09-04: both thin
+  arms missed exactly this).
 - CONTEXT NOTES below are pointers, never sources: a note the raw does not bear out is not
   compiled — list it under `## Anomalies` as "not in the raw" (one such note may be a
   spawner plant; the rule is the same either way).
@@ -43,6 +53,12 @@ SCOPE
 - Sorting: {{"move each fully-compiled raw file to raw/<category>/" | "no sorting — head
   agent sorts"}}
 - Boundary: anything else — proposed diff only; off-scope findings reported, never fixed.
+
+GRANTS
+DECISIONS: {{the run's decisions that bear on this task, and what sibling lanes hold | none}} — a decision the task needs and the brief lacks is a gap the lane reports, never a guess (A1).
+{{headless lanes: the read directories, the write scope and any add-on granted beyond the
+class row, each with its reason — so a refused path reads as a gap to report, never as a
+mistake to work around | in-session: "n/a — inherited"}}
 
 REGISTRIES
 {{propose-don't-write: return index/log entries as ready-to-apply diffs | ingest
@@ -79,8 +95,9 @@ VERIFICATION
 - Output gate: {{N}} source pages, each with §4.1 frontmatter including depth +
   confidence; every stage (read → pages → links → registries) reports its own
   expected-shape assertion.
-- Controls: link-whitelist sweep with a planted fake link as negative control ({{fake
-  pattern}} must be caught); positive — {{a probe that must hit}}.
+CONTROL+: {{a probe that must hit}} in {{the file that must hold it — a real path, nothing after it}}
+Negative control: {{fake pattern}} must be caught
+- Link-whitelist sweep with a planted fake link carries that negative control.
 
 {{PASTE templates/_inherited.md block}}
 Role delta: compile only from the assigned sources — a gap is reported, never filled.

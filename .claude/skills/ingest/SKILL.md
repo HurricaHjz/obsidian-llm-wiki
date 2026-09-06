@@ -43,7 +43,9 @@ pacing sentence as licence on depth, or a depth rule as licence on pacing.)
   are never spawned without the owner's explicit go on the echoed spawn record — the `pre-report` knob
   switches reporting only, never this consent (delegate skill §3 slot 0); a routed single-source lane's
   go is the `/ingest` invocation itself (Routing note, Step 3; 2026-09-03); under the `light` breadth tier
-  a fan-out needs an explicit owner ask. Mechanics: **Parallel mode** below.
+  a fan-out needs an explicit owner ask. Parallel mode is available under **both** delegation modes:
+  a batch the head cannot hold in one context is the instrument rule's reason (b), and the verify legs
+  of the lanes it spawns are reason (a) (delegate skill §1). Mechanics: **Parallel mode** below.
 
 ### Token-efficiency rules (especially in batch — avoid redundant repetition)
 - Read each source **once**; never re-read the whole wiki per file.
@@ -160,9 +162,21 @@ thresholds and term-relative deadlines are precisely what a paraphrase would fal
 Every ingest run appends an event log under the agent home `~/.llm-wiki/`:
 `~/.llm-wiki/ingest-runs/run-<YYYYMMDD-HHMM-id>.jsonl` — one JSON
 event per line via shell append (`printf '%s\n' '<json>' >> <ledger>`), the same primitive that makes
-`log.md` race-safe. **Never read-modify-write it**; resume state is a fold over events (`grep`/`jq`).
-No helper script — primitives first (§12), until a real run shows hand-rolled appends failing. *(Status 2026-09-02: that condition has fired twice — five fabricated clocks in run 20260901-batch112107, then a hard-coded stamp in run 20260901-mp2i despite a brief mandate — so a helper or a mechanical ledger check is now the owner's call, recorded in known-issues; `ts` is `date +%FT%R%z`, one offset format — head-written events included.)*
+`log.md` race-safe. **Never read-modify-write it**; resume state is a fold over events.
+No helper script — primitives first (§12), until a real run shows hand-rolled appends failing. *(Status 2026-09-02: that condition has fired twice — five fabricated clocks in run 20260901-batch112107, then a hard-coded stamp in run 20260901-mp2i despite a brief mandate — so a helper or a mechanical ledger check is now the owner's call, recorded in known-issues.)*
 (Design record: `wiki/developments/ingest-persistence-parallelism-design.md`.)
+
+**Fold with a parser; a key-pattern grep is a locator, never a verdict.** Writers disagree on key
+spacing (`json.dumps` writes `"lane": "LB"`, a `printf` event `"lane":"LB"`), so every count, census
+or resume fold reads the lines through `python3 -c` or `jq`. A grep locates a line to look at; it
+never settles a question. Evidence: a head grep of `"lane":"LB"` reported two lanes' claim objects
+missing and that false negative reached a verify brief (2026-09-04), and `grep -c '"lane":"L4"'`
+returned 5 of 8 on the same shape (2026-09-01) — both in `known-issues`.
+
+**Every event's `ts` is the shell clock at write time** — `$(date +%FT%R%z)`, one offset format,
+head-written events included — never typed, remembered or derived from context. Five lanes stamped
+~6.5–7 h fast on one run (2026-09-01), and the resume pre-flight below reads a future-dated stamp as
+perpetually live, so a fabricated clock disables the liveness check it feeds.
 
 **Events** (extra fields are free): `run_open` (run id · pacing · authorised depth range · inbox
 listing as `inbox: [{file, sha256 prefix}]`) · `lane_open` / `lane_close` (lane id · definition ·
@@ -247,8 +261,15 @@ skill (routing, spawn slots, `brief-compile` template). Full rationale:
    merge pass; `audited:` stamps at merge write.
 8. **Step 7 splits.** A claims-mode lane checks: every link resolves to a real page **or to a target
    in my emitted claims**. The head runs the Verify step (below) over each lane's pages and claims
-   BEFORE merge (a lane whose leg finds a fabrication or plant hit has its claims quarantined, never
-   merged), then the full Step 7 over the batch post-merge — the final gate before `run_close`.
+   BEFORE merge, then the full Step 7 over the batch post-merge — the final gate before `run_close`.
+   **Quarantine is per claim, not per lane.** A claim's facts carry their own locators, so the verify
+   leg's `claims` dimension counts the claim objects whose facts the flagged sentence, paragraph or
+   table feeds and names them; the head quarantines exactly those and merges the lane's remaining
+   claims. Two cases still take the whole set: a **plant** hit (the lane failed the fidelity gate, not
+   one sentence) and a leg that could not run the dimension (`claims -`) — fail closed. Derivation:
+   on run `run-20260904-0230-thin` the per-lane rule discarded 93 usable claim objects over one
+   fabricated sentence each on three lanes and the merge re-derived them, ≈$16.7 against ≈$10 list
+   (`known-issues`, 2026-09-04).
 9. **Conflicts under parallelism.** A lane never pauses the batch: it keeps both statements in its
    claim (§4.4) and appends a `conflict` event; the head surfaces every conflict in the batch report,
    and high-stakes ones pause the **merge** — the single point where a pause still has leverage.
@@ -258,8 +279,13 @@ skill (routing, spawn slots, `brief-compile` template). Full rationale:
 Runs head-side after the lane closes and before the head accepts the run (Step 7 and the close-out).
 Design: `wiki/developments/fable-minimising-routing.md`, protocol items 3, 4, 5, 6 and 9 (item 4's
 single-source form and item 3's mechanism delta are dated status facts there). **Routing (shipped
-2026-09-03, critic C15 folded):** the scripts run in the head's shell (M0), the scoring runs in a
-`verifier` lane on opus (a judgement claim set — delegate skill §2), the verdict stays with the head (M2).
+2026-09-03, critic C15 folded; mode-gated 2026-09-04):** the scripts run in the head's shell (M0), the
+scoring runs in a `verifier` lane on opus (a per-call escalation inside that class's option set, since
+tier verdicts are judgement claims — delegate skill §2), the verdict stays with the head (M2). The lane
+is the default under the `multi` regime; under `single` the head scores in-session **unless** an
+instrument-rule reason holds — and one always does when the compile itself was routed, since a verify
+leg on a routed step is reason (a) (delegate skill §1). So a lane-compiled source never loses its
+independent leg, in either mode, and a head-compiled source gets one only where the head proposes it.
 
 1. **Output set by manifest, never by report.** Before the run's first spawn, `touch` a marker file
    beside the run ledger (`~/.llm-wiki/ingest-runs/<run>.marker`) — once per run, never re-touched on a
@@ -270,24 +296,32 @@ single-source form and item 3's mechanism delta are dated status facts there). *
    the set — an empty set against a reported page is a broken probe, not a clean one; where the lane's
    durable transcript exists, its Write/Edit/redirect paths (the parity store's scope parser lists
    them) must equal the set. Parallel mode takes the set per lane, before merge.
-2. **M0 pre-checks, head shell, stdout only** — their lines go into the verify brief verbatim:
-   `python3 .claude/skills/lint/tier-cap-check.py --format json` (vault-wide — paste only the lines that
-   name set pages; a clean vault implies a clean set); `python3 .claude/skills/lint/anomaly-lister.py
-   --pages <set>` (the page-visible list the lane's `## Anomalies` is checked against); `python3
-   .claude/skills/lint/check-links.py` (dead links). A breach here is a miss before the verifier runs.
+2. **M0 pre-checks, head shell, stdout only — persisted, then named in the brief.** Run `python3
+   .claude/skills/lint/tier-cap-check.py --format json` (vault-wide — a clean vault implies a clean
+   set); `python3 .claude/skills/lint/anomaly-lister.py --pages <set>` (the page-visible list the
+   lane's `## Anomalies` is checked against); `python3 .claude/skills/lint/check-links.py` (dead
+   links). Write all three, each under a heading naming its script, to
+   `~/.llm-wiki/ingest-runs/<run>-m0-<lane>.txt` beside the run ledger, and let the brief name that
+   path instead of pasting the lines: a lane cannot treat brief text as evidence, and two verify lanes
+   scored the pasted `tier-cap-check.py` line UNVERIFIABLE for exactly that reason (`known-issues`,
+   2026-09-04). The path joins the lane's read grants. A breach here is a miss before the verifier runs.
 3. **Verifier lane** from `.claude/skills/delegate/templates/brief-ingest-verify.md`, which also
-   receives the compile brief's CONTEXT NOTES verbatim, the plant, and (parallel mode) the lane's
-   emitted claims: claim list and warranted set from the raw first, then eight counts — fabrication ·
-   plant · coverage · tier · structure · integration · language · anomalies — evidence per non-zero,
-   both controls, the plant grep's own positive control, and the last line `scores: …` (`plant -`
-   when its control could not run). One lane per compile; a second only where the head disputes a
-   call, and the lane's evidence, never its verdict, decides.
+   receives the compile brief's CONTEXT NOTES verbatim, the plant, the M0 file's path, and (parallel
+   mode) the lane's emitted claims: claim list and warranted set from the raw first, then the counts —
+   fabrication · plant · coverage · tier · structure · integration · language · anomalies, plus
+   `claims` in parallel mode (the claim objects whose facts a flagged sentence feeds, the quarantine
+   unit of step 8 above) — evidence per non-zero, both controls, the plant grep's own positive
+   control, and the last line `scores: …` (`plant -` when its control could not run; `claims` is
+   appended to that line in parallel mode only, so a serial line keeps the eight names the parity
+   gate's verdict script parses). One lane per compile; a second only where the head disputes a call, and the lane's evidence,
+   never its verdict, decides.
 4. **Verdict (head, M2).** Fabrication 0 and plant 0 are required; `plant -` (no plant, a placeholder,
    or a plant that hits in the raw) means the leg did not run — re-plant and re-run it, or the compile
    reverts. A fabrication or plant hit reverts that compile to the head for the run: the head corrects
    or rewrites the pages itself, appends a `known-issues` entry, and the step's next use needs a brief
-   or rubric change first (protocol item 1's retry rule). Every other non-zero item the head settles
-   from the cited evidence: a coverage, structure or language miss is fixed on the page; an integration
+   or rubric change first (protocol item 1's retry rule); in parallel mode the `claims` count says
+   which of that lane's claim objects the merge must drop (step 8) rather than the whole set. Every
+   other non-zero item the head settles from the cited evidence: a coverage, structure or language miss is fixed on the page; an integration
    miss on both pages; a tier dispute — and every tier the lane raised above an existing page's badge —
    is read in full by the head (§4.6: delegation never raises a tier unread); an anomaly the lane
    omitted is judged and, where real, written as a §4.4 block. **Head slice (protocol item 4):**
@@ -445,7 +479,7 @@ audited: <YYYY-MM-DD>   # today — assignment with the source in context is the
 tags: [topic]
 sources: [raw/2-papers/report.md, raw/2-papers/report.pdf]   # converted .md AND original; one entry if native .md or URL
 source_url: "<original web URL if a clip — else omit>"        # de-dup
-source_hash: "<sha256 prefix of the raw file>"                # de-dup
+source_hash: "<first 16 hex chars of the raw file's sha256>"   # de-dup — the length the pre-flight greps
 created: <YYYY-MM-DD>
 updated: <YYYY-MM-DD>
 ---
@@ -464,7 +498,7 @@ updated: <YYYY-MM-DD>
 the original (file path, or the URL for web/YouTube). Predict the post-sort paths (Step 6) so the
 links don't break after the move.
 
-**Routing (parity gates G3 and G4, 2026-09-02 — `wiki/developments/fable-minimising-routing.md`).** Gate evidence: G4 passed with both lane arms cleaner than the head arm (the lanes kept the paper's internal contradictions the head had restated) and carries the flag "passed against a head arm the record cannot certify as strong"; G3 passed on its second attempt, after two brief clauses, without that flag. The routed step is in force — its carriers shipped 2026-09-03: (a) `.claude/skills/delegate/templates/brief-compile.md` carries the two gate-added clauses (the source page states the source's own provenance — publisher, date, URL; any sentence about a linked page uses only that page's or the raw's words), the CONTEXT NOTES fidelity-plant slot and the `## Anomalies` report section; (b) the Verify step above scores every lane compile against the raw — fabrication · plant · coverage · tier · structure · integration · language · anomalies — before the head accepts it. Default executor for a single-source compile: a `wiki-compile` lane on opus (the definition's default since 2026-09-02) at the run's authorised depth range — standard and research are gated (G3, G4); concise is ungated (a lane that chooses it is covered by the verify leg and the plant; the design page records the residual); every compile clears the design's ≈30k leave-the-head threshold by construction, since a compile loads `wiki/index.md` (≈27k tokens) before the source and its network pages, and the fresh-session head arm of 2026-09-03 spent 44k Fable output tokens on a 3.8 kB source — the derivation the cost rule requires; a 2–5 source `auto` batch routes one lane at a time (two routed lanes writing network pages concurrently is Parallel mode's race surface, and that shape takes Parallel mode's claims); the head keeps the resume pre-flight, the spawn record with its plant (echoed per `pre-report`; under `auto` the owner's `/ingest` invocation is the go for this single lane, whose whitelist is the ingest's own output — delegate skill §3 slot 0, dated clause), the Verify step and the close-out. When routed: the lane runs with the shape the gates tested — it writes the source page and the warranted network pages, its own index line and log entry under the §2.2 ingest exception, and sorts the raw; the head's post-lane check is the verify step plus Step 7's controls plus a full read of every page whose tier the lane raised (§4.6: delegation never raises a tier unread); §4.4 conflict settlement and the research-depth key-claim spot-check stay head-side; the head's close-out log entry, always written for a routed run beside the lane's, carries the verify verdict, the stamp mechanism and the `fable share` meter line; the spawn record keeps the plant and the full meter. **Re-gate runbook (rule 7; the G4 flag):** the second routed use at each depth re-runs the paired fixture form — the parity store's `g34v2` fixture builder, scope parser, verify-dir stager and verdict script — with a fresh-session head arm (`claude -p --model <fable id> --effort max` in a snapshot-equal fixture, its transcript effort confirmed) against two routed lanes on the current carriers; the routed-run register on the design page is the use counter. Standard depth's re-gate **passed 2026-09-03** (G3r, second attempt, after FIDELITY clause 3 was added; detail on the design page), so the routed default stands at standard depth; research depth's re-gate, carrying G4's flag, is the next research-depth compile.
+**Routing (parity gates G3 and G4, 2026-09-02 — `wiki/developments/fable-minimising-routing.md`).** Gate evidence: G4 passed with both lane arms cleaner than the head arm (the lanes kept the paper's internal contradictions the head had restated) and carries the flag "passed against a head arm the record cannot certify as strong"; G3 passed on its second attempt, after two brief clauses, without that flag. The routed step is in force — its carriers shipped 2026-09-03: (a) `.claude/skills/delegate/templates/brief-compile.md` carries the two gate-added clauses (the source page states the source's own provenance — publisher, date, URL; any sentence about a linked page uses only that page's or the raw's words), the CONTEXT NOTES fidelity-plant slot and the `## Anomalies` report section; (b) the Verify step above scores every lane compile against the raw — fabrication · plant · coverage · tier · structure · integration · language · anomalies, plus `claims` in parallel mode — before the head accepts it. **Mode gate (2026-09-04):** this routed default applies under the `multi` regime (owner-set, or head-resolved for the run under delegation `auto`, 2026-09-04). Under `single` the head compiles in-session unless an instrument-rule reason holds for that source — a batch it cannot hold (reason (b), which is Parallel mode below), or context isolation its watermark bands demand (reasons (c)/(d)) — and it may propose ONE verify lane for a high-stakes in-head compile, once (delegate skill §1). Default executor for a single-source compile in `multi`: a `wiki-compile` lane on opus (the definition's default since 2026-09-02) at the run's authorised depth range — standard and research are gated (G3, G4); concise is ungated (a lane that chooses it is covered by the verify leg and the plant; the design page records the residual); every compile clears the design's ≈30k leave-the-head threshold by construction, since a compile loads `wiki/index.md` (≈27k tokens) before the source and its network pages, and the fresh-session head arm of 2026-09-03 spent 44k Fable output tokens on a 3.8 kB source — the derivation the cost rule requires; a 2–5 source `auto` batch routes one lane at a time (two routed lanes writing network pages concurrently is Parallel mode's race surface, and that shape takes Parallel mode's claims); the head keeps the resume pre-flight, the spawn record with its plant (echoed per `pre-report`; under `auto` the owner's `/ingest` invocation is the go for this single lane, whose whitelist is the ingest's own output — delegate skill §3 slot 0, dated clause), the Verify step and the close-out. When routed: the lane runs with the shape the gates tested — it writes the source page and the warranted network pages, its own index line and log entry under the §2.2 ingest exception, and sorts the raw; the head's post-lane check is the verify step plus Step 7's controls plus a full read of every page whose tier the lane raised (§4.6: delegation never raises a tier unread); §4.4 conflict settlement and the research-depth key-claim spot-check stay head-side; the head's close-out log entry, always written for a routed run beside the lane's, carries the verify verdict, the stamp mechanism and the `fable share` meter line; the spawn record keeps the plant and the full meter. **Re-gate runbook (rule 7; the G4 flag):** the second routed use at each depth re-runs the paired fixture form — the parity store's `g34v2` fixture builder, scope parser, verify-dir stager and verdict script — with a fresh-session head arm (`claude -p --model <fable id> --effort max` in a snapshot-equal fixture, its transcript effort confirmed) against two routed lanes on the current carriers; the routed-run register on the design page is the use counter. Standard depth's re-gate **passed 2026-09-03** (G3r, second attempt, after FIDELITY clause 3 was added; detail on the design page), so the routed default stands at standard depth; research depth's re-gate, carrying G4's flag, is the next research-depth compile.
 
 ### Step 4 — Network the knowledge (entities · tools · concepts · models · benchmarks)
 For each entity → `wiki/entities/`, **tool** (software/app/plugin/skill/library/service) →

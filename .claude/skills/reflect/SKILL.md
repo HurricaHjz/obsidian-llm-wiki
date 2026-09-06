@@ -61,13 +61,53 @@ then grep for it under the harness transcript directory (Claude Code: `~/.claude
 separators as dashes>/*.jsonl`). The single file containing the nonce IS this session's record — the
 transcript logs the probe itself, which is the positive control (CLAUDE.md §11). A **negative** control here needs a needle the transcript has not already recorded: assemble it at runtime rather than typing the literal (a typed literal matches because the command logging it is part of the medium), or state the baseline count of self-hits. A control that fires against its own stated expectation is repaired, never narrated past (2026-09-03: one printed `exit=0` where it declared `1 = correctly none`, and the run continued). Count its human turns
 with a filter **verified against the visible span** (every visible human turn must be matched; beware:
-tool results AND harness task-notifications also carry `"type":"user"` and must both be excluded — the
-notification miss overcounted 9 turns as 27, №103 cross-reflection P1, 2026-08-28), and report
+tool results, harness task-notifications AND Skill-tool injections (`isMeta: true`, opening "Base directory for
+this skill") all carry `"type":"user"` and must all be excluded — the notification miss overcounted 9 turns as
+27, №103 cross-reflection P1, 2026-08-28; the injection miss counted 4 turns for 3, cross-reflection R1 of session
+`80de6d8b`, 2026-09-05), and report
 `visible k of N recorded turns`. **Fallback** — no transcript, no unique nonce match, or a filter that fails its own check →
 the unmeasured form: name the earliest visible turn and state that the boundary carries no control
 this run. **Never report "nothing to capture this session"** — only "nothing in the visible span".
 On `--full` (explicit request only), read the compacted-out remainder from the transcript file itself,
 declaring the token cost before reading.
+
+### Step 2b — Usage and waste (development runs only; owner-added 2026-09-05)
+Runs when the session ran a development item: the visible conversation shows the owner invoking an
+IDEAS todo or naming a `wiki/developments/` page as the plan of record, or a spawn record names this
+session (`grep -l <sid> ~/.llm-wiki/spawn-records/run-*.jsonl`, printed with the store's file count and
+a grep for another record's known session id as its §11 controls; no store or no session id → say so and
+use the conversation test alone). Otherwise print `usage: n/a (not a development run — <the test that
+failed>)` and skip.
+- **The billed line at each boundary.** From the run's boundary records — the spawn record's
+  `phase-boundary` and `decision` events and the hand-off document's trace rows (delegate skill §4) —
+  list the billed line at every item or phase boundary, per session as the meter printed it
+  (`fable-share.py --session <sid> --lanes auto`, §2a), then the run total as a shown sum of those
+  session figures. Records with no boundary figure → meter the session once now and say the boundaries
+  carried none; an `unmetered` or `unbilled` exit is quoted as printed, never read as zero or estimated.
+- **One waste table, three classes** (the owner's, from the 2026-09-04 live case,
+  `wiki/developments/hands-off-live-case-2026-09-04.md`): `| Item | ≈ $ or idle min | Kind | Fix and
+  where it lands |`, keyed on what the spend produced — **real** = its output was lost or unused (a lost
+  lane, a wrong probe, a stall); **arguable** = its output was used, but a better brief, order or spec
+  would have bought it cheaper; **structural** = a cost of the chosen shape (the contract prefix, a
+  rewrite after a long hold). Each row names its event (Step 3 clause 1) and carries its figure with its
+  derivation — a meter total or per-agent row, a lane's `lane-closed` cost, or `≈` with the arithmetic
+  beside it — else `unmeasured`, never a bare number. Its fix lands in exactly one of: a phase of a named
+  plan of record, a `known-issues` entry (§12 format), an IDEAS todo (a proposal — nothing enters
+  IDEAS.md unless the owner says "queue it", Step 8), or `accepted` (a cost of the shape, or a fix
+  already shipped, named). No waste found → one row saying so and naming what was searched (the billed
+  line's `rewrites` and reason tally, the trace's idle minutes and denials), since a zero-findings claim
+  needs its control (§11).
+- **The waste fields are read, not recalled (2026-09-05).** Each `phase-boundary` event carries
+  `idle_min`, `over_cap_reports`, `denials`, `respawn_cost_usd` and `rewrites`; list each as its own
+  row with the figure the field holds and the event it came from — the field is the source, never a
+  memory of the run — and where an event omits one, write `field absent` rather than `0`, since a
+  missing field and a measured zero are different claims. The run's `gate` events carry the head's
+  context at each item, so context per item is read off them as the delta between consecutive gates
+  rather than estimated; a run with no `gate` events says so and drops that column.
+- **A candidate like any other.** The table takes Step 3's bar, the 5b critique and the Step 6 preview,
+  and its destination is the run's record page in `wiki/developments/` (Step 4). The `--yes` rules below
+  apply unchanged: that page is never written under `--yes`, so an auto-approved run reports the table
+  and says it waits for the owner.
 
 ### Step 3 — Apply the bar, then keep only what matters
 **The default is deliberately narrow: the unrecorded essentials, not everything noticed.** A long
@@ -86,7 +126,9 @@ A candidate survives only if all three hold:
    recorded", and the filename it returns often looks unrelated to the candidate — on 2026-09-03 a dedup
    hit was the one page already carrying the candidate's entire argument, and it went unopened, so the
    candidate was proposed as novel. A hit that is not opened leaves the candidate *unresolved*, not clear. This is also what stops repeat runs re-proposing the same thing; there is no session
-   cursor, and none can be built (the log carries no clock).
+   cursor, and none can be built (the log carries no clock). Check against the files on disk, never the copy of
+   `CLAUDE.md` or `CUSTOMISATION.md` injected into your context: a helper agent's injected copy is the
+   head's session-start snapshot, and on 2026-09-05 a reflector's copy lacked four edits made that day.
 3. **Load-bearing** — one decidable question: *would a future session do the work worse without it?*
    That covers both halves — repeating a mistake, redoing work or answering wrongly, **and** missing a
    better approach, a known preference, or a direction already decided. If the honest answer is no, it
@@ -119,6 +161,7 @@ In priority order. Say which rule sent it there.
 | A **wiki page** (`concepts/`, `entities/`, `tools/`, `models/`, `benchmarks/`, `user/`) | Domain or research knowledge | New page or an addition to an existing one. `user/` is the owner's to curate — propose, never auto-write |
 | A **`notes-*` synthesis** | A reusable procedure or a cross-page conclusion | `type: synthesis`, kebab-case, `notes-` prefix, `## Sources Used`, and `sources:` in frontmatter |
 | `known-issues.md` | A framework defect out of scope to fix now | Entry format per §12 |
+| The run's record page in `developments/` | The Step 2b usage-and-waste table of a development run | An append to the page holding the run's trace or design; owner-approved, never under `--yes` |
 | **Discard** | Fails the bar, or is already recorded | Report it as discarded and why — a silent drop reads as "nothing found" |
 
 **Contradictions.** A candidate that conflicts with something a page already claims never silently
@@ -161,7 +204,9 @@ Proposed rules: 1 · always-on cost +180 bytes
 ```
 
 The owner approves per item ("1 and 3", "all but 2"). **Nothing is written without approval**, except
-under `--yes` below.
+under `--yes` below. One exception is a duty, not a licence: a defect the run itself finds is registered
+under CLAUDE.md §12 with the pass whatever else is approved, listed in the preview as `register (§12)` so
+the owner can strike it (owner-approved, cross-reflection XR-2, written 2026-09-05 20:27 BST).
 
 ### Step 7 — Write, log, report
 - Write only the approved items. Every new page gets `## Related` and an `index.md` entry (§4.4, §5).
@@ -169,6 +214,13 @@ under `--yes` below.
   `framework` for a contract or `developments/` change, nothing for a register append (§12 exempts it).
   A run that changes nothing logs nothing.
 - Report what was written, where, at what tier, and what was discarded.
+- **Every write carries its clock time** (owner instruction 2026-09-05): beside the date, the local time of the
+  write and the run or lane id — on a register entry's `Where observed` line, in a rule addition's dated note,
+  in an appended block's heading — so a parallel session's earlier fix or later edit can be ordered against it;
+  an agent that finds the item already fixed reads the two stamps and keeps the later state.
+- **A fix handed to another session** is recorded on its register entry with the taking run and that
+  run's gate state, clock-stamped; if that gate later refuses, the entry reverts to open with the refusal
+  dated, so a claimed-but-gated fix never reads as done (cross-reflection XR-2, written 2026-09-05 20:27 BST).
 
 ### Step 8 — Recommend, don't queue (owner-added 2026-08-27)
 Close the report with next-action recommendations derived ONLY from what this run shipped, corrected or
@@ -189,7 +241,7 @@ session's transcript as of spawn — the live-write race is declared in the repo
 the finished case only (dated caveat: `wiki/developments/cross-reflection-pilot.md`).
 
 **Mechanism.** The head agent spawns a READ-ONLY reflector lane (delegate skill,
-`templates/brief-reflector.md`) that applies Steps 1–5 to the target transcript. The lane extracts
+`templates/brief-reflector.md`) that applies Steps 1–5, except 2b (head-only), to the target transcript. The lane extracts
 the transcript's human turns and assistant prose (tool-result records excluded) to /tmp and reads
 that extraction in full, reporting "read k of N turns". **Horizon control** (replaces Step 2's
 nonce, which only proves one's *own* session): target file exists and is non-zero; human-turn count
@@ -204,7 +256,26 @@ embedded in it. **Output:** findings, never writes — the FULL named candidate 
 discard with the page that killed it (an aggregate count hides the dedup evidence). Step 5b is not
 re-run on cross output — duplicative cost, since the head's re-verify widens instead: dedup checks
 AND a re-read of each cited transcript span before the preview. Owner approval stays line-by-line;
-the head writes approved items. **`--yes` never applies to cross runs.**
+the head writes approved items under Step 7, each write clock-stamped. **`--yes` never applies to cross runs.** **Qualified 2026-09-06 (owner ruling):** it does apply to the hands-off boundary form, where a reflector lane reads the head's OWN session at the head's request — the lane proposes, the head re-verifies each proposal (dedup, evidence) and writes only within the `--yes` path bounds (design D36).
+
+**Hands-off boundaries (2026-09-05, hands-off design D36; `--yes` admitted for this form by owner
+ruling 2026-09-06).** At every phase boundary of a hands-off run the head does not run this skill in
+its own context. It builds the lane's inputs with `handsoff.py reflect-inputs --run R --session SID
+--out DIR` (a directory outside the store): the extraction of its own transcript (the human turns and
+the assistant prose, a count file beside them), Step 2b's table rendered from the run record alone
+(every figure read from a field, none recalled, so Step 2b's head-only rule is satisfied by the
+primitive rather than by the head's memory), and a filtered copy of the record that carries no
+control the lane is meant to be blind to (the spawner pre-registers controls with `ledger --phase
+controls-LANE`, which the copy drops). It then spawns a reflector lane (headless, `lane.py`, fenced
+Bash, the routing's model) granted DIR alone beside the wiki and this skill, and it receives the full
+named candidate table including every discard. Before applying any item the head re-verifies it
+exactly as this section prescribes: the dedup checks and a re-read of the cited transcript span. With
+`--yes` the head then writes the items that pass, inside the `--yes` path bounds below and nowhere
+else (create-and-append inside `wiki/`; never `developments/`, `known-issues.md` or any file outside
+the wiki), logging each write as `synthesis`; every item the bounds exclude, and every item that
+fails re-verification, goes to the run's morning report with the full named table for the owner's
+line-by-line approval. Without `--yes` the head applies nothing and the whole table goes to the
+morning report. A cross run over another session's transcript stays outside `--yes` whatever the run.
 
 ## `--yes` — opt-in auto-approval (off by default)
 Set per run (`/reflect --yes`) or as a standing owner setting. It means **writing without waiting, never

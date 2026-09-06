@@ -102,3 +102,6 @@ the freshness line (`query` Step 3b's gate, style-invariant):
 - **British/UK English** and all other CLAUDE.md rules apply.
 - **Not logged by default** — a deliverable is not a brain-update (CLAUDE.md §5). Log only if the user
   asks, or if the run also files a wiki page.
+
+## Deliverable graphics (routing rule, moved here from CLAUDE.md §7 on 2026-09-05)
+`lieflat-charts` for browser-viewed HTML and interactive charts, dashboards and full-page HTML reports (some templates need CDN network); `scientific-figure-making` (from figures4papers) for publication-grade matplotlib figures for papers, theses and slides (PDF or PNG for LaTeX). Rule of thumb: web-viewed → lieflat-charts; print or venue-bound → scientific-figure-making. Both are `auto` rows in `wiki/developments/capability-register.md`.

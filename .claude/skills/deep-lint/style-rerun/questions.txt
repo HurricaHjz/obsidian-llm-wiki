@@ -1,0 +1,3 @@
+engineer: About the way this vault stores its credentials: is it the best design, and can every future credential be stored in the same pattern?
+tutor: I need to register a paper abstract by a deadline and submit the full paper a week later; can the abstract describe the same method and framework as the paper if a result changes in between?
+generalist: why is the context band set at 60%, and what does it mean?

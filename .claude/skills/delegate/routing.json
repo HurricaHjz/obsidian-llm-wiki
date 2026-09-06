@@ -1,10 +1,105 @@
-{"order": {"model": ["haiku", "sonnet", "opus", "fable"], "effort": ["low", "medium", "high", "xhigh", "max"]},
- "roles": {
-  "critic":        {"model": ["opus", "opus", "fable"],     "effort": ["xhigh", "max"]},
-  "planner":       {"model": ["opus", "opus", "fable"],     "effort": ["high", "max"]},
-  "reflector":     {"model": ["opus", "opus", "fable"],     "effort": ["high", "max"]},
-  "verifier":      {"model": ["sonnet", "sonnet", "fable"], "effort": ["high", "max"]},
-  "gate-judge":    {"model": ["opus", "opus", "opus"],      "effort": ["max", "max"]},
-  "wiki-compile":  {"model": ["sonnet", "opus", "fable"],   "effort": ["medium", "max"]},
-  "builder":       {"model": ["sonnet", "opus", "fable"],   "effort": ["high", "max"]},
-  "memory-hunter": {"model": ["sonnet", "sonnet", "fable"], "effort": ["high", "max"]}}}
+{
+  "schema": 2,
+  "order": {
+    "model": ["haiku", "sonnet", "opus", "fable"],
+    "effort": ["low", "medium", "high", "xhigh", "max"]
+  },
+  "classes": {
+    "verifier": {
+      "model":  {"options": ["sonnet", "opus", "fable"], "default": "sonnet"},
+      "effort": {"options": ["high", "xhigh", "max"], "default": "high"},
+      "grants": {"default": ["<claim files>"], "extras": ["wiki", "raw"]},
+      "writes": [],
+      "tools":  ["Read", "Grep", "Glob", "Bash"],
+      "skills": {"default": ["lane-core"], "extras": ["markitdown"]},
+      "mcp":    {"default": [], "grantable": []},
+      "cache":  "1h",
+      "gate":   "G6a passed at sonnet·max; re-gate at high on a snapshot fixture with a fresh head-arm ground truth (≈$9; A12)",
+      "dated":  "model default 2026-08-27 (delegate §2 routing table, G6a); effort default 2026-09-04 (thin-lanes class table, ungated until the A12 re-gate); effort default moved to high on G6a-thin PASS (2026-09-04): target high reached"
+    },
+    "memory-hunter": {
+      "model":  {"options": ["sonnet", "opus"], "default": "sonnet"},
+      "effort": {"options": ["high", "xhigh", "max"], "default": "high"},
+      "grants": {"default": ["wiki"], "extras": ["raw"]},
+      "writes": ["<memory dir>"],
+      "tools":  ["Read", "Grep", "Glob", "Write", "Edit"],
+      "skills": {"default": ["lane-core"], "extras": []},
+      "mcp":    {"default": [], "grantable": []},
+      "cache":  "1h",
+      "gate":   "G6b passed at opus; gate sonnet·high on a snapshot fixture with a fresh head-arm ground truth (≈$13; A12)",
+      "dated":  "model default 2026-08-27 (delegate §2 routing table, G6b at opus); effort default 2026-09-04 (thin-lanes class table, ungated until the A12 gate); effort default moved to high on G6b-thin PASS (2026-09-04): target high reached"
+    },
+    "wiki-compile": {
+      "model":  {"options": ["sonnet", "opus", "fable"], "default": "opus"},
+      "effort": {"options": ["medium", "high", "xhigh", "max"], "default": "xhigh"},
+      "grants": {"default": ["wiki", "<assigned raw files>"], "extras": ["<sibling raw files>", "assets"]},
+      "writes": ["wiki"],
+      "tools":  ["Read", "Grep", "Glob", "Bash", "Write", "Edit"],
+      "skills": {"default": ["lane-core", "compile-core"], "extras": ["markitdown"]},
+      "mcp":    {"default": [], "grantable": []},
+      "cache":  "1h",
+      "gate":   "G3/G4 passed at opus·max with the full contract; re-gate thin at opus·xhigh (≈$40)",
+      "dated":  "model default 2026-09-02 (fable-minimising-routing, G3/G4); effort default 2026-09-04 (thin-lanes class table, ungated until the thin re-gate); effort default moved to xhigh on G3-thin PASS, attempt 2 (2026-09-04): target xhigh reached"
+    },
+    "builder": {
+      "model":  {"options": ["sonnet", "opus", "fable"], "default": "opus"},
+      "effort": {"options": ["high", "xhigh", "max"], "default": "max"},
+      "grants": {"default": ["<target dirs>"], "extras": ["wiki"]},
+      "writes": ["<target dirs>"],
+      "tools":  ["Read", "Grep", "Glob", "Bash", "Write", "Edit"],
+      "skills": {"default": ["lane-core"], "extras": []},
+      "mcp":    {"default": [], "grantable": []},
+      "cache":  "1h",
+      "gate":   "gate on first thin use, in the form of a build the head reproduces (suite green, real-data run re-run by the head)",
+      "dated":  "model default 2026-09-02 (owner routing mandate, definition admitted the same day); effort default 2026-09-04 (thin-lanes class table, ungated until the first thin use); effort default carried as today's value (max): the builder's gate is its first thin use (a build the head reproduces), which has not yet occurred; target high per the thin-lanes class table (2026-09-04)"
+    },
+    "critic": {
+      "model":  {"options": ["opus", "fable"], "default": "opus"},
+      "effort": {"options": ["xhigh", "max"], "default": "max"},
+      "grants": {"default": ["<artefact files>", "<contract files>"], "extras": ["wiki", "raw"]},
+      "writes": [],
+      "tools":  ["Read", "Grep", "Glob", "Bash"],
+      "skills": {"default": ["lane-core"], "extras": []},
+      "mcp":    {"default": [], "grantable": []},
+      "cache":  "1h",
+      "gate":   "no parity form exists for a review lane: the thin shape keeps today's model and effort, its first thin uses metered against the fat-shape record (A21)",
+      "dated":  "model and effort defaults 2026-08-27 (delegate §2 routing table), unchanged by the thin-lanes table (A21)"
+    },
+    "planner": {
+      "model":  {"options": ["opus", "fable"], "default": "opus"},
+      "effort": {"options": ["high", "xhigh", "max"], "default": "max"},
+      "grants": {"default": ["<batch listing>", "wiki", "<assigned raw files>"], "extras": []},
+      "writes": [],
+      "tools":  ["Read", "Grep", "Glob"],
+      "skills": {"default": ["lane-core"], "extras": []},
+      "mcp":    {"default": [], "grantable": []},
+      "cache":  "1h",
+      "gate":   "as the critic row (A21)",
+      "dated":  "model and effort defaults 2026-08-27 (delegate §2 routing table), unchanged by the thin-lanes table (A21); raw grant added 2026-09-04 (A23)"
+    },
+    "reflector": {
+      "model":  {"options": ["opus", "fable"], "default": "opus"},
+      "effort": {"options": ["high", "xhigh", "max"], "default": "max"},
+      "grants": {"default": ["<transcript>"], "extras": ["wiki"]},
+      "writes": [],
+      "tools":  ["Read", "Grep", "Glob", "Bash"],
+      "skills": {"default": ["lane-core", "reflect-slice"], "extras": []},
+      "mcp":    {"default": [], "grantable": []},
+      "cache":  "1h",
+      "gate":   "as the critic row (A21)",
+      "dated":  "model and effort defaults 2026-08-28 (delegate §2 routing table), unchanged by the thin-lanes table (A21); Bash added 2026-09-05 (hands-off design D38: the template's /tmp extraction and runtime nonce need it)"
+    },
+    "gate-judge": {
+      "model":  {"options": ["opus"], "default": "opus"},
+      "effort": {"options": ["max"], "default": "max"},
+      "grants": {"default": ["<fixture>"], "extras": []},
+      "writes": [],
+      "tools":  ["Read", "Grep", "Glob"],
+      "skills": {"default": ["lane-core"], "extras": []},
+      "mcp":    {"default": [], "grantable": []},
+      "cache":  "1h",
+      "gate":   "it is the gate",
+      "dated":  "model and effort fixed 2026-09-02 (a parity gate measures the routed step's executor at its default tier)"
+    }
+  }
+}

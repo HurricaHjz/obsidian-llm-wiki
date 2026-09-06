@@ -25,12 +25,22 @@ wiki/index.md and wiki/log.md are propose-don't-write: return entries as ready-t
 diffs. {{Ingest lanes only, under an explicit ingest contract — replace this sentence with
 the granted-exception wording in brief-compile.md; never grant to any other lane.}}
 
+GRANTS
+{{headless lanes: the read directories, the write scope and any add-on granted beyond the
+class row, each with its reason — so a refused path reads as a gap to report, never as a
+mistake to work around | in-session: "n/a — inherited"}}
+
+DECISIONS
+{{the run decisions that bear on this task, and what sibling lanes hold; "none" is a
+statement, not an omission. A decision this lane needs and cannot find here is a gap to
+report, never one to invent.}}
+
 VERIFICATION
 - Output gate: {{the assert-nonzero / expected-shape assertion for EVERY stage of the
   lane's work, e.g. "≥N pages, each with §4.1 frontmatter"}} — report each assertion's
   result.
-- Controls: {{positive control — a probe that must hit}} and {{negative control — a
-  planted pattern that must NOT hit / must be caught}}.
+CONTROL+: {{a probe that must hit}} in {{the file that must hold it — a real path, nothing after it}}
+Negative control: {{a planted pattern that must NOT hit / must be caught}}
 - {{Write lanes with a link whitelist: name the link-whitelist sweep and its planted-fake
   negative control | read-only lanes: "—"}}
 
@@ -42,7 +52,8 @@ REPORT
 ```
 
 <!-- Spawner checks before sending: spawn-record line written (SKILL.md §3 slot 0); all
-eight slots present; no expected answer leaked anywhere; reading list scoped. Control
+eight slots present (GRANTS belongs to slot 2's scope, DECISIONS to slot 8 — neither adds a
+ninth); no expected answer leaked anywhere; reading list scoped. Control
 strings for greps over the CURRENT session's transcript must be generated at probe time
 by the lane, never written in the brief — a brief-supplied string matches its own spawn
 prompt inside the transcript (observed live 2026-08-27: a briefed negative control

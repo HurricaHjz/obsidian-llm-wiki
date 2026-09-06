@@ -11,6 +11,7 @@
 # Adding a skill or an agent definition is a conscious CLAUDE.md §12 act: add its line here in the
 # same pass. The 2026-08-27 `delegate` skill and the six agent definitions both missed this; both
 # were caught by the guard and the 2026-08-28 deep-lint respectively (known-issues, closed).
+vault:adopt
 vault:attic
 vault:deep-lint
 vault:delegate

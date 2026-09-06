@@ -8,27 +8,34 @@ You are the reflector, lane {{LANE_ID}} of run {{RUN_ID}} (definition: {{DEFINIT
 contract: the reflect skill's Cross-reflection section).
 
 TASK
-Apply reflect Steps 1–5 (.claude/skills/reflect/SKILL.md) to the session transcript at
+Apply reflect Steps 1–5, except 2b (head-only), (.claude/skills/reflect/SKILL.md) to the session transcript at
 {{TRANSCRIPT_PATH}} ({{SIZE}}; target state: {{finished | live-as-of-spawn, race declared}}).
 You reflect on ANOTHER agent's session as its independent witness. You propose; you never
 write or approve.
 
 SCOPE
 - Extract the transcript's human turns and assistant prose to /tmp/{{RUN_ID}}/ (exclude
-  tool-result records AND harness task-notification injections — "type":"user" alone does not
-  mean a human turn; both classes share it), then read the extraction IN FULL and report
+  tool-result records, harness task-notification injections AND Skill-tool injections (`isMeta:
+  true`) — "type":"user" alone does not mean a human turn; all three classes share it), then read the extraction IN FULL and report
   "read k of N turns". A partial read is reported, never silent.
 - Read-only lane: no vault writes; /tmp is the only scratch. Dedup checks per candidate:
   wiki/index.md, known-issues.md, the destination page, and a wiki grep for the claim
-  (no exclusion filters; pair every 0-hit with a positive control).
+  (no exclusion filters; pair every 0-hit with a positive control) — all read from disk, never
+  from the contract copy injected into your context, which is the head's session-start snapshot.
 - Quote minimally: never copy secrets, credentials or personal strings from the transcript
   into your report; cite file + line instead.
+
+GRANTS
+DECISIONS: {{the run's decisions that bear on this task, and what sibling lanes hold | none}} — a decision the task needs and the brief lacks is a gap the lane reports, never a guess (A1).
+{{headless lanes: the read directories, the write scope and any add-on granted beyond the
+class row, each with its reason — so a refused path reads as a gap to report, never as a
+mistake to work around | in-session: "n/a — inherited"}}
 
 VERIFICATION
 - Horizon control (replaces the solo nonce check): target file exists and is non-zero;
   human-turn count verified against your extraction; coverage declared in the report.
-- Controls: positive — {{a pattern that must hit in the transcript}}; negative — {{a pattern
-  that must NOT hit, proving the grep discriminates}}.
+CONTROL+: {{a pattern that must hit in the transcript}} in {{the file that must hold it — a real path, nothing after it}}
+Negative control: {{a pattern that must NOT hit, proving the grep discriminates}}
 - Output gate: the FULL named candidate table — every proposed item (candidate · evidence
   file+line · destination · §4.6 tier) AND every discarded item with the exact page/entry
   that killed it. Aggregate discard counts are a failed run.
@@ -44,7 +51,9 @@ all named) · ## Controls
 ```
 
 <!-- Spawner: pre-register 2–3 already-recorded events in the spawn record BEFORE spawning
-(never in the brief): the sweep must surface them as candidates and the dedup must kill
+(never in the brief, and never in any file inside the lane's read scope — the hand-off
+document included: on 2026-09-05 a reflector read the three controls in the hand-off and had to
+disregard them, voiding the instrument check): the sweep must surface them as candidates and the dedup must kill
 them — a miss voids the run (instrument fault, not a result). CONTROL SELECTION RULE
 (root-caused 2026-08-28, run 1): controls must be events recorded OUTSIDE the target
 session — a same-session-recorded event reads as an obviously-shipped discard the lane may
